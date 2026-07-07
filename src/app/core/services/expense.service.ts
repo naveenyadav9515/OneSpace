@@ -25,6 +25,7 @@ export interface ExpensePayload {
   merchant: string;
   category: string;
   paymentMethod: string;
+  date: string;
   tags: string[];
   notes: string;
 }
@@ -102,6 +103,10 @@ export class ExpenseService {
 
   public createExpense(payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
     return this.http.post<{ status: string, data: Expense }>(`${this.apiUrl}/expenses`, payload);
+  }
+
+  public deleteExpense(id: string): Observable<{ status: string, message: string }> {
+    return this.http.delete<{ status: string, message: string }>(`${this.apiUrl}/expenses/${id}`);
   }
 
   public fetchPendingTransactions(): Observable<{ status: string, data: PendingTransaction[] }> {

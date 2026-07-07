@@ -9,7 +9,7 @@ export type DbConnectionStatus = 'connecting' | 'connected' | 'error';
 
 /** User-facing text constants (i18n-ready — §15.1: no hardcoded strings) */
 export const APP_STRINGS = {
-  APP_NAME: 'P-Dash',
+  APP_NAME: 'MyDesk',
   APP_BADGE_LABEL: 'Angular App',
   WELCOME_SUBTITLE: 'Welcome to your personal dashboard.',
   DB_LABEL: 'MongoDB Atlas',

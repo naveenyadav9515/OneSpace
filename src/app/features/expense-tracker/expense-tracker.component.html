@@ -112,6 +112,14 @@
         </div>
 
         <div class="input-group">
+          <label class="premium-label">Date & Time</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">event</span>
+            <input type="datetime-local" formControlName="date" class="premium-input">
+          </div>
+        </div>
+
+        <div class="input-group">
           <label class="premium-label">Tags (Optional)</label>
           <div class="input-wrapper">
             <span class="material-symbols-outlined input-icon">sell</span>
@@ -184,8 +192,8 @@
 
   <!-- ── Transaction History ── -->
   <section class="flow-item" style="margin-top: 24px;">
-    <div style="padding: 20px; border-radius: 24px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
-      <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+    <div class="history-section-wrap">
+      <div class="history-section-header">
         <div style="display: flex; gap: 12px; align-items: center;">
           <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(168, 85, 247, 0.15);">
             <span class="material-symbols-outlined" style="font-size: 24px;">receipt_long</span>
@@ -209,30 +217,68 @@
           <p class="empty-sub">Your recent expenses will appear here.</p>
         </div>
       } @else {
-        <div class="tx-list">
+        <div class="txn-card-list">
           @for (exp of expenses(); track exp._id) {
-            <div class="tx-item">
-              <div class="tx-icon">
+            <div class="txn-card">
+              <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
                 <span class="material-symbols-outlined">
-                  {{ exp.category === 'Food' ? 'restaurant' : 
-                     exp.category === 'Transport' ? 'directions_car' : 
-                     exp.category === 'Shopping' ? 'local_mall' : 'receipt' }}
+                  {{ exp.category === 'Food' ? 'restaurant' :
+                     exp.category === 'Transport' ? 'directions_car' :
+                     exp.category === 'Shopping' ? 'local_mall' :
+                     exp.category === 'Utilities' ? 'bolt' :
+                     exp.category === 'Entertainment' ? 'movie' :
+                     exp.category === 'Health' ? 'medical_services' : 'home' }}
                 </span>
               </div>
-              <div class="tx-body">
-                <h4 class="tx-merchant">{{ exp.merchant | slice:0:30 }}{{ exp.merchant.length > 30 ? '...' : '' }}</h4>
-                <div class="tx-meta">
-                  <span class="tx-date-method">{{ exp.date | date:'MMM d' }} • {{ exp.paymentMethod }}</span>
+
+              <div class="txn-info">
+                <h4 class="txn-merchant">{{ exp.merchant }}</h4>
+                <div class="txn-meta-row">
+                  <span class="material-symbols-outlined txn-meta-icon">calendar_today</span>
+                  <span>{{ exp.date | date:'MMM d, y' }}</span>
+                  <span class="txn-meta-sep">|</span>
+                  <span class="material-symbols-outlined txn-meta-icon">schedule</span>
+                  <span>{{ exp.date | date:'hh:mm a' }}</span>
+                  <span class="txn-meta-sep">|</span>
+                  <span>{{ exp.paymentMethod }}</span>
+                </div>
+
+                <div class="txn-tags-row">
+                  <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
+                    {{ exp.category === 'Food' ? 'Food & Dining' :
+                       exp.category === 'Transport' ? 'Transport' :
+                       exp.category === 'Shopping' ? 'Shopping' :
+                       exp.category === 'Utilities' ? 'Utilities' :
+                       exp.category === 'Entertainment' ? 'Entertainment' :
+                       exp.category === 'Health' ? 'Healthcare' : exp.category }}
+                  </span>
                   @if (exp.tags && exp.tags.length) {
-                    <span class="tx-tag"> • #{{ exp.tags.join(', #') }}</span>
-                  }
-                  @if (exp.notes) {
-                    <span class="tx-notes"> • {{ exp.notes }}</span>
+                    @for (tag of exp.tags; track tag) {
+                      <span class="txn-tag txn-tag--custom">{{ tag }}</span>
+                    }
                   }
                 </div>
+
+                @if (exp.notes) {
+                  <div class="txn-notes-row">
+                    <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
+                    <span class="txn-notes-text">{{ exp.notes }}</span>
+                  </div>
+                }
               </div>
-              <div class="tx-trailing">
-                <span class="tx-amount">₹{{ exp.amount | number:'1.0-0' }}</span>
+
+              <div class="txn-right-block">
+                <div class="txn-actions">
+                  <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="deleteExpense(exp._id)">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+                <div class="txn-amount-block">
+                  <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+                </div>
               </div>
             </div>
           }
@@ -242,3 +288,30 @@
   </section>
 
 </div>
+
+<app-modal
+  [isOpen]="deleteConfirmId() !== null"
+  title="Delete Transaction"
+  icon="warning"
+  (onClose)="cancelDelete()"
+>
+  <div style="text-align: center; padding: 10px 0 20px;">
+    <p style="color: var(--lm-color-text-secondary); margin-bottom: 24px; font-size: 15px;">
+      Are you sure you want to delete this transaction? This action cannot be undone.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button 
+        type="button" 
+        (click)="cancelDelete()" 
+        style="padding: 10px 24px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); cursor: pointer; font-weight: 600;">
+        Cancel
+      </button>
+      <button 
+        type="button" 
+        (click)="confirmDelete()" 
+        style="padding: 10px 24px; border-radius: 12px; background: var(--lm-color-error); border: 1px solid var(--lm-color-error); color: #fff; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);">
+        Delete
+      </button>
+    </div>
+  </div>
+</app-modal>

@@ -15,19 +15,19 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [authGuard],
-    title: 'P-Dash'
+    title: 'MyDesk'
   },
   {
     path: 'auth',
     loadComponent: () => import('./layouts/auth-layout/auth-layout').then(m => m.AuthLayout),
     canActivate: [guestGuard],
     children: [
-      { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.Login), title: 'Login - P-Dash' },
-      { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.Register), title: 'Register - P-Dash' },
+      { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.Login), title: 'Login - MyDesk' },
+      { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.Register), title: 'Register - MyDesk' },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
-  { path: 'upcoming-features', loadComponent: () => import('./features/feature-log/feature-log.component').then(m => m.FeatureLogComponent), title: 'P-Dash — Features Log' },
+  { path: 'upcoming-features', loadComponent: () => import('./features/feature-log/feature-log.component').then(m => m.FeatureLogComponent), title: 'MyDesk — Features Log' },
   { path: 'expenses', loadComponent: () => import('./features/expense-tracker/expense-tracker.component').then(m => m.ExpenseTrackerComponent), canActivate: [authGuard], title: 'Expense Tracker' },
   { path: '**', redirectTo: '' },
 ];

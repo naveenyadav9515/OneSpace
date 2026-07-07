@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 import {
   Expense,
   ExpensePayload,
@@ -14,7 +15,7 @@ import { environment } from '@env/environment';
 @Component({
   selector: 'app-expense-tracker',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ModalComponent],
   templateUrl: './expense-tracker.component.html',
   styleUrl: './expense-tracker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,8 +30,10 @@ export class ExpenseTrackerComponent implements OnInit {
   protected readonly expenses = signal<Expense[]>([]);
   protected readonly pendingTransactions = signal<PendingTransaction[]>([]);
   protected readonly isLoading = signal<boolean>(false);
-  protected readonly isAdding = signal<boolean>(false);
-  protected readonly activePendingId = signal<string | null>(null);
+  // UI State
+  protected isAdding = signal(false);
+  protected activePendingId = signal<string | null>(null);
+  protected deleteConfirmId = signal<string | null>(null);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
 
   protected readonly expenseForm = this.fb.nonNullable.group({
@@ -38,9 +41,16 @@ export class ExpenseTrackerComponent implements OnInit {
     merchant: ['', Validators.required],
     category: ['Food', Validators.required],
     paymentMethod: ['UPI', Validators.required],
+    date: [this.getCurrentDateTimeLocal(), Validators.required],
     tags: [''],
     notes: ['']
   });
+
+  private getCurrentDateTimeLocal(): string {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  }
 
   ngOnInit() {
     this.fetchExpenses();
@@ -120,20 +130,60 @@ export class ExpenseTrackerComponent implements OnInit {
     });
   }
 
-  protected reviewPending(ptx: PendingTransaction) {
+  protected reviewPending(ptx: PendingTransaction | Expense) {
     this.activePendingId.set(ptx._id);
     this.expenseForm.patchValue({
       amount: ptx.amount,
       merchant: ptx.merchant,
       paymentMethod: ptx.paymentMethod,
-      category: ptx.category || 'Food'
+      category: ptx.category || 'Food',
+      date: ptx.date ? new Date(new Date(ptx.date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal()
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected deleteExpense(id: string) {
+    this.deleteConfirmId.set(id);
+  }
+
+  protected confirmDelete() {
+    const id = this.deleteConfirmId();
+    if (!id) return;
+    
+    this.expenseService.deleteExpense(id).subscribe({
+      next: () => {
+        this.fetchExpenses();
+        this.expenseService.fetchSummary().subscribe();
+        this.deleteConfirmId.set(null);
+      },
+      error: (err) => {
+        console.error('Error deleting expense', err);
+        this.deleteConfirmId.set(null);
+      }
+    });
+  }
+
+  protected cancelDelete() {
+    this.deleteConfirmId.set(null);
+  }
+
+  protected editExpense(exp: Expense) {
+    this.activePendingId.set(null);
+    this.expenseForm.patchValue({
+      amount: exp.amount,
+      merchant: exp.merchant,
+      paymentMethod: exp.paymentMethod,
+      category: exp.category || 'Food',
+      date: exp.date ? new Date(new Date(exp.date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal(),
+      tags: exp.tags?.join(', ') || '',
+      notes: exp.notes || ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected cancelReview() {
     this.activePendingId.set(null);
-    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI' });
+    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
   }
 
   protected simulateAutoLog() {
@@ -152,6 +202,7 @@ export class ExpenseTrackerComponent implements OnInit {
     const payload: ExpensePayload = {
       ...rawValue,
       amount: Number(rawValue.amount),
+      date: new Date(rawValue.date).toISOString(),
       tags: rawValue.tags ? rawValue.tags.split(',').map((t: string) => t.trim()) : []
     };
 
@@ -163,7 +214,7 @@ export class ExpenseTrackerComponent implements OnInit {
         next: () => {
           this.isAdding.set(false);
           this.activePendingId.set(null);
-          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI' });
+          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
           this.fetchPendingTransactions();
           this.fetchExpenses(); // Refresh list
         },
@@ -173,7 +224,7 @@ export class ExpenseTrackerComponent implements OnInit {
       this.expenseService.createExpense(payload).subscribe({
         next: () => {
           this.isAdding.set(false);
-          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI' });
+          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
           this.fetchExpenses(); // Refresh list
         },
         error: () => this.isAdding.set(false)

@@ -1,6 +1,6 @@
 {
-  "name": "P-Dash — Personal Hub",
-  "short_name": "P-Dash",
+  "name": "MyDesk — Personal Hub",
+  "short_name": "MyDesk",
   "description": "Your unified personal dashboard for notes, finance, travel, reminders, and more.",
   "display": "standalone",
   "scope": "./",

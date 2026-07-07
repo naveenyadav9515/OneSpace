@@ -60,7 +60,10 @@ export class ApiService {
       timeout(this.REQUEST_TIMEOUT_MS),
       retry({
         count: 8,
-        delay: () => timer(5000)
+        delay: (error) => {
+          if (error.status >= 400 && error.status < 500) return throwError(() => error);
+          return timer(5000);
+        }
       }),
       catchError((error: unknown) => {
         return throwError(() => error);
@@ -77,7 +80,10 @@ export class ApiService {
       timeout(this.REQUEST_TIMEOUT_MS),
       retry({
         count: 8,
-        delay: () => timer(5000)
+        delay: (error) => {
+          if (error.status >= 400 && error.status < 500) return throwError(() => error);
+          return timer(5000);
+        }
       }),
       catchError((error: unknown) => throwError(() => error))
     );

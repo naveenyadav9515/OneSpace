@@ -83,7 +83,10 @@ export class ExpenseService {
     return this.http.get<{ status: string, data: ExpenseSummary }>(`${this.apiUrl}/expenses/summary`).pipe(
       retry({
         count: 8,
-        delay: () => timer(5000)
+        delay: (error) => {
+          if (error.status >= 400 && error.status < 500) return throwError(() => error);
+          return timer(5000);
+        }
       }),
       tap({
         next: (res) => {

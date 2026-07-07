@@ -188,14 +188,7 @@ export class DashboardComponent {
     });
 
     this.expenseService.fetchSummary().subscribe();
-    
-    // Start background sync of expenses as soon as the app loads
-    this.expenseService.syncExpenses().subscribe({
-      error: (err) => console.error('Background sync failed on load', err)
-    });
-
-
-
+  }
 
   /** Gets fallback icon name based on feature name */
   private getIconForFeature(name: string): string {

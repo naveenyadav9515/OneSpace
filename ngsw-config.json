@@ -39,19 +39,6 @@
         "maxSize": 20,
         "maxAge": "365d"
       }
-    },
-    {
-      "name": "api-data",
-      "urls": [
-        "/api/**",
-        "https://pdash-services-latest.onrender.com/api/**"
-      ],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 50,
-        "maxAge": "1h",
-        "timeout": "30s"
-      }
     }
   ]
 }

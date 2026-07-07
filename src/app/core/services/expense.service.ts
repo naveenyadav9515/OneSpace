@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, retry, timer } from 'rxjs';
+import { Observable, tap, retry, timer, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 
 export interface Expense {

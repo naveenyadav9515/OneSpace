@@ -33,4 +33,4 @@ ENV PORT=4000
 ENV NODE_ENV=production
 
 # Run the Angular SSR server
-CMD ["node", "dist/pdash-ui/server/server.mjs"]
+CMD ["node", "dist/onespace/server/server.mjs"]

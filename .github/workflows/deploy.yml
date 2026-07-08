@@ -3,10 +3,11 @@ name: Build, Push & Deploy
 on:
   push:
     branches:
-      - main
+      - staging
+      - release
 
 env:
-  IMAGE_NAME: ghcr.io/naveenyadav9515/pdash-ui
+  IMAGE_NAME: ghcr.io/naveenyadav9515/onespace-ui
 
 jobs:
   deploy:

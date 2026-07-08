@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "onespace-ui": {
+    "onespace": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -94,13 +94,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "release": {
-              "buildTarget": "onespace-ui:build:release"
+              "buildTarget": "onespace:build:release"
             },
             "staging": {
-              "buildTarget": "onespace-ui:build:staging"
+              "buildTarget": "onespace:build:staging"
             },
             "development": {
-              "buildTarget": "onespace-ui:build:development"
+              "buildTarget": "onespace:build:development"
             }
           },
           "defaultConfiguration": "development"

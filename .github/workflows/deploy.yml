@@ -7,7 +7,7 @@ on:
       - release
 
 env:
-  IMAGE_NAME: ghcr.io/naveenyadav9515/onespace-ui
+  IMAGE_NAME: ghcr.io/naveenyadav9515/onespace
 
 jobs:
   deploy:

@@ -10,8 +10,10 @@ RUN npm ci
 # Copy application source code
 COPY . .
 
-# Run production build
-RUN npm run build
+# Accept build environment (release or staging)
+ARG BUILD_ENV=release
+# Run the specific build
+RUN npm run build:${BUILD_ENV}
 
 # Stage 2: Runner
 FROM node:24-alpine AS runner

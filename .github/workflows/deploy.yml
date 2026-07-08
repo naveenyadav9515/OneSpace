@@ -23,6 +23,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1.5 Set environment variables based on branch
+      - name: Set Environment Variables
+        run: |
+          if [ "${{ github.ref_name }}" == "release" ]; then
+            echo "IMAGE_TAG=release" >> $GITHUB_ENV
+            echo "RENDER_HOOK=${{ secrets.RENDER_RELEASE_DEPLOY_HOOK }}" >> $GITHUB_ENV
+            echo "BUILD_ENV=release" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=staging" >> $GITHUB_ENV
+            echo "RENDER_HOOK=${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" >> $GITHUB_ENV
+            echo "BUILD_ENV=staging" >> $GITHUB_ENV
+          fi
+
       # 2. Set up Docker Buildx for efficient builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,11 +55,18 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            BUILD_ENV=${{ env.BUILD_ENV }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       # 5. Trigger fresh deployment on Render
       - name: Deploy to Render
-        run: curl -s "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        run: |
+          if [ -z "${{ env.RENDER_HOOK }}" ]; then
+            echo "Warning: RENDER_HOOK is empty. Skipping Render deployment trigger."
+          else
+            curl -s "${{ env.RENDER_HOOK }}"
+          fi

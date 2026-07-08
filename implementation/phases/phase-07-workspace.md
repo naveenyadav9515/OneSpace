@@ -25,7 +25,7 @@
 
 ### Feature 7.2.1: Main Layout Shell
 - [ ] Build `layouts/main-layout/main-layout.component.ts`
-- [ ] Header: App Name (P-Dash), Theme toggle, Search icon, Edit Mode toggle
+- [ ] Header: App Name (OneSpace), Theme toggle, Search icon, Edit Mode toggle
 - [ ] Content area: `<router-outlet>` allowing scrolling behind footer
 - [ ] Footer slot for workspace navigation
 

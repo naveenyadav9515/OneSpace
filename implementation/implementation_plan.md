@@ -1,4 +1,4 @@
-# P-Dash: UI Implementation Plan
+# OneSpace: UI Implementation Plan
 > A mobile-first Personal Dashboard PWA
 
 This document serves as the master blueprint for frontend development, optimized for AI-assisted workflows. 

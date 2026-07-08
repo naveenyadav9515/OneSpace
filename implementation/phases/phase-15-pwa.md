@@ -14,7 +14,7 @@
 
 ### Feature 15.1.2: Web App Manifest
 - [ ] Configure `manifest.webmanifest`
-- [ ] App Name: P-Dash
+- [ ] App Name: OneSpace
 - [ ] Generate and link icons (72px - 512px)
 - [ ] Set display mode: `standalone`
 - [ ] Set theme colors to match Deep Space theme

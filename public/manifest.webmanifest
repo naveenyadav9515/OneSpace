@@ -1,6 +1,6 @@
 {
-  "name": "MyDesk — Personal Hub",
-  "short_name": "MyDesk",
+  "name": "OneSpace — Personal Hub",
+  "short_name": "OneSpace",
   "description": "Your unified personal dashboard for notes, finance, travel, reminders, and more.",
   "display": "standalone",
   "scope": "./",

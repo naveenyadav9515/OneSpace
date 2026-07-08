@@ -1,6 +1,6 @@
 # Phase 1: Core Infrastructure & Configuration (Frontend)
 
-> Set up the P-Dash design system (CSS tokens, glassmorphism), shared component library, and theme service.
+> Set up the OneSpace design system (CSS tokens, glassmorphism), shared component library, and theme service.
 
 ---
 

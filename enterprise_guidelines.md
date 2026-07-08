@@ -1,6 +1,6 @@
 # Enterprise Frontend (Angular) — Architectural & Development Guidelines
 
-This document defines the strict engineering standards, architectural patterns, and development practices governing all frontend changes in the **P-Dash Personal Hub** Angular 20 application. Every feature, component, and service must comply with these guidelines to ensure production-grade quality, maintainability, accessibility, performance, and operational excellence.
+This document defines the strict engineering standards, architectural patterns, and development practices governing all frontend changes in the **OneSpace Personal Hub** Angular 20 application. Every feature, component, and service must comply with these guidelines to ensure production-grade quality, maintainability, accessibility, performance, and operational excellence.
 
 ---
 
@@ -260,9 +260,9 @@ Implement the following interceptors in `core/interceptors/`:
 * **Global Design System**: Define core HSL color palettes, typography scales, spacing tokens, and utility classes in `src/styles.scss` or dedicated SCSS partials.
 * **CSS Custom Properties**: Use `--lm-*` prefixed CSS custom properties for all design tokens.
 
-## 8.2. P-Dash Adaptive Design System Compliance
+## 8.2. OneSpace Adaptive Design System Compliance
 
-All UI work must conform to the P-Dash Adaptive specifications:
+All UI work must conform to the OneSpace Adaptive specifications:
 
 * **Glassmorphism**: Use refractive layers (`.glass-mantle`, `.glass-card`, `.glass-float`) with `backdrop-filter: blur()`.
 * **Etched Borders**: Every glass element must have a 0.5px or 1px border using `.border-etched`.

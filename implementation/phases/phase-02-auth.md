@@ -25,7 +25,7 @@
 
 ### Feature 2.2.1: Auth Layout Shell
 - [x] **Completed** - Build `layouts/auth-layout/auth-layout.component.ts`
-- [x] **Completed** - Minimal centered card layout with P-Dash branding
+- [x] **Completed** - Minimal centered card layout with OneSpace branding
 - [x] **Completed** - Dark/Light mode toggle in the corner
 
 ### Feature 2.2.2: Login Page

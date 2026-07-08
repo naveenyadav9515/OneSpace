@@ -1,6 +1,6 @@
-# PDash-UI - Frontend Development Guide
+# OneSpace-UI - Frontend Development Guide
 
-This is the developer guide for the **PDash-UI** frontend application. The application is built using Angular 19+ with SSR (Server-Side Rendering) capabilities.
+This is the developer guide for the **OneSpace-UI** frontend application. The application is built using Angular 19+ with SSR (Server-Side Rendering) capabilities.
 
 ---
 
@@ -15,7 +15,7 @@ To maintain fast feedback loops, run the dev server locally with hot-reloading i
 
 ### Launching the Frontend
 
-1. Open a terminal in this directory (`PDash-UI`).
+1. Open a terminal in this directory (`OneSpace-UI`).
 2. Install dependencies:
    ```bash
    npm install

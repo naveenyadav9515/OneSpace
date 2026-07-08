@@ -26,8 +26,8 @@ export class AuthService {
   /** Computed signal indicating if the user is authenticated at all */
   public readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
 
-  private readonly STORAGE_KEY_TOKEN = 'pdash-auth-token';
-  private readonly STORAGE_KEY_USER = 'pdash-auth-user';
+  private readonly STORAGE_KEY_TOKEN = 'onespace-auth-token';
+  private readonly STORAGE_KEY_USER = 'onespace-auth-user';
   private readonly isBrowser: boolean;
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {

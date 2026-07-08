@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "pdash-ui": {
+    "onespace-ui": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -94,13 +94,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "release": {
-              "buildTarget": "pdash-ui:build:release"
+              "buildTarget": "onespace-ui:build:release"
             },
             "staging": {
-              "buildTarget": "pdash-ui:build:staging"
+              "buildTarget": "onespace-ui:build:staging"
             },
             "development": {
-              "buildTarget": "pdash-ui:build:development"
+              "buildTarget": "onespace-ui:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -49,13 +49,13 @@ To compile the production build inside a container, use the provided `Dockerfile
 ### Build the Docker Image
 
 ```bash
-docker build -t ghcr.io/naveenyadav9515/pdash-ui:latest .
+docker build -t ghcr.io/naveenyadav9515/onespace-ui:latest .
 ```
 
 ### Push the Image to GitHub Container Registry (GHCR)
 
 ```bash
-docker push ghcr.io/naveenyadav9515/pdash-ui:latest
+docker push ghcr.io/naveenyadav9515/onespace-ui:latest
 ```
 
 ---
@@ -64,6 +64,6 @@ docker push ghcr.io/naveenyadav9515/pdash-ui:latest
 
 When setting up your Web Service on Render:
 
-1. **Source Image**: `ghcr.io/naveenyadav9515/pdash-ui:latest`
+1. **Source Image**: `ghcr.io/naveenyadav9515/onespace-ui:latest`
 2. **Environment Variables**: None required.
 3. **Health Check Path**: `/`

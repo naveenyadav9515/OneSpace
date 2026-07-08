@@ -11,7 +11,7 @@ export class ThemeService {
   private themeSignal = signal<ThemeType>('dark');
   public readonly currentTheme = this.themeSignal.asReadonly();
 
-  private readonly STORAGE_KEY = 'pdash-theme';
+  private readonly STORAGE_KEY = 'onespace-theme';
   private readonly isBrowser: boolean;
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {

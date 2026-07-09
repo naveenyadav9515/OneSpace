@@ -30,11 +30,11 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" == "release" ]; then
             echo "IMAGE_TAG=release" >> $GITHUB_ENV
-            echo "RENDER_HOOK=${{ secrets.RENDER_RELEASE_DEPLOY_HOOK }}" >> $GITHUB_ENV
+            echo "RENDER_HOOK=https://api.render.com/deploy/srv-d973paojs32c73bn2a10?key=_t1NEBxe8m8" >> $GITHUB_ENV
             echo "BUILD_ENV=release" >> $GITHUB_ENV
           else
             echo "IMAGE_TAG=staging" >> $GITHUB_ENV
-            echo "RENDER_HOOK=${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" >> $GITHUB_ENV
+            echo "RENDER_HOOK=https://api.render.com/deploy/srv-d973927avr4c73cvb6o0?key=sZ20XjZxvsE" >> $GITHUB_ENV
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
           fi
 

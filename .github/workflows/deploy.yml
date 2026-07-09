@@ -15,13 +15,15 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
       # 1. Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # 1.5 Set environment variables based on branch
       - name: Set Environment Variables
@@ -39,6 +41,33 @@ jobs:
       # 2. Set up Docker Buildx for efficient builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      # 2.5 Automated Version Bump
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Automatic Version Bump
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Determine version bump based on Conventional Commits
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          
+          if echo "$COMMIT_MSG" | grep -qE "^[a-zA-Z]+!:" || echo "$COMMIT_MSG" | grep -q "BREAKING CHANGE"; then
+            echo "Major bump requested"
+            npm version major -m "chore: bump version to %s [skip ci]"
+          elif echo "$COMMIT_MSG" | grep -qE "^feat:"; then
+            echo "Minor bump requested"
+            npm version minor -m "chore: bump version to %s [skip ci]"
+          else
+            echo "Defaulting to patch bump"
+            npm version patch -m "chore: bump version to %s [skip ci]"
+          fi
+          
+          git push origin HEAD:${{ github.ref_name }} --tags
 
       # 3. Log in to GitHub Container Registry
       - name: Log in to GHCR

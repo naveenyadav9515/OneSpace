@@ -51,6 +51,7 @@ jobs:
           node-version: '20'
 
       - name: Automatic Version Bump
+        if: github.ref_name == 'release'
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |

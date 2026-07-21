@@ -20,6 +20,13 @@ export interface PendingTransaction extends Expense {
   source?: 'gmail_auto' | 'manual' | 'simulated';
 }
 
+export interface AutomationStatus {
+  gmailConnected: boolean;
+  expenseAutomationEnabled: boolean;
+  enabledBanks: string[];
+  supportedBanks: string[];
+}
+
 export interface ExpensePayload {
   amount: number;
   merchant: string;
@@ -153,6 +160,29 @@ export class ExpenseService {
     return this.http.post<{ status: string, message: string }>(
       `${this.apiUrl}/auth/google/connect`,
       { code, redirectUri }
+    );
+  }
+
+  public fetchAutomationStatus(): Observable<{ status: string, data: AutomationStatus }> {
+    return this.http.get<{ status: string, data: AutomationStatus }>(
+      `${this.apiUrl}/expenses/automation/status`
+    );
+  }
+
+  public updateAutomationSettings(payload: {
+    expenseAutomationEnabled?: boolean;
+    enabledBanks?: string[];
+  }): Observable<{ status: string, message: string, data: any }> {
+    return this.http.patch<{ status: string, message: string, data: any }>(
+      `${this.apiUrl}/expenses/automation/settings`,
+      payload
+    );
+  }
+
+  public disconnectGmail(): Observable<{ status: string, message: string }> {
+    return this.http.post<{ status: string, message: string }>(
+      `${this.apiUrl}/expenses/automation/disconnect`,
+      {}
     );
   }
 }

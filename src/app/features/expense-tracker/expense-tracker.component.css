@@ -628,3 +628,115 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   cursor: not-allowed;
 }
 
+/* ── Gmail Automation Settings Styles ── */
+.premium-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+.settings-btn {
+  border: var(--lm-border-subtle);
+  background: var(--lm-color-surface);
+  color: var(--lm-color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--lm-transition-fast);
+  box-shadow: var(--lm-shadow-card);
+  outline: none;
+}
+
+.settings-btn:hover,
+.settings-btn.active {
+  color: var(--lm-color-primary);
+  background: var(--lm-color-surface-hover);
+  border-color: rgba(167, 139, 250, 0.2);
+}
+
+.settings-btn:hover .material-symbols-outlined {
+  transform: rotate(45deg);
+}
+
+.settings-btn .material-symbols-outlined {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: .4s;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--lm-color-text-muted);
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: rgba(167, 139, 250, 0.15);
+  border-color: var(--lm-color-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+  background-color: var(--lm-color-primary);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Status Indicator Dot */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--lm-color-error);
+  display: inline-block;
+  box-shadow: 0 0 8px var(--lm-color-error);
+}
+
+.status-indicator.connected {
+  background-color: var(--lm-color-success);
+  box-shadow: 0 0 8px var(--lm-color-success);
+}
+

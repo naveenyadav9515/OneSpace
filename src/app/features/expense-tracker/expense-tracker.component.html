@@ -22,9 +22,9 @@
       
       <!-- Actions Area -->
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="settings-btn premium-action-btn" (click)="connectGmail()" title="Connect Gmail">
-          <span class="material-symbols-outlined btn-icon" style="color: #DB4437;">mail</span>
-          <span class="btn-text">Connect Gmail</span>
+        <button class="settings-btn premium-action-btn" (click)="toggleAutomationSettings()" title="Automation Settings" [class.active]="isSettingsOpen()">
+          <span class="material-symbols-outlined btn-icon" style="color: var(--lm-color-primary);">settings</span>
+          <span class="btn-text">Automation Settings</span>
         </button>
         @if (canSimulateAutoLog) {
           <button class="settings-btn premium-action-btn" (click)="simulateAutoLog()" title="Simulate Auto-Log">
@@ -36,6 +36,102 @@
       
     </div>
   </header>
+
+  <!-- ── Automation Settings Panel ── -->
+  @if (isSettingsOpen()) {
+    <section class="flow-item fade-in-bottom">
+      <div style="padding: 24px; border-radius: 24px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--lm-color-border); margin-bottom: 24px;">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(167, 139, 250, 0.12);">
+              <span class="material-symbols-outlined">settings_suggest</span>
+            </div>
+            <div>
+              <h2 class="card-name" style="font-size: 20px; font-weight: 700;">Automation Engine</h2>
+              <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Optional background transaction alerts</p>
+            </div>
+          </div>
+          <button class="settings-btn" (click)="toggleAutomationSettings()" title="Close Settings" style="border: 1px solid var(--lm-color-border); width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0;">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--lm-color-text-primary);">close</span>
+          </button>
+        </div>
+
+        <!-- Settings Body -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Core Toggle -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;">
+            <div style="max-width: 80%;">
+              <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--lm-color-text-primary);">Enable Automatic Transaction Detection</h3>
+              <p style="font-size: 12px; color: var(--lm-color-text-muted); line-height: 1.4;">
+                This feature securely reads supported bank transaction emails in your Gmail inbox to suggest expense entries in the background. Every transaction must be confirmed by you before it's saved.
+              </p>
+            </div>
+            
+            <label class="switch">
+              <input type="checkbox" [checked]="automationStatus()?.expenseAutomationEnabled" (change)="handleAutomationToggle(toggle.checked)" #toggle>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <!-- Connection Status Card -->
+          @if (automationStatus()?.expenseAutomationEnabled) {
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;" class="fade-in-bottom">
+              <div>
+                <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--lm-color-text-primary);">Gmail Connection</h3>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="status-indicator" [class.connected]="automationStatus()?.gmailConnected"></span>
+                  <span style="font-size: 13px; color: var(--lm-color-text-secondary);">
+                    {{ automationStatus()?.gmailConnected ? 'Connected' : 'Disconnected' }}
+                  </span>
+                </div>
+              </div>
+
+              @if (automationStatus()?.gmailConnected) {
+                <button (click)="disconnectGmail()" [disabled]="isSavingSettings()" class="settings-btn" style="border: 1px solid var(--lm-color-error); background: rgba(225, 29, 72, 0.08); color: var(--lm-color-error); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">link_off</span> Disconnect Gmail
+                </button>
+              } @else {
+                <button (click)="connectGmail()" class="settings-btn" style="border: 1px solid var(--lm-color-success); background: rgba(34, 197, 94, 0.08); color: var(--lm-color-success); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">link</span> Connect Gmail
+                </button>
+              }
+            </div>
+
+            <!-- Supported Banks Section -->
+            @if (automationStatus()?.gmailConnected) {
+              <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;" class="fade-in-bottom">
+                <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--lm-color-text-primary);">Supported Banks</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  @for (bank of automationStatus()?.supportedBanks; track bank) {
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="color: var(--lm-color-primary);">account_balance</span>
+                        <span style="font-size: 14px; font-weight: 500;">{{ bank }} Bank</span>
+                      </div>
+                      <input type="checkbox" [checked]="automationStatus()?.enabledBanks?.includes(bank)" (change)="handleBankToggle(bank, bankCheckbox.checked)" #bankCheckbox style="width: 18px; height: 18px; accent-color: var(--lm-color-primary); cursor: pointer;">
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Privacy/Security Notice -->
+          <div style="background: rgba(255, 255, 255, 0.01); border-left: 3px solid var(--lm-color-primary); border-radius: 4px 12px 12px 4px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start;">
+            <span class="material-symbols-outlined" style="color: var(--lm-color-primary); font-size: 20px; margin-top: 2px;">security</span>
+            <p style="font-size: 11.5px; color: var(--lm-color-text-muted); line-height: 1.5; margin: 0;">
+              <strong>Least-Privilege Security Policy:</strong> Your data and access tokens remain exclusively on the backend. Emails are never modified, deleted, archived, sent, or marked as read. We only look for debit alert messages matching registered banking templates.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  }
 
   <!-- ── Add Expense Card ── -->
   <section class="flow-item">

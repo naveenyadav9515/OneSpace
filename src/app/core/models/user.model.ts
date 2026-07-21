@@ -8,4 +8,6 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   createdAt?: string;
+  gmailConnected?: boolean;
+  expenseAutomationEnabled?: boolean;
 }

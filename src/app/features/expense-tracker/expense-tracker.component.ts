@@ -7,7 +7,8 @@ import {
   Expense,
   ExpensePayload,
   ExpenseService,
-  PendingTransaction
+  PendingTransaction,
+  AutomationStatus
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
 import { environment } from '@env/environment';
@@ -30,8 +31,12 @@ export class ExpenseTrackerComponent implements OnInit {
   protected readonly expenses = signal<Expense[]>([]);
   protected readonly pendingTransactions = signal<PendingTransaction[]>([]);
   protected readonly isLoading = signal<boolean>(false);
+  protected readonly automationStatus = signal<AutomationStatus | null>(null);
+  
   // UI State
   protected isAdding = signal(false);
+  protected isSettingsOpen = signal(false);
+  protected isSavingSettings = signal(false);
   protected activePendingId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
@@ -55,6 +60,7 @@ export class ExpenseTrackerComponent implements OnInit {
   ngOnInit() {
     this.fetchExpenses();
     this.fetchPendingTransactions();
+    this.fetchAutomationStatus();
     
     // Check for Google OAuth code
     this.route.queryParams.subscribe(params => {
@@ -70,6 +76,7 @@ export class ExpenseTrackerComponent implements OnInit {
     this.expenseService.completeGmailConnection(code, redirectUri).subscribe({
       next: () => {
         this.notificationService.success('Gmail connected for automated logging', 'Connected');
+        this.fetchAutomationStatus();
         this.router.navigate([], { queryParams: { code: null, scope: null, authuser: null, prompt: null }, queryParamsHandling: 'merge' });
       },
       error: (err) => {
@@ -89,6 +96,86 @@ export class ExpenseTrackerComponent implements OnInit {
       error: (err) => {
         console.error('Failed to get auth URL', err);
         this.notificationService.error('Gmail connection is not configured yet.', 'Connection Failed');
+      }
+    });
+  }
+
+  protected fetchAutomationStatus() {
+    this.expenseService.fetchAutomationStatus().subscribe({
+      next: (res) => {
+        this.automationStatus.set(res.data);
+      },
+      error: (err) => console.error('Error fetching automation status', err)
+    });
+  }
+
+  protected toggleAutomationSettings() {
+    this.isSettingsOpen.update(open => !open);
+  }
+
+  protected handleAutomationToggle(enabled: boolean) {
+    if (enabled && !this.automationStatus()?.gmailConnected) {
+      this.connectGmail();
+    } else {
+      this.isSavingSettings.set(true);
+      this.expenseService.updateAutomationSettings({
+        expenseAutomationEnabled: enabled
+      }).subscribe({
+        next: (res) => {
+          this.isSavingSettings.set(false);
+          this.fetchAutomationStatus();
+          this.notificationService.success(
+            enabled ? 'Transaction detection enabled' : 'Transaction detection disabled',
+            'Settings Saved'
+          );
+        },
+        error: (err) => {
+          this.isSavingSettings.set(false);
+          console.error('Error updating automation settings', err);
+          this.notificationService.error('Failed to update automation settings', 'Error');
+        }
+      });
+    }
+  }
+
+  protected handleBankToggle(bank: string, checked: boolean) {
+    const status = this.automationStatus();
+    if (!status) return;
+
+    let currentBanks = [...status.enabledBanks];
+    if (checked) {
+      if (!currentBanks.includes(bank)) currentBanks.push(bank);
+    } else {
+      currentBanks = currentBanks.filter(b => b !== bank);
+    }
+
+    this.isSavingSettings.set(true);
+    this.expenseService.updateAutomationSettings({
+      enabledBanks: currentBanks
+    }).subscribe({
+      next: () => {
+        this.isSavingSettings.set(false);
+        this.fetchAutomationStatus();
+      },
+      error: (err) => {
+        this.isSavingSettings.set(false);
+        console.error('Error updating bank settings', err);
+      }
+    });
+  }
+
+  protected disconnectGmail() {
+    this.isSavingSettings.set(true);
+    this.expenseService.disconnectGmail().subscribe({
+      next: () => {
+        this.isSavingSettings.set(false);
+        this.fetchAutomationStatus();
+        this.notificationService.success('Gmail disconnected successfully', 'Disconnected');
+      },
+      error: (err) => {
+        this.isSavingSettings.set(false);
+        console.error('Error disconnecting Gmail', err);
+        this.notificationService.error('Failed to disconnect Gmail', 'Error');
       }
     });
   }

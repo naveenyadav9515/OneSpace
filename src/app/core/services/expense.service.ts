@@ -140,8 +140,8 @@ export class ExpenseService {
     );
   }
 
-  public syncExpenses(): Observable<{ status: string, message: string }> {
-    return this.http.post<{ status: string, message: string }>(`${this.apiUrl}/expenses/sync`, {});
+  public syncExpenses(): Observable<{ status: string, message: string, data?: any }> {
+    return this.http.post<{ status: string, message: string, data?: any }>(`${this.apiUrl}/expenses/sync`, {});
   }
 
   public getGmailConnectionUrl(

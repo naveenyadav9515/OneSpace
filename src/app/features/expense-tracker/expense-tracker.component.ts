@@ -39,6 +39,8 @@ export class ExpenseTrackerComponent implements OnInit {
   protected isSavingSettings = signal(false);
   protected activePendingId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
+  protected isSyncing = signal(false);
+  protected debugEmails = signal<any[]>([]);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
 
   protected readonly expenseForm = this.fb.nonNullable.group({
@@ -67,6 +69,32 @@ export class ExpenseTrackerComponent implements OnInit {
       const code = params['code'];
       if (code) {
         this.completeGmailConnection(code);
+      }
+    });
+  }
+
+  /**
+   * Manually triggers Gmail sync via the refresh button.
+   * Gmail sync only happens via Pub/Sub or this manual action — never on page load.
+   */
+  protected syncGmailManually() {
+    this.isSyncing.set(true);
+    this.expenseService.syncExpenses().subscribe({
+      next: (res) => {
+        console.log('[GmailSync] Raw sync response:', res);
+        if (res.data && res.data.fetchedEmails) {
+          console.table(res.data.fetchedEmails);
+          this.debugEmails.set(res.data.fetchedEmails);
+        }
+        
+        this.fetchPendingTransactions();
+        this.isSyncing.set(false);
+        this.notificationService.success('Gmail sync complete', 'Synced');
+      },
+      error: (err) => {
+        this.isSyncing.set(false);
+        console.error('[GmailSync] Manual sync failed:', err);
+        this.notificationService.error('Gmail sync failed. Please try again.', 'Sync Error');
       }
     });
   }

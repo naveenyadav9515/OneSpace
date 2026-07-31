@@ -279,6 +279,11 @@
                     <span><strong>From:</strong> {{ email.from }}</span>
                     <span>{{ email.date | date:'short' }}</span>
                   </div>
+                  @if (email.outcome) {
+                    <div style="margin-top: 6px; color: var(--lm-color-text-secondary);">
+                      <strong>Result:</strong> {{ email.outcome }}
+                    </div>
+                  }
                 </div>
               }
             </div>

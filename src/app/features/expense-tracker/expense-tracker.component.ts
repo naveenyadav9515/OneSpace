@@ -8,7 +8,8 @@ import {
   ExpensePayload,
   ExpenseService,
   PendingTransaction,
-  AutomationStatus
+  AutomationStatus,
+  SyncedEmail
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
 import { environment } from '@env/environment';
@@ -40,7 +41,7 @@ export class ExpenseTrackerComponent implements OnInit {
   protected activePendingId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
   protected isSyncing = signal(false);
-  protected debugEmails = signal<any[]>([]);
+  protected debugEmails = signal<SyncedEmail[]>([]);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
 
   protected readonly expenseForm = this.fb.nonNullable.group({
@@ -82,19 +83,48 @@ export class ExpenseTrackerComponent implements OnInit {
     this.expenseService.syncExpenses().subscribe({
       next: (res) => {
         console.log('[GmailSync] Raw sync response:', res);
-        if (res.data && res.data.fetchedEmails) {
-          console.table(res.data.fetchedEmails);
-          this.debugEmails.set(res.data.fetchedEmails);
+        const result = res.data;
+
+        if (result?.fetchedEmails?.length) {
+          console.table(result.fetchedEmails);
+          this.debugEmails.set(result.fetchedEmails);
         }
-        
+
         this.fetchPendingTransactions();
         this.isSyncing.set(false);
-        this.notificationService.success('Gmail sync complete', 'Synced');
+
+        // The server always returns 200; the real outcome is in the payload.
+        // Reporting all of these as success is what hid the actual failures.
+        if (result?.reason === 'auth_expired' || result?.authExpired) {
+          this.fetchAutomationStatus();
+          this.notificationService.error(res.message, 'Reconnect Gmail');
+          return;
+        }
+
+        if (result?.reason === 'not_connected') {
+          this.notificationService.warning(res.message, 'Gmail Not Connected');
+          return;
+        }
+
+        if (result && result.ok === false) {
+          this.notificationService.error(res.message, 'Sync Failed');
+          return;
+        }
+
+        if (result && result.created === 0) {
+          this.notificationService.info(res.message, 'Nothing New');
+          return;
+        }
+
+        this.notificationService.success(res.message, 'Synced');
       },
       error: (err) => {
         this.isSyncing.set(false);
         console.error('[GmailSync] Manual sync failed:', err);
-        this.notificationService.error('Gmail sync failed. Please try again.', 'Sync Error');
+        this.notificationService.error(
+          err?.error?.message || 'Gmail sync failed. Please try again.',
+          'Sync Error'
+        );
       }
     });
   }

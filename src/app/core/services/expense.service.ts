@@ -20,6 +20,35 @@ export interface PendingTransaction extends Expense {
   source?: 'gmail_auto' | 'manual' | 'simulated';
 }
 
+export interface SyncedEmail {
+  id: string;
+  subject: string;
+  from: string;
+  date: string | null;
+  /** What the engine did with this email — 'created: …', 'skipped: …', 'duplicate …' */
+  outcome: string;
+}
+
+export interface SyncResult {
+  /** False when the sync could not reach Gmail at all. */
+  ok: boolean;
+  reason: 'not_connected' | 'auth_expired' | 'gmail_error' | 'no_refresh_token' | 'no_parsers' | null;
+  error: string | null;
+  /** Google rejected the stored credentials — the user must reconnect. */
+  authExpired?: boolean;
+  processed: number;
+  created: number;
+  duplicates: number;
+  errors: number;
+  skipped?: {
+    noParser: number;
+    notRelevant: number;
+    parseFailed: number;
+    beforeCutoff: number;
+  };
+  fetchedEmails?: SyncedEmail[];
+}
+
 export interface AutomationStatus {
   gmailConnected: boolean;
   expenseAutomationEnabled: boolean;
@@ -140,8 +169,8 @@ export class ExpenseService {
     );
   }
 
-  public syncExpenses(): Observable<{ status: string, message: string, data?: any }> {
-    return this.http.post<{ status: string, message: string, data?: any }>(`${this.apiUrl}/expenses/sync`, {});
+  public syncExpenses(): Observable<{ status: string, message: string, data: SyncResult }> {
+    return this.http.post<{ status: string, message: string, data: SyncResult }>(`${this.apiUrl}/expenses/sync`, {});
   }
 
   public getGmailConnectionUrl(

@@ -383,11 +383,21 @@
             type="button"
             class="panel-sync-btn"
             (click)="syncGmailManually()"
-            [disabled]="isSyncing()"
-            title="Sync Gmail Transactions"
+            [disabled]="isSyncDisabled()"
+            [title]="syncCooldownSeconds() > 0
+              ? 'Google is rate-limiting this account — syncing resumes shortly'
+              : 'Sync Gmail Transactions'"
           >
             <span class="material-symbols-outlined btn-icon" [class.spin]="isSyncing()">sync</span>
-            <span class="btn-label">{{ isSyncing() ? 'Syncing...' : 'Refresh' }}</span>
+            <span class="btn-label">
+              @if (isSyncing()) {
+                Syncing...
+              } @else if (syncCooldownSeconds() > 0) {
+                Wait {{ syncCooldownSeconds() }}s
+              } @else {
+                Refresh
+              }
+            </span>
           </button>
         </div>
 

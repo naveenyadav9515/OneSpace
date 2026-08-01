@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -29,7 +29,7 @@ const TAB_LOG = 0;
   styleUrl: './expense-tracker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExpenseTrackerComponent implements OnInit {
+export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly expenseService = inject(ExpenseService);
   private readonly notificationService = inject(NotificationService);
@@ -95,11 +95,62 @@ export class ExpenseTrackerComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+  }
+
+  /**
+   * Seconds left on a Google-imposed cooldown, or 0 when sync is available.
+   * Drives the disabled state of the Refresh button.
+   */
+  protected readonly syncCooldownSeconds = signal(0);
+
+  /** True while a sync is running or a cooldown is still counting down. */
+  protected readonly isSyncDisabled = computed(
+    () => this.isSyncing() || this.syncCooldownSeconds() > 0
+  );
+
+  /** Handle for the countdown, so a second cooldown cannot stack a second timer. */
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+
+  /**
+   * Holds the Refresh button until Google's cooldown expires.
+   * @param seconds from the server; a missing value falls back to five minutes,
+   *   the same default the backend applies when Google sends no `Retry-After`.
+   */
+  private startSyncCooldown(seconds: number | null) {
+    const remaining = seconds && seconds > 0 ? Math.ceil(seconds) : 300;
+    this.syncCooldownSeconds.set(remaining);
+
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+    this.cooldownTimer = setInterval(() => {
+      const next = this.syncCooldownSeconds() - 1;
+      this.syncCooldownSeconds.set(Math.max(0, next));
+      if (next <= 0 && this.cooldownTimer) {
+        clearInterval(this.cooldownTimer);
+        this.cooldownTimer = null;
+      }
+    }, 1000);
+  }
+
+  /**
+   * Appends a concrete wait to a server message that only says "in a few minutes".
+   * @param message server-supplied text
+   * @param seconds cooldown length, when known
+   */
+  private withWaitHint(message: string, seconds: number | null): string {
+    if (!seconds || seconds <= 0) return message;
+    const minutes = Math.ceil(seconds / 60);
+    return `${message} (about ${minutes} minute${minutes === 1 ? '' : 's'})`;
+  }
+
   /**
    * Manually triggers Gmail sync via the refresh button.
    * Gmail sync only happens via Pub/Sub or this manual action — never on page load.
    */
   protected syncGmailManually() {
+    if (this.isSyncDisabled()) return;
+
     this.isSyncing.set(true);
     this.expenseService.syncExpenses().subscribe({
       next: (res) => {
@@ -125,13 +176,40 @@ export class ExpenseTrackerComponent implements OnInit {
           return;
         }
 
+        // A push notification is already syncing this mailbox. Not an error —
+        // the results land on their own, so just say so rather than inviting
+        // another press that would stack a third scan.
+        if (result?.reason === 'sync_in_progress') {
+          this.notificationService.info(res.message, 'Already Syncing');
+          return;
+        }
+
         if (result?.reason === 'rate_limited' || result?.reason === 'google_unavailable') {
-          this.notificationService.warning(res.message, 'Try Again Shortly');
+          // Google told us how long to stay away. Saying "a few minutes" while
+          // leaving the button live invites the retry that extends the block —
+          // so name the deadline and hold the button until it passes.
+          this.startSyncCooldown(result.retryAfterSeconds ?? null);
+          this.notificationService.warning(
+            this.withWaitHint(res.message, result.retryAfterSeconds ?? null),
+            'Try Again Shortly'
+          );
           return;
         }
 
         if (result && result.ok === false) {
           this.notificationService.error(res.message, 'Sync Failed');
+          return;
+        }
+
+        // A large backlog is processed a slice at a time so no single request
+        // runs long enough to time out. Say so, or the user sees a partial
+        // import and assumes the rest was lost.
+        const remaining = result?.remaining ?? 0;
+        if (remaining > 0) {
+          this.notificationService.info(
+            `${res.message} ${remaining} more email${remaining === 1 ? '' : 's'} still to process — press Refresh again to continue.`,
+            'More To Import'
+          );
           return;
         }
 
@@ -145,6 +223,18 @@ export class ExpenseTrackerComponent implements OnInit {
       error: (err) => {
         this.isSyncing.set(false);
         console.error('[GmailSync] Manual sync failed:', err);
+
+        // Our own per-user throttle. Holding the button matches what the server
+        // will accept, instead of letting the user keep firing rejected calls.
+        if (err?.status === 429) {
+          this.startSyncCooldown(60);
+          this.notificationService.warning(
+            err?.error?.message || 'Too many sync requests. Please wait a minute.',
+            'Slow Down'
+          );
+          return;
+        }
+
         this.notificationService.error(
           err?.error?.message || 'Gmail sync failed. Please try again.',
           'Sync Error'

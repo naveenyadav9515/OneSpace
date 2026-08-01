@@ -37,6 +37,8 @@ export type SyncFailureReason =
   | 'not_connected'
   | 'no_refresh_token'
   | 'no_parsers'
+  /** Another sync for this account is already running; its results will land shortly. */
+  | 'sync_in_progress'
   | 'auth_expired'
   | 'invalid_grant'
   | 'insufficient_scope'
@@ -60,7 +62,20 @@ export interface SyncResult {
    * connection intact and must NOT send the user back through OAuth.
    */
   authExpired?: boolean;
+  /**
+   * How long to wait before syncing is worth attempting again, in seconds.
+   * Set when Google is rate-limiting us — retrying inside this window does not
+   * shorten the block, it extends it.
+   */
+  retryAfterSeconds?: number | null;
+  /** Messages this run actually downloaded from Gmail. */
   processed: number;
+  /**
+   * New messages the server deliberately left for the next run, so no single
+   * request runs long enough to time out. Zero in normal operation; non-zero
+   * only on a first connect with a large backlog.
+   */
+  remaining?: number;
   created: number;
   duplicates: number;
   errors: number;
@@ -69,6 +84,8 @@ export interface SyncResult {
     notRelevant: number;
     parseFailed: number;
     beforeCutoff: number;
+    /** Resolved by an earlier sync, so never re-downloaded. */
+    alreadySynced?: number;
   };
   fetchedEmails?: SyncedEmail[];
 }

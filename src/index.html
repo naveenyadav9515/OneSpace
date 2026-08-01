@@ -5,7 +5,13 @@
   <title>OneSpace</title>
   <meta name="description" content="OneSpace — your unified enterprise dashboard.">
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    Zoom is pinned for the installed PWA: accidental pinch/double-tap zoom leaves
+    the app stranded at an offset scale with no obvious way back, which reads as a
+    broken screen. `user-scalable=no` covers Android; iOS Safari ignores it, so the
+    gesture handlers further down do the same job there.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
   <!-- ═══ Font Loading Strategy ═══
@@ -91,6 +97,15 @@
     /* ── Pre-Loader Styles ── */
     body {
       margin: 0;
+      /*
+       * `manipulation` removes the 300ms double-tap-to-zoom delay and the
+       * double-tap zoom itself, while leaving normal panning alone. Descendants
+       * that need finer control (the swipeable tab strip uses `pan-y`) override it.
+       */
+      touch-action: manipulation;
+      /* Stop iOS inflating text in landscape, which looks like a zoom bug. */
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
       background-color: #13111c;
       font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       color: #f0eef6;
@@ -170,6 +185,39 @@
       100% { transform: rotate(360deg); }
     }
   </style>
+
+  <script>
+    /**
+     * Pinch-Zoom Suppression (iOS)
+     *
+     * iOS Safari has ignored `user-scalable=no` since version 10, so the viewport
+     * meta tag alone does not hold there. These are the two remaining levers:
+     *
+     *   1. `gesturestart`/`gesturechange`/`gestureend` — WebKit-only events fired
+     *      for pinch. Cancelling them blocks the zoom outright.
+     *   2. A multi-touch `touchmove` guard, for WebKit builds that route pinch
+     *      through touch events instead.
+     *
+     * Both listeners must be non-passive or preventDefault() is ignored.
+     *
+     * Note: this trades away pinch-to-zoom accessibility (WCAG 1.4.4). Browser
+     * and OS level text scaling still apply, and the layout is responsive, so
+     * enlarged system font sizes continue to work.
+     */
+    (function() {
+      var block = function(e) { e.preventDefault(); };
+
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(type) {
+        document.addEventListener(type, block, { passive: false });
+      });
+
+      document.addEventListener('touchmove', function(e) {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    })();
+  </script>
 
   <script>
     /**

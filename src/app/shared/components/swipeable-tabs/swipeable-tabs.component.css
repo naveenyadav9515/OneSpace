@@ -1,0 +1,133 @@
+/* Swipeable tabs — mobile-first, token-driven (§8.1, §8.2). */
+
+.tabs-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lm-space-stack-md);
+  width: 100%;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────────────────── */
+
+.tab-bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: var(--lm-space-2xs);
+  padding: 4px;
+  margin-inline: var(--lm-space-stack-md);
+  border-radius: var(--lm-radius-sm);
+  background: var(--lm-color-surface-subtle, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--lm-color-border-subtle, rgba(255, 255, 255, 0.06));
+}
+
+.tab-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* §8.3: 44px minimum touch target. */
+  min-height: var(--lm-touch-target-min, 44px);
+  padding-inline: var(--lm-space-2xs);
+  border: none;
+  border-radius: var(--lm-radius-xs);
+  background: transparent;
+  color: var(--lm-color-text-muted);
+  font-family: var(--lm-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color var(--lm-transition-fast, 150ms ease);
+}
+
+.tab-btn:hover {
+  color: var(--lm-color-text-secondary);
+}
+
+.tab-btn.is-active {
+  color: var(--lm-color-text-primary);
+}
+
+/* Keyboard focus must stay visible (§9.1). */
+.tab-btn:focus-visible {
+  outline: 2px solid var(--lm-color-primary);
+  outline-offset: -2px;
+}
+
+.tab-icon {
+  font-size: 18px;
+  flex: none;
+}
+
+.tab-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-badge {
+  flex: none;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--lm-color-warning);
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+/* Sliding pill behind the active tab. */
+.tab-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--tab-count));
+  border-radius: var(--lm-radius-xs);
+  background: var(--lm-color-surface-hover, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--lm-color-border-subtle, rgba(255, 255, 255, 0.08));
+  transform: translateX(calc(var(--tab-active) * 100%));
+  transition: transform var(--lm-transition-smooth, 300ms cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* ── Panels ──────────────────────────────────────────────────────────────── */
+
+.tab-viewport {
+  overflow: hidden;
+  /* Vertical scrolling stays with the browser; horizontal drags reach us. */
+  touch-action: pan-y;
+  transition: height var(--lm-transition-smooth, 300ms cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/*
+ * A single grid row of full-width columns. Sizing the projected panels from the
+ * container avoids child selectors, which emulated encapsulation would not apply
+ * to projected content.
+ */
+.tab-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  align-items: start;
+  will-change: transform;
+  transition: transform var(--lm-transition-smooth, 300ms cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* While a finger is down the track must track it exactly, with no easing. */
+.tab-track.is-dragging {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-indicator,
+  .tab-viewport,
+  .tab-track {
+    transition: none;
+  }
+}

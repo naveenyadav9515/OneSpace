@@ -1,23 +1,30 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalComponent } from '@shared/components/modal/modal.component';
+import { SwipeableTabsComponent, TabDefinition } from '@shared/components/swipeable-tabs/swipeable-tabs.component';
 import {
   Expense,
   ExpensePayload,
   ExpenseService,
   PendingTransaction,
-  AutomationStatus,
-  SyncedEmail
+  AutomationStatus
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
 import { environment } from '@env/environment';
 
+/**
+ * Index of the "Log" tab. Panel order in the template is Log, History, Pending;
+ * Log is the only one navigated to programmatically, when a transaction is sent
+ * to the form for review or editing.
+ */
+const TAB_LOG = 0;
+
 @Component({
   selector: 'app-expense-tracker',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ModalComponent, SwipeableTabsComponent],
   templateUrl: './expense-tracker.component.html',
   styleUrl: './expense-tracker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,8 +48,22 @@ export class ExpenseTrackerComponent implements OnInit {
   protected activePendingId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
   protected isSyncing = signal(false);
-  protected debugEmails = signal<SyncedEmail[]>([]);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
+
+  /** Index of the visible tab. Order must match the panels in the template. */
+  protected readonly activeTab = signal(TAB_LOG);
+
+  protected readonly tabs = computed<TabDefinition[]>(() => [
+    { id: 'log', label: 'Log', icon: 'add_circle' },
+    { id: 'history', label: 'History', icon: 'receipt_long' },
+    {
+      id: 'pending',
+      label: 'Pending',
+      icon: 'mark_email_unread',
+      // Surfaces work waiting on the user without them opening the tab.
+      badge: this.pendingTransactions().length,
+    },
+  ]);
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -82,20 +103,18 @@ export class ExpenseTrackerComponent implements OnInit {
     this.isSyncing.set(true);
     this.expenseService.syncExpenses().subscribe({
       next: (res) => {
-        console.log('[GmailSync] Raw sync response:', res);
         const result = res.data;
-
-        if (result?.fetchedEmails?.length) {
-          console.table(result.fetchedEmails);
-          this.debugEmails.set(result.fetchedEmails);
-        }
 
         this.fetchPendingTransactions();
         this.isSyncing.set(false);
 
         // The server always returns 200; the real outcome is in the payload.
         // Reporting all of these as success is what hid the actual failures.
-        if (result?.reason === 'auth_expired' || result?.authExpired) {
+        //
+        // Only `authExpired` means the credential is dead. Keying the reconnect
+        // prompt off any failure sent users back through OAuth for rate limits
+        // and Google outages, neither of which a reconnect fixes.
+        if (result?.authExpired) {
           this.fetchAutomationStatus();
           this.notificationService.error(res.message, 'Reconnect Gmail');
           return;
@@ -103,6 +122,11 @@ export class ExpenseTrackerComponent implements OnInit {
 
         if (result?.reason === 'not_connected') {
           this.notificationService.warning(res.message, 'Gmail Not Connected');
+          return;
+        }
+
+        if (result?.reason === 'rate_limited' || result?.reason === 'google_unavailable') {
+          this.notificationService.warning(res.message, 'Try Again Shortly');
           return;
         }
 
@@ -271,6 +295,8 @@ export class ExpenseTrackerComponent implements OnInit {
   }
 
   protected reviewPending(ptx: PendingTransaction | Expense) {
+    // The form lives on the Log tab — surface it, or the tap appears to do nothing.
+    this.activeTab.set(TAB_LOG);
     this.activePendingId.set(ptx._id);
     this.expenseForm.patchValue({
       amount: ptx.amount,
@@ -308,6 +334,7 @@ export class ExpenseTrackerComponent implements OnInit {
   }
 
   protected editExpense(exp: Expense) {
+    this.activeTab.set(TAB_LOG);
     this.activePendingId.set(null);
     this.expenseForm.patchValue({
       amount: exp.amount,

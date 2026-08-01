@@ -1,0 +1,42 @@
+<div class="tabs-root" [style.--tab-count]="tabs().length" [style.--tab-active]="activeIndex()">
+
+  <div class="tab-bar" role="tablist" aria-label="Expense sections" (keydown)="onKeydown($event)">
+    @for (tab of tabs(); track tab.id; let i = $index) {
+      <button
+        #tabBtn
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [id]="'tab-' + tab.id"
+        [class.is-active]="i === activeIndex()"
+        [attr.aria-selected]="i === activeIndex()"
+        [attr.aria-controls]="'panel-' + tab.id"
+        [tabindex]="tabIndexFor(i)"
+        (click)="selectTab(i)"
+      >
+        @if (tab.icon) {
+          <span class="material-symbols-outlined tab-icon" aria-hidden="true">{{ tab.icon }}</span>
+        }
+        <span class="tab-label">{{ tab.label }}</span>
+        @if (tab.badge) {
+          <span class="tab-badge" [attr.aria-label]="tab.badge + ' pending'">{{ tab.badge }}</span>
+        }
+      </button>
+    }
+    <span class="tab-indicator" aria-hidden="true"></span>
+  </div>
+
+  <div
+    class="tab-viewport"
+    [style.height.px]="viewportHeight()"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+  >
+    <div class="tab-track" #track [class.is-dragging]="isDragging()" [style.transform]="trackTransform()">
+      <ng-content />
+    </div>
+  </div>
+
+</div>

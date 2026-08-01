@@ -29,12 +29,36 @@ export interface SyncedEmail {
   outcome: string;
 }
 
+/**
+ * Why a sync failed. Mirrors the backend's `classifyGoogleError` codes plus the
+ * pre-flight refusals the engine raises before it ever calls Google.
+ */
+export type SyncFailureReason =
+  | 'not_connected'
+  | 'no_refresh_token'
+  | 'no_parsers'
+  | 'auth_expired'
+  | 'invalid_grant'
+  | 'insufficient_scope'
+  | 'invalid_client'
+  | 'redirect_uri_mismatch'
+  | 'api_disabled'
+  | 'rate_limited'
+  | 'forbidden'
+  | 'network_error'
+  | 'google_unavailable'
+  | 'gmail_error';
+
 export interface SyncResult {
   /** False when the sync could not reach Gmail at all. */
   ok: boolean;
-  reason: 'not_connected' | 'auth_expired' | 'gmail_error' | 'no_refresh_token' | 'no_parsers' | null;
+  reason: SyncFailureReason | null;
   error: string | null;
-  /** Google rejected the stored credentials — the user must reconnect. */
+  /**
+   * The stored credential is dead and the user must reconnect. Only ever true
+   * for genuinely fatal failures — a rate limit or a Google outage leaves the
+   * connection intact and must NOT send the user back through OAuth.
+   */
   authExpired?: boolean;
   processed: number;
   created: number;

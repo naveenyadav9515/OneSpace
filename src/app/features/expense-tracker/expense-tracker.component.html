@@ -3,23 +3,23 @@
 
   <!-- ── Premium Header ── -->
   <header class="dashboard-header" style="padding-top: 16px; padding-bottom: 24px; border-bottom: none;">
-    
+
     <!-- Top Row: Back Navigation -->
     <div style="margin-bottom: 20px;">
       <a routerLink="/" class="nav-back-btn" style="margin: 0; width: 40px; height: 40px;">
         <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
       </a>
     </div>
-    
+
     <!-- Main Header Row -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; width: 100%;">
-      
+
       <!-- Title Area -->
       <div class="title-stack">
         <h1 class="brand-name" style="font-size: 36px; margin-bottom: 8px; line-height: 1.1;">Expenses</h1>
         <p class="greeting-text" style="font-size: 15px; opacity: 0.85; max-width: 280px; line-height: 1.4;">Track your financial footprint</p>
       </div>
-      
+
       <!-- Actions Area -->
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="settings-btn premium-action-btn" (click)="toggleAutomationSettings()" title="Automation Settings" [class.active]="isSettingsOpen()">
@@ -33,7 +33,7 @@
           </button>
         }
       </div>
-      
+
     </div>
   </header>
 
@@ -41,7 +41,7 @@
   @if (isSettingsOpen()) {
     <section class="flow-item fade-in-bottom">
       <div style="padding: 24px; border-radius: 24px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--lm-color-border); margin-bottom: 24px;">
-        
+
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;">
           <div style="display: flex; gap: 12px; align-items: center;">
@@ -60,7 +60,7 @@
 
         <!-- Settings Body -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
-          
+
           <!-- Core Toggle -->
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;">
             <div style="max-width: 80%;">
@@ -69,7 +69,7 @@
                 This feature securely reads supported bank transaction emails in your Gmail inbox to suggest expense entries in the background. Every transaction must be confirmed by you before it's saved.
               </p>
             </div>
-            
+
             <label class="switch">
               <input type="checkbox" [checked]="automationStatus()?.expenseAutomationEnabled" (change)="handleAutomationToggle(toggle.checked)" #toggle>
               <span class="slider round"></span>
@@ -133,122 +133,244 @@
     </section>
   }
 
-  <!-- ── Add Expense Card ── -->
-  <section class="flow-item">
-    <div style="background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; gap: 16px; padding: 0 16px;">
-      
-      <div class="card-header" style="justify-content: space-between;">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div class="icon-wrap" [style.color]="activePendingId() ? 'var(--lm-color-warning)' : 'var(--lm-color-primary)'" [style.background]="activePendingId() ? 'rgba(245, 158, 11, 0.12)' : 'rgba(167, 139, 250, 0.12)'">
-            <span class="material-symbols-outlined">{{ activePendingId() ? 'rule' : 'add_circle' }}</span>
+  <!--
+    ── Tabbed content ──
+    Panels are projected in tab order (Log · History · Pending) and are reachable
+    by tapping a tab, swiping horizontally, or arrow keys on the tab bar.
+  -->
+  <app-swipeable-tabs [tabs]="tabs()" [(activeIndex)]="activeTab">
+
+    <!-- ── 1. Log Expense ── -->
+    <section
+      class="flow-item tab-panel"
+      role="tabpanel"
+      id="panel-log"
+      aria-labelledby="tab-log"
+      [attr.inert]="activeTab() !== 0 ? '' : null"
+    >
+      <div style="background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; gap: 16px; padding: 0 16px;">
+
+        <div class="card-header" style="justify-content: space-between;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="icon-wrap" [style.color]="activePendingId() ? 'var(--lm-color-warning)' : 'var(--lm-color-primary)'" [style.background]="activePendingId() ? 'rgba(245, 158, 11, 0.12)' : 'rgba(167, 139, 250, 0.12)'">
+              <span class="material-symbols-outlined">{{ activePendingId() ? 'rule' : 'add_circle' }}</span>
+            </div>
+            <div class="card-titles">
+              <h2 class="card-name">{{ activePendingId() ? 'Complete Pending Review' : 'Log New Expense' }}</h2>
+              <p class="card-description">{{ activePendingId() ? 'Fill in missing details to approve' : 'Manual entry' }}</p>
+            </div>
           </div>
-          <div class="card-titles">
-            <h2 class="card-name">{{ activePendingId() ? 'Complete Pending Review' : 'Log New Expense' }}</h2>
-            <p class="card-description">{{ activePendingId() ? 'Fill in missing details to approve' : 'Manual entry' }}</p>
-          </div>
+          @if (activePendingId()) {
+            <button class="settings-btn" (click)="cancelReview()" title="Cancel Review" style="border: 1px solid var(--lm-color-border); padding: 6px 12px; border-radius: 12px; height: 36px; display: flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">close</span> Cancel
+            </button>
+          }
         </div>
-        @if (activePendingId()) {
-          <button class="settings-btn" (click)="cancelReview()" title="Cancel Review" style="border: 1px solid var(--lm-color-border); padding: 6px 12px; border-radius: 12px; height: 36px; display: flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined" style="font-size: 16px;">close</span> Cancel
+
+        <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="expense-form">
+
+          <div class="input-row">
+            <div class="input-group flex-1">
+              <label class="premium-label">Amount</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" formControlName="amount" class="premium-input" placeholder="0">
+              </div>
+            </div>
+
+            <div class="input-group flex-2">
+              <label class="premium-label">Merchant / Reason</label>
+              <div class="input-wrapper">
+                <span class="material-symbols-outlined input-icon">storefront</span>
+                <input type="text" formControlName="merchant" class="premium-input" placeholder="e.g. Swiggy">
+              </div>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group flex-1">
+              <label class="premium-label">Category</label>
+              <div class="input-wrapper">
+                <span class="material-symbols-outlined input-icon">category</span>
+                <select formControlName="category" class="premium-input select-caret">
+                  <option value="Food">Food & Dining</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Health">Health</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group flex-1">
+              <label class="premium-label">Method</label>
+              <div class="input-wrapper">
+                <span class="material-symbols-outlined input-icon">payments</span>
+                <select formControlName="paymentMethod" class="premium-input select-caret">
+                  <option value="UPI">UPI</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Debit Card">Debit Card</option>
+                  <option value="Net Banking">Net Banking</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="premium-label">Date & Time</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">event</span>
+              <input type="datetime-local" formControlName="date" class="premium-input">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="premium-label">Tags (Optional)</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">sell</span>
+              <input type="text" formControlName="tags" class="premium-input" placeholder="e.g. Weekend, Dinner">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="premium-label">Notes (Optional)</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon" style="top: 24px;">description</span>
+              <textarea formControlName="notes" class="premium-input" placeholder="e.g. Shared with roommates" rows="2" style="resize: none;"></textarea>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
+            <button type="submit" class="premium-submit-btn" [disabled]="expenseForm.invalid || isAdding()" [style.background]="activePendingId() ? 'var(--lm-color-success)' : ''">
+              @if (isAdding()) {
+                <span class="material-symbols-outlined spin">sync</span> Saving...
+              } @else {
+                {{ activePendingId() ? 'Approve & Save Transaction' : 'Save Transaction' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ── 2. History ── -->
+    <section
+      class="flow-item tab-panel"
+      role="tabpanel"
+      id="panel-history"
+      aria-labelledby="tab-history"
+      [attr.inert]="activeTab() !== 1 ? '' : null"
+    >
+      <div class="history-section-wrap">
+        <div class="history-section-header">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(168, 85, 247, 0.15);">
+              <span class="material-symbols-outlined" style="font-size: 24px;">receipt_long</span>
+            </div>
+            <div class="card-titles">
+              <h2 class="card-name" style="font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">History</h2>
+              <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Recent activity</p>
+            </div>
+          </div>
+          <button class="premium-icon-btn" (click)="fetchExpenses()" [disabled]="isLoading()" title="Refresh">
+            <span class="material-symbols-outlined" [class.spin]="isLoading()" style="font-size: 20px;">refresh</span>
           </button>
+        </div>
+
+        @if (expenses().length === 0 && !isLoading()) {
+          <div class="history-empty">
+            <div class="empty-icon-wrap">
+              <span class="material-symbols-outlined">inbox</span>
+            </div>
+            <p class="empty-title">No transactions yet</p>
+            <p class="empty-sub">Your recent expenses will appear here.</p>
+          </div>
+        } @else {
+          <div class="txn-card-list">
+            @for (exp of expenses(); track exp._id) {
+              <div class="txn-card">
+                <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                  <span class="material-symbols-outlined">
+                    {{ exp.category === 'Food' ? 'restaurant' :
+                       exp.category === 'Transport' ? 'directions_car' :
+                       exp.category === 'Shopping' ? 'local_mall' :
+                       exp.category === 'Utilities' ? 'bolt' :
+                       exp.category === 'Entertainment' ? 'movie' :
+                       exp.category === 'Health' ? 'medical_services' : 'home' }}
+                  </span>
+                </div>
+
+                <div class="txn-info">
+                  <h4 class="txn-merchant">{{ exp.merchant }}</h4>
+                  <div class="txn-meta-row">
+                    <span class="material-symbols-outlined txn-meta-icon">calendar_today</span>
+                    <span>{{ exp.date | date:'MMM d, y' }}</span>
+                    <span class="txn-meta-sep">|</span>
+                    <span class="material-symbols-outlined txn-meta-icon">schedule</span>
+                    <span>{{ exp.date | date:'hh:mm a' }}</span>
+                    <span class="txn-meta-sep">|</span>
+                    <span>{{ exp.paymentMethod }}</span>
+                  </div>
+
+                  <div class="txn-tags-row">
+                    <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
+                      {{ exp.category === 'Food' ? 'Food & Dining' :
+                         exp.category === 'Transport' ? 'Transport' :
+                         exp.category === 'Shopping' ? 'Shopping' :
+                         exp.category === 'Utilities' ? 'Utilities' :
+                         exp.category === 'Entertainment' ? 'Entertainment' :
+                         exp.category === 'Health' ? 'Healthcare' : exp.category }}
+                    </span>
+                    @if (exp.tags && exp.tags.length) {
+                      @for (tag of exp.tags; track tag) {
+                        <span class="txn-tag txn-tag--custom">{{ tag }}</span>
+                      }
+                    }
+                  </div>
+
+                  @if (exp.notes) {
+                    <div class="txn-notes-row">
+                      <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
+                      <span class="txn-notes-text">{{ exp.notes }}</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="txn-right-block">
+                  <div class="txn-actions">
+                    <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="deleteExpense(exp._id)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                  <div class="txn-amount-block">
+                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
         }
       </div>
+    </section>
 
-      <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="expense-form">
-        
-        <div class="input-row">
-          <div class="input-group flex-1">
-            <label class="premium-label">Amount</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">₹</span>
-              <input type="number" formControlName="amount" class="premium-input" placeholder="0">
-            </div>
-          </div>
-          
-          <div class="input-group flex-2">
-            <label class="premium-label">Merchant / Reason</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">storefront</span>
-              <input type="text" formControlName="merchant" class="premium-input" placeholder="e.g. Swiggy">
-            </div>
-          </div>
-        </div>
-
-        <div class="input-row">
-          <div class="input-group flex-1">
-            <label class="premium-label">Category</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">category</span>
-              <select formControlName="category" class="premium-input select-caret">
-                <option value="Food">Food & Dining</option>
-                <option value="Transport">Transport</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Health">Health</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="input-group flex-1">
-            <label class="premium-label">Method</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">payments</span>
-              <select formControlName="paymentMethod" class="premium-input select-caret">
-                <option value="UPI">UPI</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Debit Card">Debit Card</option>
-                <option value="Net Banking">Net Banking</option>
-                <option value="Cash">Cash</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label class="premium-label">Date & Time</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-outlined input-icon">event</span>
-            <input type="datetime-local" formControlName="date" class="premium-input">
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label class="premium-label">Tags (Optional)</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-outlined input-icon">sell</span>
-            <input type="text" formControlName="tags" class="premium-input" placeholder="e.g. Weekend, Dinner">
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label class="premium-label">Notes (Optional)</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-outlined input-icon" style="top: 24px;">description</span>
-            <textarea formControlName="notes" class="premium-input" placeholder="e.g. Shared with roommates" rows="2" style="resize: none;"></textarea>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
-          <button type="submit" class="premium-submit-btn" [disabled]="expenseForm.invalid || isAdding()" [style.background]="activePendingId() ? 'var(--lm-color-success)' : ''">
-            @if (isAdding()) {
-              <span class="material-symbols-outlined spin">sync</span> Saving...
-            } @else {
-              {{ activePendingId() ? 'Approve & Save Transaction' : 'Save Transaction' }}
-            }
-          </button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <!-- ── Pending Transactions (Auto Log) — Always Visible ── -->
-    <section class="flow-item" style="margin-top: 24px;">
+    <!-- ── 3. Pending Transactions (Auto Log) ── -->
+    <section
+      class="flow-item tab-panel"
+      role="tabpanel"
+      id="panel-pending"
+      aria-labelledby="tab-pending"
+      [attr.inert]="activeTab() !== 2 ? '' : null"
+    >
       <div style="padding: 20px; border-radius: 24px; background: rgba(245, 158, 11, 0.02); border: 1px solid rgba(245, 158, 11, 0.2);">
-        <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-          <div style="display: flex; gap: 12px; align-items: center;">
+        <div class="panel-head">
+          <div class="panel-head-lead">
             <div class="icon-wrap" style="color: var(--lm-color-warning); background: rgba(245, 158, 11, 0.15);">
               <span class="material-symbols-outlined" style="font-size: 24px;">mark_email_unread</span>
             </div>
@@ -257,39 +379,17 @@
               <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Auto-detected transactions</p>
             </div>
           </div>
-          <button class="premium-icon-btn" (click)="syncGmailManually()" [disabled]="isSyncing()" title="Sync Gmail Transactions" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); color: var(--lm-color-warning); cursor: pointer; font-size: 13px; font-weight: 600;">
-            <span class="material-symbols-outlined" [class.spin]="isSyncing()" style="font-size: 18px;">sync</span>
-            {{ isSyncing() ? 'Syncing...' : 'Refresh' }}
+          <button
+            type="button"
+            class="panel-sync-btn"
+            (click)="syncGmailManually()"
+            [disabled]="isSyncing()"
+            title="Sync Gmail Transactions"
+          >
+            <span class="material-symbols-outlined btn-icon" [class.spin]="isSyncing()">sync</span>
+            <span class="btn-label">{{ isSyncing() ? 'Syncing...' : 'Refresh' }}</span>
           </button>
         </div>
-
-        @if (debugEmails().length > 0) {
-          <div style="margin-bottom: 20px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h3 style="font-size: 14px; color: var(--lm-color-text-secondary); margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <span class="material-symbols-outlined" style="font-size: 16px;">bug_report</span> Debug: Fetched Emails from Gmail
-              </h3>
-              <button (click)="debugEmails.set([])" style="background: transparent; border: none; color: var(--lm-color-text-muted); cursor: pointer; font-size: 12px; text-decoration: underline;">Clear</button>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
-              @for (email of debugEmails(); track email.id) {
-                <div style="padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 12px; font-family: monospace; border-left: 3px solid var(--lm-color-warning);">
-                  <div style="color: var(--lm-color-text-primary); margin-bottom: 4px;"><strong>Subject:</strong> {{ email.subject }}</div>
-                  <div style="color: var(--lm-color-text-muted); display: flex; justify-content: space-between;">
-                    <span><strong>From:</strong> {{ email.from }}</span>
-                    <span>{{ email.date | date:'short' }}</span>
-                  </div>
-                  @if (email.outcome) {
-                    <div style="margin-top: 6px; color: var(--lm-color-text-secondary);">
-                      <strong>Result:</strong> {{ email.outcome }}
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-        }
-
 
         @if (pendingTransactions().length === 0) {
           <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px; gap: 10px; opacity: 0.6;">
@@ -324,102 +424,7 @@
       </div>
     </section>
 
-  <!-- ── Transaction History ── -->
-  <section class="flow-item" style="margin-top: 24px;">
-    <div class="history-section-wrap">
-      <div class="history-section-header">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(168, 85, 247, 0.15);">
-            <span class="material-symbols-outlined" style="font-size: 24px;">receipt_long</span>
-          </div>
-          <div class="card-titles">
-            <h2 class="card-name" style="font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">History</h2>
-            <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Recent activity</p>
-          </div>
-        </div>
-        <button class="premium-icon-btn" (click)="fetchExpenses()" [disabled]="isLoading()" title="Refresh">
-          <span class="material-symbols-outlined" [class.spin]="isLoading()" style="font-size: 20px;">refresh</span>
-        </button>
-      </div>
-
-      @if (expenses().length === 0 && !isLoading()) {
-        <div class="history-empty">
-          <div class="empty-icon-wrap">
-            <span class="material-symbols-outlined">inbox</span>
-          </div>
-          <p class="empty-title">No transactions yet</p>
-          <p class="empty-sub">Your recent expenses will appear here.</p>
-        </div>
-      } @else {
-        <div class="txn-card-list">
-          @for (exp of expenses(); track exp._id) {
-            <div class="txn-card">
-              <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
-                <span class="material-symbols-outlined">
-                  {{ exp.category === 'Food' ? 'restaurant' :
-                     exp.category === 'Transport' ? 'directions_car' :
-                     exp.category === 'Shopping' ? 'local_mall' :
-                     exp.category === 'Utilities' ? 'bolt' :
-                     exp.category === 'Entertainment' ? 'movie' :
-                     exp.category === 'Health' ? 'medical_services' : 'home' }}
-                </span>
-              </div>
-
-              <div class="txn-info">
-                <h4 class="txn-merchant">{{ exp.merchant }}</h4>
-                <div class="txn-meta-row">
-                  <span class="material-symbols-outlined txn-meta-icon">calendar_today</span>
-                  <span>{{ exp.date | date:'MMM d, y' }}</span>
-                  <span class="txn-meta-sep">|</span>
-                  <span class="material-symbols-outlined txn-meta-icon">schedule</span>
-                  <span>{{ exp.date | date:'hh:mm a' }}</span>
-                  <span class="txn-meta-sep">|</span>
-                  <span>{{ exp.paymentMethod }}</span>
-                </div>
-
-                <div class="txn-tags-row">
-                  <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
-                    {{ exp.category === 'Food' ? 'Food & Dining' :
-                       exp.category === 'Transport' ? 'Transport' :
-                       exp.category === 'Shopping' ? 'Shopping' :
-                       exp.category === 'Utilities' ? 'Utilities' :
-                       exp.category === 'Entertainment' ? 'Entertainment' :
-                       exp.category === 'Health' ? 'Healthcare' : exp.category }}
-                  </span>
-                  @if (exp.tags && exp.tags.length) {
-                    @for (tag of exp.tags; track tag) {
-                      <span class="txn-tag txn-tag--custom">{{ tag }}</span>
-                    }
-                  }
-                </div>
-
-                @if (exp.notes) {
-                  <div class="txn-notes-row">
-                    <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
-                    <span class="txn-notes-text">{{ exp.notes }}</span>
-                  </div>
-                }
-              </div>
-
-              <div class="txn-right-block">
-                <div class="txn-actions">
-                  <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="deleteExpense(exp._id)">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-                <div class="txn-amount-block">
-                  <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </section>
+  </app-swipeable-tabs>
 
 </div>
 
@@ -434,15 +439,15 @@
       Are you sure you want to delete this transaction? This action cannot be undone.
     </p>
     <div style="display: flex; gap: 12px; justify-content: center;">
-      <button 
-        type="button" 
-        (click)="cancelDelete()" 
+      <button
+        type="button"
+        (click)="cancelDelete()"
         style="padding: 10px 24px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); cursor: pointer; font-weight: 600;">
         Cancel
       </button>
-      <button 
-        type="button" 
-        (click)="confirmDelete()" 
+      <button
+        type="button"
+        (click)="confirmDelete()"
         style="padding: 10px 24px; border-radius: 12px; background: var(--lm-color-error); border: 1px solid var(--lm-color-error); color: #fff; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);">
         Delete
       </button>

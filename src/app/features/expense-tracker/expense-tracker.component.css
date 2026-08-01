@@ -740,3 +740,107 @@ input:checked + .slider:before {
   box-shadow: 0 0 8px var(--lm-color-success);
 }
 
+
+/* ── Tab panels ────────────────────────────────────────────────────────────
+   Each panel is a grid item inside app-swipeable-tabs. The stacked-layout top
+   margins are dropped: panels no longer follow one another vertically. */
+.tab-panel {
+  margin-top: 0;
+  padding-bottom: var(--lm-space-md);
+  /* Keep a panel from forcing the track wider than the viewport. */
+  min-width: 0;
+}
+
+/* ── Panel header + labelled sync button ───────────────────────────────────
+   `.premium-icon-btn` is a fixed 36x36 square built for icon-only buttons, so a
+   button carrying a text label overflowed it. This is the labelled variant. */
+.panel-head {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lm-space-stack-sm);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* min-width:0 lets the title truncate instead of squeezing the button. */
+.panel-head-lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.panel-head-lead .card-titles {
+  min-width: 0;
+}
+
+.panel-head-lead .card-name,
+.panel-head-lead .card-description {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.panel-sync-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--lm-radius-sm);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--lm-color-warning);
+  font-family: var(--lm-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.panel-sync-btn:hover:not([disabled]) {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.panel-sync-btn:active:not([disabled]) {
+  transform: scale(0.97);
+}
+
+.panel-sync-btn:focus-visible {
+  outline: 2px solid var(--lm-color-warning);
+  outline-offset: 2px;
+}
+
+.panel-sync-btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.panel-sync-btn .btn-icon {
+  font-size: 18px;
+  flex: none;
+}
+
+/* Very narrow phones: drop to the icon, keeping the label for screen readers. */
+@media (max-width: 380px) {
+  .panel-sync-btn {
+    padding: 0 12px;
+  }
+  .panel-sync-btn .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

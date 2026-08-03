@@ -203,11 +203,13 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
 
         // A large backlog is processed a slice at a time so no single request
         // runs long enough to time out. Say so, or the user sees a partial
-        // import and assumes the rest was lost.
+        // import and assumes the rest was lost — but do not ask them to press
+        // Refresh again: the server hands the remainder to its background
+        // worker before replying, and it drains on its own.
         const remaining = result?.remaining ?? 0;
         if (remaining > 0) {
           this.notificationService.info(
-            `${res.message} ${remaining} more email${remaining === 1 ? '' : 's'} still to process — press Refresh again to continue.`,
+            `${res.message} ${remaining} more email${remaining === 1 ? '' : 's'} still to process — they'll appear here shortly.`,
             'More To Import'
           );
           return;

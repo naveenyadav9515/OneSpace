@@ -74,8 +74,13 @@ export interface SyncResult {
    * New messages the server deliberately left for the next run, so no single
    * request runs long enough to time out. Zero in normal operation; non-zero
    * only on a first connect with a large backlog.
+   *
+   * The server queues the remainder for its background worker before replying,
+   * so this is progress to report, not an action to ask the user for.
    */
   remaining?: number;
+  /** Which query this run used — 'full' scans the whole retention window. */
+  mode?: 'incremental' | 'full';
   created: number;
   duplicates: number;
   errors: number;

@@ -1,0 +1,52 @@
+<section class="cal-widget">
+  <div class="cal-header">
+    <div class="cal-title">
+      <span class="material-symbols-outlined cal-icon">calendar_month</span>
+      <h2 class="cal-month">{{ monthYear() }}</h2>
+    </div>
+    
+    <div class="cal-nav">
+      <button class="cal-nav-btn" (click)="previousMonth()" aria-label="Previous month">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <button class="cal-nav-btn" (click)="nextMonth()" aria-label="Next month">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="cal-grid-container">
+    <!-- Weekday headers -->
+    <div class="cal-weekdays">
+      <span>Sun</span>
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+    </div>
+
+    <!-- Calendar days grid -->
+    <div class="cal-grid">
+      @for (day of monthDays(); track day.date) {
+        <button 
+          class="cal-day" 
+          [class.is-today]="day.isToday"
+          [class.is-selected]="day.isSelected"
+          [class.not-current-month]="!day.isCurrentMonth"
+          (click)="selectDate(day)"
+        >
+          <span class="cal-day-num">{{ day.dayNumber }}</span>
+          
+          @if (day.hasReminder) {
+            <span class="cal-reminder-dot" [ngClass]="'tone-' + day.reminderTone"></span>
+          } @else if (day.isToday) {
+            <!-- Today dot (only if there's no reminder dot to avoid clutter) -->
+            <span class="cal-today-dot"></span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</section>

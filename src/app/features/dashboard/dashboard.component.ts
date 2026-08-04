@@ -19,6 +19,7 @@ import { AiInsightsComponent } from './components/ai-insights/ai-insights.compon
 import { PriorityRemindersComponent } from './components/priority-reminders/priority-reminders.component';
 import { DailyRoutineComponent } from './components/daily-routine/daily-routine.component';
 import { AiAssistantInputComponent } from './components/ai-assistant-input/ai-assistant-input.component';
+import { CalendarWidgetComponent } from './components/calendar-widget/calendar-widget.component';
 
 /**
  * Home Component.
@@ -40,6 +41,7 @@ import { AiAssistantInputComponent } from './components/ai-assistant-input/ai-as
     AiInsightsComponent,
     PriorityRemindersComponent,
     DailyRoutineComponent,
+    CalendarWidgetComponent,
     AiAssistantInputComponent,
     BottomNavComponent,
   ],

@@ -25,7 +25,7 @@
 
   /* Expand to edges of app-shell, offsetting its padding */
   margin-top: calc(-1 * var(--lm-space-md));
-  padding-top: var(--lm-space-md);
+  padding-top: calc(var(--lm-space-md) + 24px); /* added extra space above */
   padding-bottom: var(--lm-space-sm);
   margin-inline: calc(-1 * var(--lm-space-md));
   padding-inline: var(--lm-space-md);
@@ -35,7 +35,7 @@
 @media (min-width: 768px) {
   .dashboard-header {
     margin-top: calc(-1 * var(--lm-space-xl));
-    padding-top: var(--lm-space-xl);
+    padding-top: calc(var(--lm-space-xl) + 24px);
     margin-inline: calc(-1 * var(--lm-space-xl));
     padding-inline: var(--lm-space-xl);
   }
@@ -383,7 +383,7 @@
 .hybrid-flow {
   display: flex;
   flex-direction: column;
-  gap: var(--lm-space-section-gap);
+  gap: var(--lm-space-lg);
   animation: fade-in-flow 0.4s ease-out;
 
   /* Sections are flex items and would otherwise refuse to shrink past their
@@ -1730,16 +1730,18 @@
 .ex-summary-card {
   display: flex;
   flex-direction: column;
-  background-color: transparent;
-  background-image: none;
-  border-radius: 20px;
-  border: none;
-  /* Removed top/bottom padding to eliminate empty space since it's floating */
-  padding: 0 clamp(16px, 5vw, 24px);
-  margin-top: -24px; /* Pull the card up to consume the gap left by the layout system */
+  background-color: var(--lm-color-surface);
+  background-image: var(--lm-surface-sheen);
+  border-radius: var(--lm-radius-lg);
+  border: var(--lm-border-card);
+  padding: clamp(16px, 5vw, 24px);
+  margin-top: 0;
   text-decoration: none;
   transition: transform 0.2s;
-  box-shadow: none;
+  box-shadow: var(--lm-shadow-card);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .ex-summary-card:hover {
@@ -1939,21 +1941,41 @@
   white-space: nowrap;
 }
 
-/* ── Bottom Cards: Available + Days Left — ALWAYS side-by-side ── */
+/* ── Bottom Cards Carousel: Scroll horizontally ── */
 .ex-bottom-cards {
   display: flex;
   gap: clamp(8px, 2.6vw, 12px);
   /* Critical: prevent wrapping to next line */
   flex-wrap: nowrap;
+  
+  /* Carousel setup */
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  
+  min-width: 0;
+  width: 100%;
+}
+
+.ex-bottom-cards::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .ex-mini-card {
-  flex: 1;
-  min-width: 0;
+  /* Let the cards size to their content, avoiding huge empty spaces on desktop */
+  flex: 0 0 auto;
+  min-width: 160px;
+  scroll-snap-align: start; /* better for auto-sized cards */
+  
   background-color: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(34, 211, 238, 0.12);
   border-radius: 14px;
   padding: clamp(10px, 3.2vw, 14px);
+  padding-right: 24px; /* give text some breathing room on right */
   display: flex;
   align-items: center;
   gap: clamp(8px, 2.5vw, 12px);
@@ -1983,6 +2005,16 @@
 .purple-icon {
   background-color: rgba(99, 102, 241, 0.14);
   color: #818cf8;
+}
+
+.blue-icon {
+  background-color: rgba(59, 130, 246, 0.14);
+  color: #3b82f6;
+}
+
+.rose-icon {
+  background-color: rgba(244, 63, 94, 0.14);
+  color: #f43f5e;
 }
 
 .ex-mini-data {

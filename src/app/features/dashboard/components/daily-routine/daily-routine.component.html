@@ -1,54 +1,58 @@
 <section class="dr-container" aria-label="Daily Routine">
-  <div class="dr-timeline">
-    @for (item of items(); track item.id; let last = $last) {
-      <div class="dr-row" [class.is-done]="item.done" [attr.data-tone]="item.tone">
-        <!-- Time label -->
-        <div class="dr-time">
-          <span class="dr-time-val">{{ formatTime(item.time).time }}</span>
-          <span class="dr-time-period">{{ formatTime(item.time).period }}</span>
-        </div>
-
-        <!-- Timeline spine -->
-        <div class="dr-spine">
-          <span class="dr-dot" [attr.data-tone]="item.tone"></span>
-          @if (!last) {
-            <span class="dr-line" aria-hidden="true"></span>
-          }
-        </div>
-
-        <!-- Content -->
-        <div class="dr-content">
-          <app-icon-tile [icon]="item.icon" [tone]="item.tone" size="sm" />
-          <div class="dr-text">
-            <span class="dr-title">{{ item.title }}</span>
-            <span class="dr-detail">
-              @if (item.duration) {
-                {{ item.duration }}
-              }
-              @if (item.duration && item.note) {
-                <span class="dr-sep">•</span>
-              }
-              @if (item.note) {
-                {{ item.note }}
-              }
-            </span>
-          </div>
-        </div>
-
-        <!-- Completion toggle -->
-        <button
-          type="button"
-          class="dr-toggle"
-          [class.is-done]="item.done"
-          [attr.data-tone]="item.tone"
-          (click)="toggleDone(item.id)"
-          [attr.aria-label]="(item.done ? 'Mark incomplete: ' : 'Mark complete: ') + item.title"
-        >
-          @if (item.done) {
-            <span class="material-symbols-outlined dr-check-icon">check_circle</span>
-          }
-        </button>
+  <!-- Header matching mockup style -->
+  <div class="dr-header">
+    <div class="dr-header-left">
+      <div class="dr-icon-bg" aria-hidden="true">
+        <span class="material-symbols-outlined">schedule</span>
       </div>
+      <div class="dr-header-titles">
+        <h2 class="dr-section-title">Daily Routine</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="dr-list">
+    @for (item of items(); track item.id; let last = $last) {
+      <article class="dr-list-card" [class.is-done]="item.done" [attr.data-tone]="item.tone">
+        <!-- Left Icon -->
+        <div class="dr-icon-col">
+          <app-icon-tile [icon]="item.icon" [tone]="item.tone" size="md" />
+        </div>
+
+        <!-- Middle Content -->
+        <div class="dr-content-col">
+          <h3 class="dr-title">{{ item.title }}</h3>
+          <span class="dr-detail-text">
+            {{ item.duration || 'Flexible' }}
+            @if (item.note) {
+              • {{ item.note }}
+            }
+          </span>
+        </div>
+
+        <!-- Right Content: Time and Toggle -->
+        <div class="dr-meta-col">
+          <div class="dr-meta-time">
+            <span class="dr-time-val">{{ formatTime(item.time).time }}</span>
+            <span class="dr-time-period">{{ formatTime(item.time).period }}</span>
+          </div>
+          
+          <button
+            type="button"
+            class="dr-toggle"
+            [class.is-done]="item.done"
+            [attr.data-tone]="item.tone"
+            (click)="toggleDone(item.id)"
+            [attr.aria-label]="(item.done ? 'Mark incomplete: ' : 'Mark complete: ') + item.title"
+          >
+            @if (item.done) {
+              <span class="material-symbols-outlined dr-check-icon">check_circle</span>
+            } @else {
+              <span class="material-symbols-outlined dr-uncheck-icon">radio_button_unchecked</span>
+            }
+          </button>
+        </div>
+      </article>
     }
   </div>
 </section>

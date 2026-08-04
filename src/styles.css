@@ -233,7 +233,7 @@
   --lm-touch-target-min: 44px;
 
   /* --- Sticky Header Variables --- */
-  --lm-color-header-bg: rgba(5, 10, 18, 0.88);
+  --lm-color-header-bg: rgba(5, 10, 18, 0.55); /* High transparency for strong glass effect */
   --lm-color-header-border: rgba(34, 211, 238, 0.08);
   --lm-color-header-divider: rgba(160, 205, 230, 0.09);
 
@@ -334,7 +334,7 @@ html[data-theme="light"] {
   --lm-border-card: 1px solid rgba(0, 0, 0, 0.05);
 
   /* --- Sticky Header Variables --- */
-  --lm-color-header-bg: rgba(244, 243, 248, 0.85);
+  --lm-color-header-bg: rgba(244, 243, 248, 0.55); /* High transparency for strong glass effect */
   --lm-color-header-border: rgba(0, 0, 0, 0.04);
   --lm-color-header-divider: rgba(0, 0, 0, 0.05);
 
@@ -436,7 +436,7 @@ html.fonts-loaded .material-symbols-outlined {
   min-height: 100vh;
   min-height: 100dvh;
 
-  padding-top: var(--lm-space-container-padding);
+  padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px));
   /* max() rather than a sum: the inset already includes the notch, so adding the
      two would double-pad landscape, where the inset is the larger of the pair. */
   padding-left: max(var(--lm-space-container-padding), env(safe-area-inset-left, 0px));
@@ -447,10 +447,6 @@ html.fonts-loaded .material-symbols-outlined {
   gap: var(--lm-space-band-gap);
   z-index: 10;
   position: relative;
-
-  /* Content must never be able to push the page sideways — a single overflowing
-     child otherwise scrolls the whole shell and breaks every alignment on it. */
-  overflow-x: clip;
 
   /* Clearance for the fixed bottom navigation, plus the iOS home indicator.
      Without it the last card scrolls under the bar and cannot be reached — the
@@ -470,7 +466,7 @@ html.fonts-loaded .material-symbols-outlined {
   .app-shell {
     max-width: 520px;
     margin-inline: auto;
-    padding-top: var(--lm-space-xl);
+    padding-top: calc(var(--lm-space-xl) + env(safe-area-inset-top, 0px));
     padding-left: var(--lm-space-xl);
     padding-right: var(--lm-space-xl);
   }

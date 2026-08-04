@@ -1,46 +1,60 @@
-@if (reminders(); as list) {
-  <section class="pr-container" aria-label="Priority Reminders">
-    <app-carousel
-      [count]="list.length"
-      label="Priority reminders"
-      controls="dots-only"
-      [autoPlay]="true"
-      [autoPlayInterval]="5000"
-    >
+@if (visibleReminders(); as list) {
+  <section class="pr-container" aria-labelledby="pr-heading">
+    <!-- Header matching mockup -->
+    <div class="pr-header">
+      <div class="pr-header-left">
+        <div class="pr-bell-icon" aria-hidden="true">
+          <span class="material-symbols-outlined">notifications_active</span>
+          <span class="pr-badge">{{ hiddenCount() + 2 }}</span>
+        </div>
+        <div class="pr-header-titles">
+          <h2 id="pr-heading" class="pr-section-title">Priority Reminders</h2>
+        </div>
+      </div>
+      <button class="pr-add-btn" aria-label="Add Reminder">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
+
+    <!-- List layout -->
+    <div class="pr-list">
       @for (r of list; track r.id) {
-        <article class="pr-card" [attr.data-tone]="r.tone">
-          <!-- Icon tile -->
-          <div class="pr-icon-row">
-            <app-icon-tile [icon]="r.icon" [tone]="r.tone" size="lg" />
+        <article class="pr-list-card" [attr.data-tone]="r.tone">
+          <!-- Left Icon -->
+          <div class="pr-icon-col">
+            <app-icon-tile [icon]="r.icon" [tone]="r.tone" size="md" />
           </div>
 
-          <!-- Category chip -->
-          <span class="pr-chip" [attr.data-tone]="r.tone">{{ r.category }}</span>
+          <!-- Middle Content -->
+          <div class="pr-content-col">
+            <h3 class="pr-title">{{ r.title }}</h3>
+            @if (r.description) {
+              <span class="pr-detail-text">{{ r.description }}</span>
+            }
+          </div>
 
-          <!-- Title -->
-          <h3 class="pr-title">{{ r.title }}</h3>
-
-          <!-- Due date footer -->
-          <div class="pr-footer">
-            <div class="pr-due-col">
-              <span class="pr-due-label">Due On</span>
-              <div class="pr-due-val">
-                <span class="material-symbols-outlined pr-due-icon" aria-hidden="true">calendar_today</span>
-                <span class="pr-due-day">{{ formatDueDate(r.dueOn).day }}</span>
-                <span class="pr-due-month">{{ formatDueDate(r.dueOn).month }}</span>
-              </div>
-            </div>
-            <div class="pr-due-col">
-              <span class="pr-due-label">In</span>
-              <div class="pr-due-val">
-                <span class="material-symbols-outlined pr-due-icon" aria-hidden="true">schedule</span>
-                <span class="pr-due-day">{{ daysUntil(r.dueOn) }}</span>
-                <span class="pr-due-month">Days</span>
-              </div>
+          <!-- Right Content -->
+          <div class="pr-meta-col">
+            <span class="pr-badge-pill" [attr.data-tone]="r.tone">{{ r.category }}</span>
+            <div class="pr-meta-date-group">
+              <span class="pr-meta-date">{{ formatDueDate(r.dueOn).day }} {{ formatDueDate(r.dueOn).month }}</span>
+              <span class="pr-meta-time">in {{ daysUntil(r.dueOn) }} Days</span>
             </div>
           </div>
         </article>
       }
-    </app-carousel>
+    </div>
+    
+    <!-- Summary Footer -->
+    <div class="pr-summary-footer">
+      <div class="pr-summary-item pr-summary-active">
+        <span class="material-symbols-outlined">flag</span>
+        3 Priority Reminders
+      </div>
+      <span class="pr-summary-divider">|</span>
+      <div class="pr-summary-item">2 This Week</div>
+      <span class="pr-summary-divider">|</span>
+      <div class="pr-summary-item">5 Total</div>
+    </div>
   </section>
 }

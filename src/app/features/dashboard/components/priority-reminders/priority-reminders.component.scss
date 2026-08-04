@@ -1,28 +1,92 @@
 :host {
   display: block;
-  /* Sync the track padding exactly with the track gap (12px) so the 3rd card is perfectly pushed off-screen */
-  --lm-space-card-inline: 12px;
 }
 
-/* ── Individual reminder card ── */
-.pr-card {
+.pr-container {
   display: flex;
   flex-direction: column;
+  gap: var(--lm-space-sm);
+}
+
+/* ── Header ── */
+.pr-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 var(--lm-space-xs);
+}
+
+.pr-header-left {
+  display: flex;
   align-items: center;
-  text-align: center;
   gap: 12px;
+}
 
-  /* Fit exactly 2 cards within the viewport taking into account the 12px gap */
-  width: calc(50% - 6px);
-  flex: 0 0 auto;
+.pr-bell-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--lm-color-accent) 15%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lm-color-accent);
+}
 
-  background: color-mix(in srgb, var(--lm-color-surface) 60%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--tone, var(--lm-color-accent)) 30%, transparent);
-  box-shadow: 0 8px 32px -12px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 25%, transparent);
-  border-radius: var(--lm-radius-xl);
-  padding: 20px 16px 16px;
+.pr-bell-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.pr-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--lm-color-accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--lm-color-bg);
+}
+
+.pr-header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.pr-section-title {
+  font: var(--lm-type-heading-lg);
+  color: var(--lm-color-text-primary);
+  margin: 0;
+}
+
+.pr-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--lm-color-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lm-color-accent) 20%, transparent);
+  color: var(--lm-color-accent);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pr-add-btn:hover {
+  background: color-mix(in srgb, var(--lm-color-accent) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.pr-add-btn .material-symbols-outlined {
+  font-size: 20px;
 }
 
 /* ── Tone map — same tokens as the icon-tile ── */
@@ -35,94 +99,143 @@
 [data-tone='rose']   { --tone: var(--lm-tone-rose); }
 [data-tone='green']  { --tone: var(--lm-tone-green); }
 
-.pr-icon-row {
-  margin-bottom: 2px;
-}
-
-.pr-title {
-  font: var(--lm-type-heading-sm);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--lm-color-text-primary);
-  margin: 0;
-  line-height: 1.35;
-  /* Limit to two lines */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Category chip */
-.pr-chip {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: var(--lm-radius-pill);
-  font: var(--lm-type-overline);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  background: color-mix(in srgb, var(--tone) 14%, transparent);
-  color: var(--tone);
-  border: 1px solid color-mix(in srgb, var(--tone) 25%, transparent);
-}
-
-
-
-/* ── Due date footer ── */
-.pr-footer {
+/* ── List Layout ── */
+.pr-list {
   display: flex;
-  gap: 6px;
-  width: 100%;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px dashed color-mix(in srgb, var(--tone) 25%, transparent);
+  flex-direction: column;
+  gap: var(--lm-space-sm);
 }
 
-.pr-due-col {
-  flex: 1;
+/* ── Individual list card ── */
+.pr-list-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  
+  background: var(--lm-color-surface);
+  border: 1px solid color-mix(in srgb, var(--tone, var(--lm-color-accent)) 15%, transparent);
+  box-shadow: var(--lm-shadow-card);
+  border-radius: var(--lm-radius-xl);
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.pr-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 20%, transparent);
+  border-color: color-mix(in srgb, var(--tone, var(--lm-color-accent)) 30%, transparent);
+}
+
+.pr-icon-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border-radius: var(--lm-radius-sm);
-  background: color-mix(in srgb, var(--tone) 6%, transparent);
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 56px; /* fixed width for alignment */
 }
 
-.pr-due-label {
-  font: var(--lm-type-overline);
-  font-size: 0.65rem;
-  color: var(--lm-color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.pr-due-val {
+.pr-content-col {
+  flex: 1;
   display: flex;
-  align-items: baseline; /* Align text by baseline instead of center */
+  flex-direction: column;
   justify-content: center;
   gap: 4px;
 }
 
-.pr-due-icon {
-  font-size: 13px;
-  color: var(--tone);
-  /* Slightly nudge the icon down so it looks centered with the baseline text */
-  transform: translateY(1px);
-}
-
-.pr-due-day {
-  font: var(--lm-type-heading-md);
-  font-size: 1.1rem;
-  font-weight: 700;
+.pr-title {
+  font: var(--lm-type-heading-sm);
   color: var(--lm-color-text-primary);
-  line-height: 1;
+  margin: 0;
+  margin-bottom: 4px;
 }
 
-.pr-due-month {
+.pr-detail-text {
   font: var(--lm-type-body-sm);
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 13px;
   color: var(--lm-color-text-secondary);
+}
+
+.pr-meta-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  text-align: right;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.pr-meta-date-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: auto; /* pushes it to the bottom */
+}
+
+/* Pill badge - Compact Glassmorphic */
+.pr-badge-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--lm-radius-pill);
+  font: var(--lm-type-overline);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--tone) 15%, transparent);
+  color: var(--tone);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pr-meta-date {
+  font: var(--lm-type-body-sm);
+  font-weight: 600;
+  color: var(--tone);
+}
+
+.pr-meta-time {
+  font: var(--lm-type-body-sm);
+  font-size: 12px;
+  color: var(--lm-color-text-secondary);
+}
+
+/* ── Summary Footer ── */
+.pr-summary-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pr-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--lm-type-body-sm);
+  font-size: 13px;
+  color: var(--lm-color-text-secondary);
+  font-weight: 500;
+}
+
+.pr-summary-active {
+  color: var(--lm-color-accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lm-color-accent) 15%, transparent);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.pr-summary-active .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.pr-summary-divider {
+  color: var(--lm-color-text-muted);
+  font-size: 12px;
 }

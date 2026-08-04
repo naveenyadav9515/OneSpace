@@ -1,0 +1,77 @@
+<!-- Declared once and stamped into whichever placement is active, so the two
+     variants cannot drift in markup or accessible naming. -->
+<ng-template #arrow let-direction="direction" let-disabled="disabled" let-label="label">
+  <button
+    type="button"
+    class="car-arrow"
+    [class.car-arrow--prev]="direction === -1"
+    [class.car-arrow--next]="direction === 1"
+    (click)="step(direction)"
+    [disabled]="disabled"
+    [attr.aria-label]="label"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">
+      {{ direction === -1 ? 'chevron_left' : 'chevron_right' }}
+    </span>
+  </button>
+</ng-template>
+
+<div class="car-viewport">
+  @if (controls() === 'edge' && count() > 1) {
+    <ng-container
+      [ngTemplateOutlet]="arrow"
+      [ngTemplateOutletContext]="{ direction: -1, disabled: !canScrollBack(), label: 'Previous' }"
+    />
+  }
+
+  <div
+    #track
+    class="car-track"
+    [class.is-fitted]="fitToActive()"
+    [style.height.px]="fitToActive() ? activeHeight() : null"
+    role="group"
+    [attr.aria-label]="label()"
+    (scroll)="onScroll()"
+  >
+    <ng-content />
+  </div>
+
+  @if (controls() === 'edge' && count() > 1) {
+    <ng-container
+      [ngTemplateOutlet]="arrow"
+      [ngTemplateOutletContext]="{ direction: 1, disabled: !canScrollForward(), label: 'Next' }"
+    />
+  }
+</div>
+
+@if (count() > 1 && controls() !== 'none') {
+  <div class="car-controls" [class.inline]="controls() === 'inline'">
+    @if (controls() === 'inline') {
+      <ng-container
+        [ngTemplateOutlet]="arrow"
+        [ngTemplateOutletContext]="{ direction: -1, disabled: !canScrollBack(), label: 'Previous' }"
+      />
+    }
+
+    <div class="car-dots" role="tablist" [attr.aria-label]="label() + ' pagination'">
+      @for (dot of dots(); track dot) {
+        <button
+          type="button"
+          class="car-dot"
+          [class.is-active]="dot === activeIndex()"
+          (click)="scrollTo(dot)"
+          role="tab"
+          [attr.aria-selected]="dot === activeIndex()"
+          [attr.aria-label]="'Go to item ' + (dot + 1)"
+        ></button>
+      }
+    </div>
+
+    @if (controls() === 'inline') {
+      <ng-container
+        [ngTemplateOutlet]="arrow"
+        [ngTemplateOutletContext]="{ direction: 1, disabled: !canScrollForward(), label: 'Next' }"
+      />
+    }
+  </div>
+}

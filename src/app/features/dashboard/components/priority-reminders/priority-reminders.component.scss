@@ -1,0 +1,128 @@
+:host {
+  display: block;
+  /* Sync the track padding exactly with the track gap (12px) so the 3rd card is perfectly pushed off-screen */
+  --lm-space-card-inline: 12px;
+}
+
+/* ── Individual reminder card ── */
+.pr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+
+  /* Fit exactly 2 cards within the viewport taking into account the 12px gap */
+  width: calc(50% - 6px);
+  flex: 0 0 auto;
+
+  background: color-mix(in srgb, var(--lm-color-surface) 60%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--tone, var(--lm-color-accent)) 30%, transparent);
+  box-shadow: 0 8px 32px -12px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 25%, transparent);
+  border-radius: var(--lm-radius-xl);
+  padding: 20px 16px 16px;
+}
+
+/* ── Tone map — same tokens as the icon-tile ── */
+[data-tone='cyan']   { --tone: var(--lm-tone-cyan); }
+[data-tone='violet'] { --tone: var(--lm-tone-violet); }
+[data-tone='purple'] { --tone: var(--lm-tone-purple); }
+[data-tone='amber']  { --tone: var(--lm-tone-amber); }
+[data-tone='pink']   { --tone: var(--lm-tone-pink); }
+[data-tone='blue']   { --tone: var(--lm-tone-blue); }
+[data-tone='rose']   { --tone: var(--lm-tone-rose); }
+[data-tone='green']  { --tone: var(--lm-tone-green); }
+
+.pr-icon-row {
+  margin-bottom: 2px;
+}
+
+.pr-title {
+  font: var(--lm-type-heading-sm);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+  line-height: 1.35;
+  /* Limit to two lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Category chip */
+.pr-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--lm-radius-pill);
+  font: var(--lm-type-overline);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: var(--tone);
+  border: 1px solid color-mix(in srgb, var(--tone) 25%, transparent);
+}
+
+
+
+/* ── Due date footer ── */
+.pr-footer {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--tone) 25%, transparent);
+}
+
+.pr-due-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: var(--lm-radius-sm);
+  background: color-mix(in srgb, var(--tone) 6%, transparent);
+}
+
+.pr-due-label {
+  font: var(--lm-type-overline);
+  font-size: 0.65rem;
+  color: var(--lm-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pr-due-val {
+  display: flex;
+  align-items: baseline; /* Align text by baseline instead of center */
+  justify-content: center;
+  gap: 4px;
+}
+
+.pr-due-icon {
+  font-size: 13px;
+  color: var(--tone);
+  /* Slightly nudge the icon down so it looks centered with the baseline text */
+  transform: translateY(1px);
+}
+
+.pr-due-day {
+  font: var(--lm-type-heading-md);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  line-height: 1;
+}
+
+.pr-due-month {
+  font: var(--lm-type-body-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--lm-color-text-secondary);
+}

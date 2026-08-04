@@ -1,0 +1,95 @@
+<header class="hh" data-testid="home-header">
+  <!-- Brand mark -->
+  <div class="hh-logo" aria-hidden="true">
+    <span class="material-symbols-outlined">grid_view</span>
+  </div>
+
+  <!-- Brand + greeting -->
+  <div class="hh-identity">
+    <h1 class="hh-brand">One<span class="hh-brand-accent">-Space</span></h1>
+    <p class="hh-greeting">{{ greeting() }}, <strong>{{ userName() }}</strong> 👋</p>
+  </div>
+
+  <!-- Indicators -->
+  <div class="hh-actions">
+    <button
+      type="button"
+      class="hh-orb"
+      [class.is-error]="dbStatus() === 'error'"
+      [attr.aria-label]="'Connection: ' + dbStatus()"
+      [title]="'Connection: ' + dbStatus()"
+    >
+      <span class="material-symbols-outlined">{{ dbIcon() }}</span>
+      <span class="hh-dot" [class.is-error]="dbStatus() === 'error'" aria-hidden="true"></span>
+    </button>
+
+    <button type="button" class="hh-orb" aria-label="Notifications" title="Notifications">
+      <span class="material-symbols-outlined">notifications</span>
+      @if (notificationCount() > 0) {
+        <span class="hh-dot" aria-hidden="true"></span>
+      }
+    </button>
+
+    <!-- Account menu -->
+    <div class="hh-account">
+      <button
+        type="button"
+        class="hh-avatar"
+        (click)="toggleMenu($event)"
+        [class.is-open]="isMenuOpen()"
+        [attr.aria-expanded]="isMenuOpen()"
+        aria-haspopup="menu"
+        aria-label="Account menu"
+        data-testid="account-toggle"
+      >
+        <img
+          [src]="avatarUrl()"
+          [alt]="userName() + '\'s avatar'"
+          class="hh-avatar-img"
+          (error)="onAvatarError()"
+        />
+        <span class="hh-presence" aria-hidden="true"></span>
+      </button>
+
+      @if (isMenuOpen()) {
+        <div class="hh-menu glass-float border-etched" role="menu">
+          <div class="hh-menu-head">Theme</div>
+
+          <button
+            type="button"
+            class="hh-menu-item"
+            role="menuitem"
+            (click)="setTheme('dark')"
+            [class.is-active]="currentTheme() === 'dark'"
+          >
+            <span class="material-symbols-outlined hh-menu-icon">dark_mode</span>
+            <span>Dark</span>
+          </button>
+
+          <button
+            type="button"
+            class="hh-menu-item"
+            role="menuitem"
+            (click)="setTheme('light')"
+            [class.is-active]="currentTheme() === 'light'"
+          >
+            <span class="material-symbols-outlined hh-menu-icon">light_mode</span>
+            <span>Light</span>
+          </button>
+
+          <div class="hh-menu-sep" role="separator"></div>
+
+          <button
+            type="button"
+            class="hh-menu-item hh-menu-item--danger"
+            role="menuitem"
+            (click)="logout()"
+          >
+            <span class="material-symbols-outlined hh-menu-icon">logout</span>
+            <span>Log Out</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

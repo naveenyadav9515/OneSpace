@@ -383,8 +383,16 @@
 .hybrid-flow {
   display: flex;
   flex-direction: column;
-  gap: var(--lm-space-md);
+  gap: var(--lm-space-section-gap);
   animation: fade-in-flow 0.4s ease-out;
+
+  /* Sections are flex items and would otherwise refuse to shrink past their
+     content width, which is how one wide row ends up scrolling the page. */
+  min-width: 0;
+}
+
+.hybrid-flow > * {
+  min-width: 0;
 }
 
 @keyframes fade-in-flow {
@@ -1722,18 +1730,20 @@
 .ex-summary-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--lm-color-surface);
+  background-color: transparent;
+  background-image: none;
   border-radius: 20px;
-  border: var(--lm-border-card);
-  padding: 24px;
+  border: none;
+  /* Removed top/bottom padding to eliminate empty space since it's floating */
+  padding: 0 clamp(16px, 5vw, 24px);
+  margin-top: -24px; /* Pull the card up to consume the gap left by the layout system */
   text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: var(--lm-shadow-card);
+  transition: transform 0.2s;
+  box-shadow: none;
 }
 
 .ex-summary-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--lm-shadow-panel-hover);
 }
 
 /* ── Header Row ── */
@@ -1814,18 +1824,21 @@
 /* ── Main Content: Arc + Stats — ALWAYS side-by-side ── */
 .ex-main {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 24px;
+  align-items: stretch; /* Allows side-by-side containers to share height */
+  gap: clamp(12px, 4vw, 20px);
+  margin-bottom: clamp(16px, 5vw, 24px);
   /* Critical: prevent wrapping to next line */
   flex-wrap: nowrap;
 }
 
+/* The gauge keeps its share of the row proportionally instead of holding a hard
+   130px floor, which on a 320px screen left the amount beside it too little
+   width to render without clipping. */
 .ex-chart-wrap {
   position: relative;
-  width: 150px;
-  min-width: 130px;
-  height: 100px;
+  /* Increased size as requested */
+  width: clamp(140px, 42vw, 190px);
+  height: clamp(100px, 30vw, 130px);
   flex-shrink: 0;
 }
 
@@ -1842,20 +1855,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 2px;
+  /* Dropped to 12% to align with the absolute bottom visual edge of the stroke, giving maximum horizontal width */
+  padding-bottom: 12%;
 }
 
 .ex-pct {
   color: var(--lm-color-text-primary);
-  font-size: 24px;
+  /* Increased size as requested */
+  font-size: clamp(28px, 8vw, 36px);
   font-weight: 700;
   line-height: 1;
+  position: relative;
+  display: inline-block;
+}
+
+.ex-pct-sym {
+  position: absolute;
+  left: 100%;
+  bottom: 0.15em;
+  font-size: 0.5em; /* Keeps the % small as an indicator */
+  font-weight: 600;
+  padding-left: 2px;
+  color: var(--lm-color-text-secondary);
 }
 
 .ex-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 11px;
-  margin-top: 3px;
+  font-size: 11px; /* Slightly smaller to fit cleanly */
+  margin-top: 4px;
   white-space: nowrap;
 }
 
@@ -1865,20 +1892,23 @@
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  /* Push text down to align exactly with the visual top of the SVG arc */
+  padding-top: clamp(18px, 5.5vw, 26px); 
+  padding-bottom: 2px;
 }
 
 .ex-stats-lbl {
   color: var(--lm-color-text-secondary);
   font-size: 14px;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   white-space: nowrap;
 }
 
 .ex-stats-val {
   color: var(--lm-color-text-primary);
-  font-size: 28px;
+  font-size: clamp(20px, 6.6vw, 28px);
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: auto; /* Pushes the progress bar to perfectly align with the bottom */
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -1912,7 +1942,7 @@
 /* ── Bottom Cards: Available + Days Left — ALWAYS side-by-side ── */
 .ex-bottom-cards {
   display: flex;
-  gap: 12px;
+  gap: clamp(8px, 2.6vw, 12px);
   /* Critical: prevent wrapping to next line */
   flex-wrap: nowrap;
 }
@@ -1920,20 +1950,20 @@
 .ex-mini-card {
   flex: 1;
   min-width: 0;
-  background-color: var(--lm-color-surface-hover);
-  border: var(--lm-border-subtle);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(34, 211, 238, 0.12);
   border-radius: 14px;
-  padding: 14px;
+  padding: clamp(10px, 3.2vw, 14px);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 2.5vw, 12px);
   /* Prevent children from wrapping */
   flex-wrap: nowrap;
 }
 
 .ex-mini-icon {
-  width: 40px;
-  height: 40px;
+  width: clamp(34px, 10vw, 40px);
+  height: clamp(34px, 10vw, 40px);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1946,12 +1976,12 @@
 }
 
 .green-icon {
-  background-color: rgba(34, 197, 94, 0.1);
+  background-color: rgba(34, 197, 94, 0.14);
   color: #22c55e;
 }
 
 .purple-icon {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(99, 102, 241, 0.14);
   color: #818cf8;
 }
 
@@ -1970,14 +2000,14 @@
 
 .ex-mini-val {
   color: var(--lm-color-text-primary);
-  font-size: 17px;
+  font-size: clamp(14px, 4.2vw, 17px);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .ex-mini-val-green {
   color: #22c55e;
-  font-size: 17px;
+  font-size: clamp(14px, 4.2vw, 17px);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1986,5 +2016,61 @@
   color: var(--lm-color-text-secondary);
   font-size: 11px;
   font-weight: 400;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Overview Section Additions — Matches Figma Screenshots
+   ========================================================================== */
+
+/* Section title "Overview" */
+.ex-section-title {
+  color: var(--lm-color-text-primary);
+  font: var(--lm-type-heading-lg);
+  margin: 0;
+}
+
+/* "You're on track" status badge */
+.ex-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--lm-radius-pill);
+  font: var(--lm-type-body-sm);
+  font-weight: 600;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+
+.ex-status-healthy {
+  color: var(--lm-color-success);
+  background: var(--lm-color-success-subtle);
+}
+
+.ex-status-icon {
+  font-size: 18px;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Rose-toned mini icon (for Top category / Shopping cart) */
+.rose-icon {
+  background-color: rgba(244, 63, 94, 0.15);
+  color: #F43F5E;
+}
+
+/* Top category value */
+.ex-mini-val-cat {
+  color: var(--lm-color-text-primary);
+  font-size: clamp(14px, 4.2vw, 17px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Category detail line (amount + percentage) */
+.ex-mini-cat-detail {
+  color: #F43F5E;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
 }

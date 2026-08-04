@@ -44,8 +44,8 @@
   width: 100%;
   padding: 0.85rem 1rem;
   border-radius: var(--lm-radius-sm);
-  background: var(--lm-color-surface-hover);
-  border: 1px solid var(--lm-color-surface-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(34, 211, 238, 0.10);
   color: var(--lm-color-text-primary);
   font-family: var(--lm-font-body);
   font-size: 1rem;
@@ -54,9 +54,9 @@
 
 .form-control:focus {
   outline: none;
-  background: var(--lm-color-surface-elevated);
-  border-color: var(--lm-color-primary);
-  box-shadow: 0 0 0 3px var(--lm-color-primary-glow);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--lm-color-accent);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
 }
 
 .form-control.is-invalid {
@@ -121,6 +121,12 @@
 .google-icon {
   width: 20px;
   height: 20px;
+}
+
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .divider {

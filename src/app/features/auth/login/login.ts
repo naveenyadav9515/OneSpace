@@ -48,7 +48,7 @@ export class Login implements AfterViewInit {
         
         google.accounts.id.renderButton(
           document.getElementById('google-btn-wrapper'),
-          { theme: 'outline', size: 'large', width: '340' } 
+          { theme: 'outline', size: 'large', width: '280' } 
         );
       } else {
         console.warn('Google Identity Services SDK is not configured or not loaded.');

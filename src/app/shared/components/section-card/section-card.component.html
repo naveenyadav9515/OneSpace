@@ -1,0 +1,28 @@
+@if (title()) {
+  <header class="sc-header">
+    <div class="sc-heading">
+      @if (icon()) {
+        <app-icon-tile [icon]="icon()" [tone]="tone()" size="md" />
+      }
+      <h2 class="sc-title">{{ title() }}</h2>
+    </div>
+
+    @if (actionLabel()) {
+      @if (actionLink()) {
+        <a class="sc-action" [routerLink]="actionLink()">
+          <span>{{ actionLabel() }}</span>
+          <span class="material-symbols-outlined sc-action-chevron" aria-hidden="true">chevron_right</span>
+        </a>
+      } @else {
+        <span class="sc-action sc-action--static">
+          <span>{{ actionLabel() }}</span>
+          <span class="material-symbols-outlined sc-action-chevron" aria-hidden="true">chevron_right</span>
+        </span>
+      }
+    }
+  </header>
+}
+
+<div class="sc-body" [class.sc-body--flush]="flush()">
+  <ng-content />
+</div>

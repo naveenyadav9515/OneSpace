@@ -10,124 +10,23 @@
     </app-loader>
   } @else {
 
-    <!-- ── Dashboard Header ── -->
-    <header class="dashboard-header" data-testid="dashboard-header">
-      <div class="header-row">
-        <div class="header-left">
-          <h1 class="brand-name">{{ strings.APP_NAME }}</h1>
-          <p class="greeting-text">{{ greeting() }}, {{ userName }} 👋</p>
-        </div>
-        
-        <div class="header-right">
-          <!-- DB Status Pill -->
-          <div
-            class="db-status-pill"
-            [class.pill-connected]="dbStatus() === 'connected'"
-            [class.pill-connecting]="dbStatus() === 'connecting'"
-            [class.pill-error]="dbStatus() === 'error'"
-            role="status"
-            [attr.aria-label]="'Database ' + (dbStatus() === 'connected' ? strings.DB_STATUS_CONNECTED : dbStatus() === 'connecting' ? strings.DB_STATUS_CONNECTING : strings.DB_STATUS_ERROR)"
-            data-testid="db-status-pill"
-          >
-            <span class="pill-dot"></span>
-            <span class="material-symbols-outlined pill-icon">{{ dbIcons[dbStatus()] }}</span>
-          </div>
-
-          <!-- Notification Tray Button -->
-          <button 
-            type="button" 
-            class="settings-btn"
-            style="color: var(--lm-color-primary);"
-            aria-label="Open Notifications"
-            title="Notifications"
-          >
-            <span class="material-symbols-outlined">notifications_active</span>
-          </button>
-
-          <!-- Theme Settings Container -->
-          <div class="settings-container">
-            <button
-              type="button"
-              class="settings-btn"
-              (click)="toggleSettingsMenu($event)"
-              aria-label="Toggle settings menu"
-              [class.active]="isSettingsOpen()"
-              data-testid="settings-toggle-btn"
-            >
-              <span class="material-symbols-outlined">settings</span>
-            </button>
-
-            @if (isSettingsOpen()) {
-              <div class="settings-dropdown glass-float border-etched">
-                <div class="dropdown-header">Theme</div>
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  (click)="setTheme('dark')"
-                  [class.active]="currentTheme() === 'dark'"
-                >
-                  <span class="material-symbols-outlined dropdown-item-icon">dark_mode</span>
-                  <span>Dark</span>
-                </button>
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  (click)="setTheme('light')"
-                  [class.active]="currentTheme() === 'light'"
-                >
-                  <span class="material-symbols-outlined dropdown-item-icon">light_mode</span>
-                  <span>Light</span>
-                </button>
-                
-                <div style="height: 1px; background: var(--lm-border); margin: 4px 0;"></div>
-                
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  (click)="logout()"
-                  style="color: #ff4d4d;"
-                >
-                  <span class="material-symbols-outlined dropdown-item-icon">logout</span>
-                  <span>Log Out</span>
-                </button>
-              </div>
-            }
-          </div>
-
-          <!-- Profile Picture Ring Design -->
-          <div class="profile-avatar-wrap" data-testid="profile-avatar">
-            <img src="/profile_avatar.png" alt="Naani's Avatar" class="profile-img" />
-            <span class="profile-status-dot" aria-label="System status online"></span>
-          </div>
-        </div>
-      </div>
-    </header>
-
-
+    <!-- ── Home Header ── -->
+    <app-home-header [dbStatus]="dbStatus()" [notificationCount]="1" />
 
     <!-- ── Hybrid Bento Flow ── -->
     <div class="hybrid-flow" data-testid="features-section">
-      <!-- 0. Expense Summary (Full Width) -->
+
+      <!-- 1. AI Insights (spending insight carousel) -->
+      <app-ai-insights />
+
+      <!-- 2. AI Assistant Input -->
+      <app-ai-assistant-input />
+
+      <!-- 3. Overview / Expense Summary (Full Width) -->
       @if (getFeature('Finance Tracker'); as feat) {
         <section class="flow-item full-width">
           @if (expenseService.summary(); as summary) {
             <a routerLink="/expenses" class="ex-summary-card" style="text-decoration: none; color: inherit;">
-              <!-- Header -->
-              <div class="ex-header">
-                <div class="ex-header-left">
-                  <div class="ex-icon-box">
-                    <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
-                  </div>
-                  <div class="ex-title-wrap">
-                    <h2>Expense Summary</h2>
-                    <span class="ex-subtitle">This Month <span class="material-symbols-outlined pf-sm-icon">expand_more</span></span>
-                  </div>
-                </div>
-                <div class="ex-icon-btn">
-                  <span class="material-symbols-outlined">calendar_today</span>
-                </div>
-              </div>
-
               <!-- Main Content: Arc gauge + Spent stats (always side-by-side) -->
               <div class="ex-main">
                 <!-- Arc Chart -->
@@ -148,24 +47,26 @@
                           [style.stroke-dashoffset]="251.32 - (251.32 * (summary.budgetUsedPct / 100))" />
                   </svg>
                   <div class="ex-chart-text">
-                    <span class="ex-pct">{{ summary.budgetUsedPct }}%</span>
+                    <span class="ex-pct">
+                      {{ summary.budgetUsedPct }}<span class="ex-pct-sym">%</span>
+                    </span>
                     <span class="ex-lbl">of budget used</span>
                   </div>
                 </div>
 
                 <!-- Stats -->
                 <div class="ex-stats">
-                  <span class="ex-stats-lbl">Spent</span>
+                  <span class="ex-stats-lbl">Spent this month</span>
                   <span class="ex-stats-val">₹{{ summary.spent | number:'1.0-0' }}</span>
                   
                   <div class="ex-progress-bar">
                     <div class="ex-progress-fill" [style.width]="summary.budgetUsedPct + '%'"></div>
                   </div>
-                  <span class="ex-stats-total">of ₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+                  <span class="ex-stats-total">of ₹{{ summary.budgetTarget | number:'1.0-0' }} budget</span>
                 </div>
               </div>
 
-              <!-- Bottom Cards: Available + Days Left (always side-by-side) -->
+              <!-- Bottom Cards: Available + Top Category (always side-by-side) -->
               <div class="ex-bottom-cards">
                 <div class="ex-mini-card">
                   <div class="ex-mini-icon green-icon">
@@ -178,14 +79,13 @@
                 </div>
                 
                 <div class="ex-mini-card">
-                  <div class="ex-mini-icon purple-icon">
-                    <span class="material-symbols-outlined">calendar_today</span>
+                  <div class="ex-mini-icon rose-icon">
+                    <span class="material-symbols-outlined">shopping_cart</span>
                   </div>
                   <div class="ex-mini-data">
-                    <span class="ex-mini-lbl">Days Left</span>
-                    <span class="ex-mini-val">
-                      {{ summary.daysLeft }} <span class="ex-mini-sub">of {{ summary.daysInMonth }} days</span>
-                    </span>
+                    <span class="ex-mini-lbl">Top category</span>
+                    <span class="ex-mini-val-cat">Groceries</span>
+                    <span class="ex-mini-cat-detail">₹1,718 • 76%</span>
                   </div>
                 </div>
               </div>
@@ -197,44 +97,18 @@
           }
         </section>
       }
+
+      <!-- 4. Priority Reminders -->
+      <app-priority-reminders />
+
+      <!-- 5. Daily Routine -->
+      <app-daily-routine />
     </div>
 
-    <!-- App Footer -->
-    <footer class="app-footer">
-      <div class="footer-content">
-        <span class="material-symbols-outlined footer-logo-icon">dashboard_customize</span>
-        <div class="footer-text">
-          <p class="footer-brand">{{ strings.APP_NAME }}</p>
-          <p class="footer-credit">Built for Naani</p>
-        </div>
-      </div>
-      <div class="footer-version">v1.0.0</div>
-    </footer>
   }
 
 </div>
 
-<!-- ── Feature Details Modal ── -->
-@if (selectedFeature(); as feature) {
-  <div class="modal-backdrop glass-mantle" (click)="closeDetails()" role="dialog" aria-modal="true">
-    <div class="modal-content glass-float border-etched" (click)="$event.stopPropagation()">
-      <header class="modal-header">
-        <div class="modal-icon-wrap">
-          <span class="material-symbols-outlined modal-icon">{{ feature.icon }}</span>
-        </div>
-        <h3 class="modal-title">{{ feature.name }}</h3>
-        <button
-          type="button"
-          class="modal-close-btn"
-          (click)="closeDetails()"
-          aria-label="Close modal"
-        >
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </header>
-      <div class="modal-body">
-        <p class="modal-desc">{{ feature.description }}</p>
-      </div>
-    </div>
-  </div>
-}
+<!-- Primary navigation. Outside the shell so it is fixed to the viewport
+     rather than scrolling away with the content. -->
+<app-bottom-nav />

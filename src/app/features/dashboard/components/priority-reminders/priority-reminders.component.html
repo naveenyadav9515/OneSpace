@@ -1,0 +1,46 @@
+@if (reminders(); as list) {
+  <section class="pr-container" aria-label="Priority Reminders">
+    <app-carousel
+      [count]="list.length"
+      label="Priority reminders"
+      controls="dots-only"
+      [autoPlay]="true"
+      [autoPlayInterval]="5000"
+    >
+      @for (r of list; track r.id) {
+        <article class="pr-card" [attr.data-tone]="r.tone">
+          <!-- Icon tile -->
+          <div class="pr-icon-row">
+            <app-icon-tile [icon]="r.icon" [tone]="r.tone" size="lg" />
+          </div>
+
+          <!-- Category chip -->
+          <span class="pr-chip" [attr.data-tone]="r.tone">{{ r.category }}</span>
+
+          <!-- Title -->
+          <h3 class="pr-title">{{ r.title }}</h3>
+
+          <!-- Due date footer -->
+          <div class="pr-footer">
+            <div class="pr-due-col">
+              <span class="pr-due-label">Due On</span>
+              <div class="pr-due-val">
+                <span class="material-symbols-outlined pr-due-icon" aria-hidden="true">calendar_today</span>
+                <span class="pr-due-day">{{ formatDueDate(r.dueOn).day }}</span>
+                <span class="pr-due-month">{{ formatDueDate(r.dueOn).month }}</span>
+              </div>
+            </div>
+            <div class="pr-due-col">
+              <span class="pr-due-label">In</span>
+              <div class="pr-due-val">
+                <span class="material-symbols-outlined pr-due-icon" aria-hidden="true">schedule</span>
+                <span class="pr-due-day">{{ daysUntil(r.dueOn) }}</span>
+                <span class="pr-due-month">Days</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </app-carousel>
+  </section>
+}

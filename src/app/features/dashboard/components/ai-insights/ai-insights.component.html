@@ -1,0 +1,45 @@
+@if (insights().length > 0) {
+  <section class="ai glass-card" aria-label="Spending insights" [attr.data-tone]="insights()[0]?.tone">
+    <app-carousel
+      [count]="insights().length"
+      label="Spending insights"
+      controls="none"
+      [autoPlay]="true"
+      [autoPlayInterval]="5000"
+    >
+      @for (insight of insights(); track insight.id) {
+        <article class="ai-card">
+          <div class="ai-top-row">
+            <div class="ai-tile" [attr.data-tone]="insight.tone" aria-hidden="true">
+              <span class="material-symbols-outlined">{{ insight.icon }}</span>
+            </div>
+
+            <div class="ai-vertical-divider" aria-hidden="true"></div>
+
+            <div class="ai-body">
+              <p class="ai-headline">
+                @for (seg of insight.headline; track $index) {
+                  <span [class]="'em-' + seg.emphasis">{{ seg.text }}</span>
+                }
+              </p>
+            </div>
+          </div>
+
+          @if (insight.tip) {
+            <div class="ai-bottom-row">
+              <div class="ai-horizontal-divider" aria-hidden="true"></div>
+
+              <div class="ai-tip">
+                <p class="ai-tip-text">
+                  @for (seg of insight.tip; track $index) {
+                    <span [class]="'em-' + seg.emphasis">{{ seg.text }}</span>
+                  }
+                </p>
+              </div>
+            </div>
+          }
+        </article>
+      }
+    </app-carousel>
+  </section>
+}

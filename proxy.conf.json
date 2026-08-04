@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://onespace-services.onrender.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

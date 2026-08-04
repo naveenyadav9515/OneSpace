@@ -1,0 +1,174 @@
+:host {
+  display: block;
+}
+
+/* ── Tone map ── */
+[data-tone='cyan']   { --tone: var(--lm-tone-cyan); }
+[data-tone='violet'] { --tone: var(--lm-tone-violet); }
+[data-tone='purple'] { --tone: var(--lm-tone-purple); }
+[data-tone='amber']  { --tone: var(--lm-tone-amber); }
+[data-tone='pink']   { --tone: var(--lm-tone-pink); }
+[data-tone='blue']   { --tone: var(--lm-tone-blue); }
+[data-tone='rose']   { --tone: var(--lm-tone-rose); }
+[data-tone='green']  { --tone: var(--lm-tone-green); }
+
+/* ── Timeline container ── */
+.dr-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── One routine row ── */
+.dr-row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(10px, 3vw, 14px);
+  padding: 10px 0;
+  min-height: 56px;
+}
+
+/* ── Time label ── */
+.dr-time {
+  flex: 0 0 auto;
+  width: 68px; /* Slightly narrower since they stack */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-top: 14px;
+}
+
+.dr-time-val {
+  font: var(--lm-type-mono-md); /* larger */
+  font-size: 1.05rem; /* larger font size */
+  font-weight: 700;
+  color: var(--lm-color-text-primary); /* Properly visible */
+  line-height: 1;
+}
+
+.dr-time-period {
+  font: var(--lm-type-overline);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--lm-color-text-muted);
+  line-height: 1;
+}
+
+/* ── Timeline spine ── */
+.dr-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  width: 14px;
+  padding-top: 18px;
+  position: relative;
+}
+
+.dr-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tone) 40%, transparent);
+  flex: 0 0 auto;
+  z-index: 1;
+}
+
+.dr-line {
+  width: 2px;
+  flex: 1;
+  min-height: 32px;
+  background: color-mix(in srgb, var(--lm-color-text-muted) 20%, transparent);
+  margin-top: 4px;
+}
+
+/* ── Content block ── */
+.dr-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  background: color-mix(in srgb, var(--lm-color-surface) 60%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--tone, var(--lm-color-accent)) 30%, transparent);
+  box-shadow: 0 4px 24px -8px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 15%, transparent);
+  border-radius: var(--lm-radius-lg);
+  padding: 12px 14px;
+}
+
+.dr-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.dr-title {
+  font: var(--lm-type-heading-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.dr-detail {
+  font: var(--lm-type-body-sm);
+  font-size: 0.82rem;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dr-sep {
+  margin: 0 4px;
+  opacity: 0.5;
+}
+
+/* ── Completion toggle ── */
+.dr-toggle {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--tone) 40%, transparent);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--lm-transition-fast);
+  margin-top: 11px;
+  padding: 0;
+}
+
+.dr-toggle:hover {
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 8%, transparent);
+}
+
+.dr-toggle.is-done {
+  border-color: transparent;
+  background: transparent;
+}
+
+.dr-check-icon {
+  font-size: 28px;
+  color: var(--tone);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Done state fades the row slightly ── */
+.dr-row.is-done .dr-title {
+  opacity: 0.7;
+}
+
+.dr-row.is-done .dr-detail {
+  opacity: 0.6;
+}

@@ -1,0 +1,16 @@
+<nav class="bn-bar" aria-label="Primary">
+  @for (tab of tabs; track tab.route) {
+    <a
+      class="bn-tab"
+      [routerLink]="tab.route"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: tab.route === '/' }"
+      #rla="routerLinkActive"
+      [attr.aria-current]="rla.isActive ? 'page' : null"
+    >
+      <span class="material-symbols-outlined bn-icon" aria-hidden="true">{{ tab.icon }}</span>
+      <span class="bn-label">{{ tab.label }}</span>
+      <span class="bn-underline" aria-hidden="true"></span>
+    </a>
+  }
+</nav>

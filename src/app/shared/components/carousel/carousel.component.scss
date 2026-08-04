@@ -1,0 +1,184 @@
+:host {
+  display: block;
+}
+
+.car-viewport {
+  position: relative;
+}
+
+.car-track {
+  display: flex;
+  gap: 12px;
+
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+
+  /* The card this sits in cancels its own padding for flush sections, so the
+     inline padding is restored here — it is what lets the first and last items
+     align with the card's content edge while still scrolling past it. */
+  padding-inline: var(--lm-space-card-inline);
+  padding-block: 4px;
+
+  /* `pan-y` rather than the global `manipulation`: without it the horizontal
+     drag is swallowed by the page's vertical scroll on touch. */
+  touch-action: pan-y pinch-zoom;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.car-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Fitted mode ──
+ * The height written here by the component is the active item's own height, so
+ * the box must be content-box for the padding to sit outside it rather than eat
+ * into it. `flex-start` stops items stretching back to the tallest — which is
+ * both the point of the mode and what stops the measurement feeding back into
+ * itself. overflow-y is pinned because a sub-pixel rounding difference would
+ * otherwise raise a vertical scrollbar over the card.
+ */
+.car-track.is-fitted {
+  box-sizing: content-box;
+  align-items: flex-start;
+  overflow-y: hidden;
+  transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Two paddings' worth, and it has to be exactly that.
+   *
+   * A one-per-view item is sized to the visible width less the padding on both
+   * sides, so at rest it ends one padding short of the right edge. The next item
+   * begins one gap after that — with the default 12px gap it lands *inside* the
+   * viewport and shows as a sliver of a second card down the edge. Matching the
+   * gap to both paddings puts it exactly on the boundary: flush, no sliver. */
+  gap: calc(2 * var(--lm-space-card-inline));
+}
+
+/* Applies to whatever the consumer projects, which is why it is a child
+   selector rather than a class this component owns.
+ *
+ * ::ng-deep is required, not decorative. Emulated encapsulation rewrites this to
+ * `.car-track[_ngcontent-a] > *[_ngcontent-a]`, but projected nodes carry their
+ * *consumer's* _ngcontent attribute, so the plain selector matches nothing and
+ * the items silently keep `flex-shrink: 1` — which collapses every card into a
+ * single squashed row instead of one per view. Scoped under :host so it reaches
+ * only this carousel's own track, never another component's. */
+:host ::ng-deep .car-track > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+/* ── Arrows ── */
+.car-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  border: none;
+  border-radius: var(--lm-radius-pill);
+  background: transparent;
+  color: var(--lm-color-text-secondary);
+  cursor: pointer;
+
+  transition: var(--lm-transition-fast);
+}
+
+.car-arrow:hover:not(:disabled) {
+  color: var(--lm-color-text-primary);
+  background: var(--lm-color-surface-hover);
+}
+
+.car-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* The UA default draws a square-ish ring that ignores the pill radius and reads
+   as a stray box around one chevron. Replaced rather than removed — keyboard
+   users still need to see where focus is. */
+.car-arrow:focus-visible,
+.car-dot:focus-visible {
+  outline: 2px solid var(--lm-color-accent);
+  outline-offset: 2px;
+}
+
+.car-arrow .material-symbols-outlined {
+  font-size: 20px; /* Reduced to make indicator smaller */
+}
+
+/* Edge placement only. Overlaid rather than inline so the chevrons do not
+   consume horizontal space on the narrowest phones, where a strip showing two
+   cards needs every pixel. Scoped to direct children of the viewport so the
+   inline variant, which lives in the controls row, stays in normal flow. */
+.car-viewport > .car-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.car-viewport > .car-arrow--prev { left: -4px; }
+.car-viewport > .car-arrow--next { right: -4px; }
+
+/* ── Controls row ── */
+.car-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px; /* Added breathing room between the cards and the indicator dots */
+}
+
+.car-controls.inline {
+  margin-top: 0; /* Removed completely to pull indicator snug against the text */
+}
+
+.car-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.car-dot {
+  width: 6px; /* Reduced dot size */
+  height: 6px; /* Reduced dot size */
+  padding: 0;
+  border: none;
+  border-radius: var(--lm-radius-pill);
+  background: var(--lm-color-surface-elevated);
+  cursor: pointer;
+  transition: var(--lm-transition-fast);
+
+  /* Same trick as the section action link: a real 44px target around an 8px
+     dot, without the dots drifting apart to accommodate it. */
+  position: relative;
+}
+
+.car-dot::after {
+  content: '';
+  position: absolute;
+  inset: -18px -8px;
+}
+
+.car-dot.is-active {
+  background: var(--lm-color-accent);
+  width: 7px; /* Correspondingly smaller active dot */
+  height: 7px; /* Correspondingly smaller active dot */
+  box-shadow: 0 0 10px var(--lm-color-accent-glow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .car-track {
+    scroll-behavior: auto;
+  }
+
+  .car-track.is-fitted {
+    transition: none;
+  }
+}

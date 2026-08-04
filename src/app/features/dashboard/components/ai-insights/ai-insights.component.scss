@@ -1,0 +1,155 @@
+/* The section renders nothing until the summary lands. Collapsing the host too
+ * keeps the parent's flex `gap` from reserving a band for a section that is not
+ * there. */
+:host:empty {
+  display: none;
+}
+
+.ai {
+  display: block;
+  padding: clamp(16px, 5vw, 24px);
+  border-radius: 20px;
+}
+
+:host {
+  display: block;
+  --lm-space-card-inline: 4px; /* Minimal inline padding */
+}
+
+.ai-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.ai-top-row {
+  display: flex;
+  align-items: center; /* Center the icon vertically with the text block */
+  gap: clamp(12px, 3vw, 16px); /* Tighter gap between icon and text */
+  width: 100%;
+}
+
+/* ── Leading tile (Large Squircle) ── */
+.ai-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  /* Reduced to 50% size */
+  width: clamp(32px, 10.5vw, 44px);
+  height: clamp(32px, 10.5vw, 44px);
+  border-radius: clamp(8px, 2.5vw, 10px);
+
+  background: color-mix(in srgb, var(--tone) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 20%, transparent);
+  color: var(--tone);
+}
+
+.ai-tile .material-symbols-outlined {
+  /* Reduced to 50% size */
+  font-size: clamp(16px, 5vw, 21px);
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48;
+}
+
+.ai-vertical-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ai-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Removed fixed height to eliminate empty space on shorter texts */
+}
+
+.ai-headline {
+  font: var(--lm-type-heading-md);
+  font-size: clamp(13px, 3.5vw, 15px);
+  line-height: 1.45;
+  font-weight: 700;
+
+  overflow-wrap: break-word;
+  letter-spacing: -0.01em;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-bottom-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.ai-horizontal-divider {
+  height: 1px;
+  width: 100%;
+  margin: 8px 0; /* Tighter vertical margins */
+  background: var(--lm-color-header-divider);
+}
+
+.ai-vertical-divider {
+  width: 1px;
+  align-self: stretch; /* Stretches to the height of the row */
+  background: var(--lm-color-header-divider);
+  /* The gap property in .ai-top-row provides horizontal spacing, so no margin is needed here */
+}
+
+.ai-tip {
+  display: flex;
+  align-items: center;
+}
+
+.ai-tip-text {
+  flex: 1 1 auto;
+  font: var(--lm-type-body-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--lm-color-text-secondary);
+  margin: 0;
+  
+  /* Removed fixed height to eliminate empty space on shorter texts */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Remove the visual container of the card for a floating effect */
+.glass-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 8px 12px !important; /* Extremely tight outer padding */
+}
+
+/* ── Emphasis runs ──
+ * `InsightSegment.emphasis` maps to these, which is how a figure is highlighted
+ * without any markup in the data.
+ */
+.em-plain   { color: inherit; }
+.em-danger  { color: var(--lm-color-error); font-weight: 700; }
+.em-success { color: var(--lm-color-success); font-weight: 700; }
+.em-accent  { color: var(--lm-color-accent); font-weight: 700; }
+
+/* ── Tone map ── */
+[data-tone='cyan']   { --tone: var(--lm-tone-cyan); }
+[data-tone='violet'] { --tone: var(--lm-tone-violet); }
+[data-tone='purple'] { --tone: var(--lm-tone-purple); }
+[data-tone='amber']  { --tone: var(--lm-tone-amber); }
+[data-tone='pink']   { --tone: var(--lm-tone-pink); }
+[data-tone='blue']   { --tone: var(--lm-tone-blue); }
+[data-tone='rose']   { --tone: var(--lm-tone-rose); }
+[data-tone='green']  { --tone: var(--lm-tone-green); }
+

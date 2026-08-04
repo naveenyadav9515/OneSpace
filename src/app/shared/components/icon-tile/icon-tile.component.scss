@@ -1,0 +1,78 @@
+/**
+ * Every visual property below resolves from a single `--tone` value set by the
+ * tone-* classes. Nothing here hardcodes a colour, so a new category needs one
+ * token and one three-line class.
+ */
+:host {
+  --tone: var(--lm-tone-cyan);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  color: var(--tone);
+
+  /* A tone-matched bloom rather than a neutral drop shadow — it is what makes
+     the tiles read as lit rather than pasted onto the card. */
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tone) 8%, transparent),
+    0 4px 16px color-mix(in srgb, var(--tone) 18%, transparent);
+}
+
+/* ── Tones ── */
+:host(.tone-cyan)   { --tone: var(--lm-tone-cyan); }
+:host(.tone-violet) { --tone: var(--lm-tone-violet); }
+:host(.tone-purple) { --tone: var(--lm-tone-purple); }
+:host(.tone-amber)  { --tone: var(--lm-tone-amber); }
+:host(.tone-pink)   { --tone: var(--lm-tone-pink); }
+:host(.tone-blue)   { --tone: var(--lm-tone-blue); }
+:host(.tone-rose)   { --tone: var(--lm-tone-rose); }
+:host(.tone-green)  { --tone: var(--lm-tone-green); }
+
+/* ── Sizes ──
+ * Footprints step on the 4px base unit; radii stay proportional so the tiles
+ * read as one family rather than three unrelated shapes.
+ */
+:host(.size-sm) {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  .glyph { font-size: 20px; }
+}
+
+:host(.size-md) {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  .glyph { font-size: 24px; }
+}
+
+:host(.size-lg) {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  .glyph { font-size: 32px; }
+}
+
+/* ── Filled ──
+ * The glyph flips to the page background rather than white: on the amber and
+ * cyan tones white sits close to the fill and the icon loses its edges.
+ */
+:host(.is-filled) {
+  background: var(--tone);
+  border-color: var(--tone);
+  color: var(--lm-color-bg);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--tone) 40%, transparent);
+}
+
+.glyph {
+  line-height: 1;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+:host(.is-filled) .glyph {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}

@@ -1,0 +1,80 @@
+:host {
+  display: block;
+  /* Sheen first so it layers over the flat fill; it is `none` in light mode,
+     where a background-image of `none` simply drops out of the stack. */
+  background: var(--lm-surface-sheen), var(--lm-color-surface);
+  border: var(--lm-border-card);
+  border-radius: var(--lm-radius-lg);
+  padding: 20px var(--lm-space-card-inline);
+  box-shadow: var(--lm-shadow-card);
+}
+
+.sc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sc-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sc-title {
+  font: var(--lm-type-heading-lg);
+  color: var(--lm-color-text-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+
+  /* The action link must survive a long title rather than being pushed out of
+     the card — the title is the part that can afford to truncate. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+
+  font: var(--lm-type-body-sm);
+  font-weight: 600;
+  color: var(--lm-color-accent);
+  text-decoration: none;
+
+  /* Meets the 44px touch minimum without adding 44px of visible box: the
+     padding is absorbed by the negative margin, so the header spacing is
+     unchanged while the tap target still clears the guideline. */
+  padding: 12px 8px;
+  margin: -12px -8px;
+  border-radius: var(--lm-radius-sm);
+
+  transition: var(--lm-transition-fast);
+}
+
+.sc-action:hover,
+.sc-action:focus-visible {
+  color: var(--lm-color-accent-hover);
+  background: var(--lm-color-accent-soft);
+}
+
+.sc-action--static {
+  pointer-events: none;
+}
+
+.sc-action-chevron {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.sc-body--flush {
+  /* Cancels the host padding so carousels can run to the card edge and hint at
+     the next item, instead of stopping short of it. */
+  margin-inline: calc(-1 * var(--lm-space-card-inline));
+}

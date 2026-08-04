@@ -11,7 +11,13 @@
     broken screen. `user-scalable=no` covers Android; iOS Safari ignores it, so the
     gesture handlers further down do the same job there.
   -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <!--
+    `viewport-fit=cover` lets the page extend under the notch and home indicator,
+    and is what makes `env(safe-area-inset-*)` report real values — without it
+    those insets are all 0 and the padding that keeps the bottom nav clear of the
+    home indicator silently does nothing.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
   <!-- ═══ Font Loading Strategy ═══
@@ -41,7 +47,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="OneSpace">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  <meta name="theme-color" content="#13111c">
+  <meta name="theme-color" content="#060B14">
 
   <!-- Immediately set active theme from localStorage before body renders to prevent FOUC -->
   <script>
@@ -49,7 +55,7 @@
       try {
         var savedTheme = localStorage.getItem('lm_theme') || localStorage.getItem('onespace-theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        var themeColor = savedTheme === 'light' ? '#f4f3f8' : '#13111c';
+        var themeColor = savedTheme === 'light' ? '#f4f3f8' : '#060B14';
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) {
           meta.setAttribute('content', themeColor);
@@ -106,12 +112,9 @@
       /* Stop iOS inflating text in landscape, which looks like a zoom bug. */
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
-      background-color: #13111c;
+      background-color: #060B14;
       font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #f0eef6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      color: #F2F7FC;
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -127,6 +130,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      min-height: 100vh;
+      width: 100%;
     }
     .loader-content {
       display: flex;
@@ -139,16 +144,16 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #7c5cbf, #a78bfa);
+      background: linear-gradient(135deg, #22D3EE, #8B5CF6);
       padding: 3px;
       box-sizing: border-box;
       animation: spin-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-      box-shadow: 0 0 20px rgba(124, 92, 191, 0.35);
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
     }
     .ring-core {
       width: 100%;
       height: 100%;
-      background-color: #13111c;
+      background-color: #060B14;
       border-radius: 50%;
     }
 
@@ -162,14 +167,14 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       margin: 0;
-      background: linear-gradient(135deg, #a78bfa, #c084fc);
+      background: linear-gradient(135deg, #67E8F9, #A855F7);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     .loader-text {
       font-size: 0.8rem;
-      color: #9b95b0;
+      color: #6E8399;
       margin: 0;
       letter-spacing: 0.05em;
       text-transform: uppercase;

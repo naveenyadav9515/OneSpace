@@ -1,0 +1,291 @@
+:host {
+  display: block;
+}
+
+/* Every fixed dimension in this header is fluid, because the row has no slack:
+ * logo, two indicator orbs and the avatar are all rigid, and at their full sizes
+ * they leave roughly 44px for the brand on a 320px screen — enough to guarantee
+ * "One-Space" overflows. Each clamp tops out at the reference size, so anything
+ * from about 430px up looks exactly as designed. */
+.hh {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 3vw, 14px);
+  padding: 4px 0 var(--lm-space-section-gap);
+}
+
+/* ── Brand mark ──
+ * Four outlined squares on a barely-tinted tile, not a solid glyph on a
+ * saturated one: the reference reads as an etched mark, and filling either the
+ * tile or the icon turns it into a button.
+ */
+.hh-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  width: clamp(42px, 13vw, 54px);
+  height: clamp(42px, 13vw, 54px);
+  border-radius: clamp(13px, 4vw, 17px);
+
+  background: color-mix(in srgb, var(--lm-color-accent) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lm-color-accent) 34%, transparent);
+  color: var(--lm-color-accent);
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, var(--lm-color-accent) 8%, transparent),
+    0 6px 22px color-mix(in srgb, var(--lm-color-accent) 14%, transparent);
+}
+
+.hh-logo .material-symbols-outlined {
+  font-size: clamp(23px, 7vw, 30px);
+  /* FILL 0 keeps the four squares separate; the heavier weight gives them the
+     chunky stroke the reference mark has. */
+  font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 40;
+}
+
+/* ── Identity ── */
+.hh-identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.hh-brand {
+  font: var(--lm-type-heading-lg);
+  font-size: clamp(1.22rem, 5.2vw, 1.72rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+
+  /* Belt and braces under the clamp: if a system font scale still pushes the
+     wordmark past its column, it truncates rather than shoving the avatar off
+     the screen. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hh-brand-accent {
+  color: var(--lm-color-accent);
+}
+
+.hh-greeting {
+  font: var(--lm-type-body-sm);
+  font-size: 0.95rem;
+  color: var(--lm-color-text-secondary);
+  margin: 3px 0 0;
+
+  /* A long first name must not push the indicators off a 360px screen. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hh-greeting strong {
+  color: var(--lm-color-text-primary);
+  font-weight: 600;
+}
+
+/* ── Indicators ── */
+.hh-actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(5px, 2vw, 8px);
+  flex: 0 0 auto;
+}
+
+.hh-orb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: clamp(38px, 11.5vw, 48px);
+  height: clamp(38px, 11.5vw, 48px);
+  padding: 0;
+  flex: 0 0 auto;
+
+  border-radius: var(--lm-radius-pill);
+  /* Thin ring, transparent centre — the reference orbs are outlines, and any
+     fill makes them compete with the avatar beside them. */
+  border: 1px solid color-mix(in srgb, var(--lm-color-accent) 32%, transparent);
+  background: transparent;
+  color: var(--lm-color-accent);
+  cursor: pointer;
+
+  transition: var(--lm-transition-fast);
+}
+
+.hh-orb:hover {
+  background: var(--lm-color-accent-soft);
+}
+
+.hh-orb.is-error {
+  border-color: color-mix(in srgb, var(--lm-color-error) 40%, transparent);
+  color: var(--lm-color-error);
+}
+
+.hh-orb .material-symbols-outlined {
+  font-size: clamp(20px, 6vw, 25px);
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Status pip, shared by the cloud and bell.
+   Sits ON the ring's top-right edge rather than tucked inside it, which is
+   where the reference places it and why it reads as a badge. */
+.hh-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(18%, -18%);
+
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+
+  background: var(--lm-color-accent);
+  box-shadow: 0 0 10px var(--lm-color-accent-glow);
+
+  /* Rings the pip in the page background so it reads as sitting on top of the
+     orb rather than merging with its border. */
+  outline: 2.5px solid var(--lm-color-bg);
+}
+
+.hh-dot.is-error {
+  background: var(--lm-color-error);
+  box-shadow: 0 0 8px var(--lm-color-error-glow);
+}
+
+/* ── Account ── */
+.hh-account {
+  position: relative;
+}
+
+.hh-avatar {
+  position: relative;
+  display: block;
+  width: clamp(42px, 13vw, 54px);
+  height: clamp(42px, 13vw, 54px);
+  padding: 3px;
+
+  border-radius: 50%;
+  border: 2px solid var(--lm-color-accent);
+  background: transparent;
+  cursor: pointer;
+
+  box-shadow: 0 0 16px color-mix(in srgb, var(--lm-color-accent) 32%, transparent);
+  transition: var(--lm-transition-fast);
+}
+
+.hh-avatar:hover,
+.hh-avatar.is-open {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--lm-color-accent) 45%, transparent);
+}
+
+.hh-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.hh-presence {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  transform: translate(12%, 12%);
+
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+
+  background: var(--lm-color-success);
+  outline: 2.5px solid var(--lm-color-bg);
+  box-shadow: 0 0 10px var(--lm-color-success-glow);
+}
+
+/* ── Menu ── */
+.hh-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 40;
+
+  min-width: 176px;
+  padding: 6px;
+  border-radius: var(--lm-radius-md);
+  background: var(--lm-color-surface-elevated);
+  box-shadow: var(--lm-shadow-float);
+
+  animation: hh-menu-in 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes hh-menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hh-menu-head {
+  font: var(--lm-type-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lm-color-text-muted);
+  padding: 8px 10px 6px;
+}
+
+.hh-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+
+  /* 44px minimum touch target. */
+  min-height: 44px;
+  padding: 0 10px;
+
+  border: none;
+  border-radius: var(--lm-radius-sm);
+  background: transparent;
+  color: var(--lm-color-text-secondary);
+  font: var(--lm-type-body-sm);
+  text-align: left;
+  cursor: pointer;
+
+  transition: var(--lm-transition-fast);
+}
+
+.hh-menu-item:hover {
+  background: var(--lm-color-surface-hover);
+  color: var(--lm-color-text-primary);
+}
+
+.hh-menu-item.is-active {
+  color: var(--lm-color-accent);
+  background: var(--lm-color-accent-soft);
+}
+
+.hh-menu-item--danger {
+  color: var(--lm-color-error);
+}
+
+.hh-menu-item--danger:hover {
+  color: var(--lm-color-error);
+  background: var(--lm-color-error-subtle);
+}
+
+.hh-menu-icon {
+  font-size: 20px;
+}
+
+.hh-menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--lm-color-header-divider);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-menu { animation: none; }
+}

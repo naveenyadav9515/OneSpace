@@ -1945,37 +1945,13 @@
 .ex-bottom-cards {
   display: flex;
   gap: clamp(8px, 2.6vw, 12px);
-  /* Critical: prevent wrapping to next line */
-  flex-wrap: nowrap;
-  
-  /* Carousel setup */
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  
-  /* Hide scrollbar */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-  
-  min-width: 0;
   width: 100%;
 }
 
-.ex-bottom-cards::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
-
 .ex-mini-card {
-  /* Let the cards size to their content, avoiding huge empty spaces on desktop */
-  flex: 0 0 auto;
-  min-width: 160px;
-  scroll-snap-align: start; /* better for auto-sized cards */
-  
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(34, 211, 238, 0.12);
+  flex: 1;
   border-radius: 14px;
   padding: clamp(10px, 3.2vw, 14px);
-  padding-right: 24px; /* give text some breathing room on right */
   display: flex;
   align-items: center;
   gap: clamp(8px, 2.5vw, 12px);

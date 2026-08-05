@@ -19,7 +19,7 @@ import { SectionCardComponent, CarouselComponent, IconTileComponent } from '@sha
 @Component({
   selector: 'app-priority-reminders',
   standalone: true,
-  imports: [SectionCardComponent, CarouselComponent, IconTileComponent],
+  imports: [IconTileComponent],
   templateUrl: './priority-reminders.component.html',
   styleUrl: './priority-reminders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,11 +29,11 @@ export class PriorityRemindersComponent {
 
   protected readonly reminders = computed(() => this.remindersService.reminders());
   
-  // Only display the first 2 reminders so the dashboard doesn't get flooded
-  protected readonly visibleReminders = computed(() => this.reminders()?.slice(0, 2) ?? null);
+  // Only display the first 3 reminders so the dashboard doesn't get flooded
+  protected readonly visibleReminders = computed(() => this.reminders()?.slice(0, 3) ?? null);
   
   // Track how many are hidden to display in a 'View All' button
-  protected readonly hiddenCount = computed(() => Math.max(0, (this.reminders()?.length ?? 0) - 2));
+  protected readonly hiddenCount = computed(() => Math.max(0, (this.reminders()?.length ?? 0) - 3));
 
   constructor() {
     afterNextRender(() => {

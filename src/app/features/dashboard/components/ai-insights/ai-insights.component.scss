@@ -41,8 +41,9 @@
   height: clamp(32px, 10.5vw, 44px);
   border-radius: clamp(8px, 2.5vw, 10px);
 
-  background: color-mix(in srgb, var(--tone) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tone) 20%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tone) 25%, transparent), color-mix(in srgb, var(--tone) 5%, transparent));
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--tone) 20%, transparent);
   color: var(--tone);
 }
 
@@ -54,7 +55,7 @@
 
 .ai-vertical-divider {
   width: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(to bottom, transparent, var(--lm-color-header-divider), transparent);
 }
 
 .ai-body {
@@ -68,17 +69,17 @@
 
 .ai-headline {
   font: var(--lm-type-heading-md);
-  font-size: clamp(13px, 3.5vw, 15px);
-  line-height: 1.45;
-  font-weight: 700;
+  font-size: clamp(14.5px, 4vw, 16px);
+  line-height: 1.5;
+  font-weight: 500;
 
   overflow-wrap: break-word;
-  letter-spacing: -0.01em;
-  color: var(--lm-color-text-primary);
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--lm-color-text-primary) 88%, transparent);
   margin: 0;
 
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -93,14 +94,14 @@
 .ai-horizontal-divider {
   height: 1px;
   width: 100%;
-  margin: 8px 0; /* Tighter vertical margins */
-  background: var(--lm-color-header-divider);
+  margin: 10px 0; /* Tighter vertical margins */
+  background: linear-gradient(to right, transparent, var(--lm-color-header-divider) 20%, var(--lm-color-header-divider) 80%, transparent);
 }
 
 .ai-vertical-divider {
   width: 1px;
   align-self: stretch; /* Stretches to the height of the row */
-  background: var(--lm-color-header-divider);
+  background: linear-gradient(to bottom, transparent, var(--lm-color-header-divider) 20%, var(--lm-color-header-divider) 80%, transparent);
   /* The gap property in .ai-top-row provides horizontal spacing, so no margin is needed here */
 }
 
@@ -112,8 +113,10 @@
 .ai-tip-text {
   flex: 1 1 auto;
   font: var(--lm-type-body-sm);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: clamp(12.5px, 3.5vw, 14px);
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--lm-color-text-secondary);
   margin: 0;
   
@@ -139,9 +142,9 @@
  * without any markup in the data.
  */
 .em-plain   { color: inherit; }
-.em-danger  { color: var(--lm-color-error); font-weight: 700; }
-.em-success { color: var(--lm-color-success); font-weight: 700; }
-.em-accent  { color: var(--lm-color-accent); font-weight: 700; }
+.em-danger  { color: var(--lm-color-error); font-weight: 600; text-shadow: 0 0 10px color-mix(in srgb, var(--lm-color-error) 25%, transparent); }
+.em-success { color: var(--lm-color-success); font-weight: 600; text-shadow: 0 0 10px color-mix(in srgb, var(--lm-color-success) 25%, transparent); }
+.em-accent  { color: var(--tone, var(--lm-color-accent)); font-weight: 600; text-shadow: 0 0 10px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 35%, transparent); }
 
 /* ── Tone map ── */
 [data-tone='cyan']   { --tone: var(--lm-tone-cyan); }

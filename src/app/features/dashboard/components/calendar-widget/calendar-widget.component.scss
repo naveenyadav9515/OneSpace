@@ -32,9 +32,9 @@
 }
 
 .cal-month {
-  color: var(--lm-color-text-primary);
+  color: color-mix(in srgb, var(--lm-color-text-primary) 88%, transparent);
   font: var(--lm-type-heading-md);
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 

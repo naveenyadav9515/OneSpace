@@ -1,6 +1,7 @@
 :host {
   display: block;
-  margin-top: -8px; /* Adjusted from -24px to leave a 'proper space' above the prompt box that visually matches the SVG whitespace below it */
+  margin-top: -24px;
+  margin-bottom: -16px;
 }
 
 .aia-bar {

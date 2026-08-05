@@ -62,7 +62,9 @@
 
 .pr-section-title {
   font: var(--lm-type-heading-lg);
-  color: var(--lm-color-text-primary);
+  font-size: clamp(16px, 5vw, 18px);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--lm-color-text-primary) 88%, transparent);
   margin: 0;
 }
 
@@ -147,7 +149,8 @@
 
 .pr-title {
   font: var(--lm-type-heading-sm);
-  color: var(--lm-color-text-primary);
+  font-weight: 500;
+  color: color-mix(in srgb, var(--lm-color-text-primary) 88%, transparent);
   margin: 0;
   margin-bottom: 4px;
 }
@@ -208,17 +211,17 @@
 .pr-summary-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 8px;
+  justify-content: flex-start; /* Left align */
+  gap: 8px; /* Tighter gap */
+  margin-top: 2px; /* Pull it very close to the title */
 }
 
 .pr-summary-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font: var(--lm-type-body-sm);
-  font-size: 13px;
+  font-size: 11px; /* Smaller font */
   color: var(--lm-color-text-secondary);
   font-weight: 500;
 }
@@ -226,16 +229,16 @@
 .pr-summary-active {
   color: var(--lm-color-accent);
   font-weight: 600;
-  background: color-mix(in srgb, var(--lm-color-accent) 15%, transparent);
-  padding: 4px 10px;
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--lm-color-accent) 12%, transparent);
+  padding: 2px 6px; /* Tight padding */
+  border-radius: 4px;
 }
 
 .pr-summary-active .material-symbols-outlined {
-  font-size: 16px;
+  font-size: 13px; /* Smaller icon */
 }
 
 .pr-summary-divider {
-  color: var(--lm-color-text-muted);
-  font-size: 12px;
+  color: color-mix(in srgb, var(--lm-color-text-muted) 60%, transparent);
+  font-size: 10px;
 }

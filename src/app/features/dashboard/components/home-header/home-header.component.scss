@@ -11,7 +11,7 @@
   
   /* Pull the header up to cover the app-shell padding */
   margin-top: calc(-1 * (var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)));
-  padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px) + 24px); /* 24px extra clear space above */
+  padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)); /* removed 24px extra clear space above */
   
   /* Break out of container constraints to span full 100vw */
   max-width: 100vw !important;
@@ -23,7 +23,7 @@
 @media (min-width: 768px) {
   :host {
     margin-top: calc(-1 * (var(--lm-space-xl) + env(safe-area-inset-top, 0px)));
-    padding-top: calc(var(--lm-space-xl) + env(safe-area-inset-top, 0px) + 24px); /* 24px extra clear space above */
+    padding-top: calc(var(--lm-space-xl) + env(safe-area-inset-top, 0px)); /* removed 24px extra clear space above */
     margin-inline: calc(50% - 50vw);
     padding-inline: calc(50vw - 50%);
   }
@@ -37,8 +37,8 @@
 .hh {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 3vw, 14px);
-  padding: 4px 0 var(--lm-space-section-gap);
+  gap: clamp(6px, 2vw, 10px);
+  padding: 4px 0;
 }
 
 /* ── Brand mark ──
@@ -52,9 +52,9 @@
   justify-content: center;
   flex: 0 0 auto;
 
-  width: clamp(42px, 13vw, 54px);
-  height: clamp(42px, 13vw, 54px);
-  border-radius: clamp(13px, 4vw, 17px);
+  width: clamp(30px, 9vw, 38px);
+  height: clamp(30px, 9vw, 38px);
+  border-radius: clamp(8px, 2.5vw, 12px);
 
   background: color-mix(in srgb, var(--lm-color-accent) 7%, transparent);
   border: 1px solid color-mix(in srgb, var(--lm-color-accent) 34%, transparent);
@@ -65,7 +65,7 @@
 }
 
 .hh-logo .material-symbols-outlined {
-  font-size: clamp(23px, 7vw, 30px);
+  font-size: clamp(16px, 5vw, 20px);
   /* FILL 0 keeps the four squares separate; the heavier weight gives them the
      chunky stroke the reference mark has. */
   font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 40;
@@ -79,7 +79,7 @@
 
 .hh-brand {
   font: var(--lm-type-heading-lg);
-  font-size: clamp(1.22rem, 5.2vw, 1.72rem);
+  font-size: clamp(1rem, 4vw, 1.2rem);
   font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1.1;
@@ -100,7 +100,7 @@
 
 .hh-greeting {
   font: var(--lm-type-body-sm);
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   color: var(--lm-color-text-secondary);
   margin: 3px 0 0;
 
@@ -129,8 +129,8 @@
   align-items: center;
   justify-content: center;
 
-  width: clamp(38px, 11.5vw, 48px);
-  height: clamp(38px, 11.5vw, 48px);
+  width: clamp(28px, 8vw, 36px);
+  height: clamp(28px, 8vw, 36px);
   padding: 0;
   flex: 0 0 auto;
 
@@ -155,7 +155,7 @@
 }
 
 .hh-orb .material-symbols-outlined {
-  font-size: clamp(20px, 6vw, 25px);
+  font-size: clamp(16px, 4.5vw, 18px);
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -168,8 +168,8 @@
   right: 0;
   transform: translate(18%, -18%);
 
-  width: 11px;
-  height: 11px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
 
   background: var(--lm-color-accent);
@@ -193,8 +193,8 @@
 .hh-avatar {
   position: relative;
   display: block;
-  width: clamp(42px, 13vw, 54px);
-  height: clamp(42px, 13vw, 54px);
+  width: clamp(30px, 9vw, 38px);
+  height: clamp(30px, 9vw, 38px);
   padding: 3px;
 
   border-radius: 50%;
@@ -225,8 +225,8 @@
   bottom: 0;
   transform: translate(12%, 12%);
 
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 
   background: var(--lm-color-success);

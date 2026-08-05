@@ -72,7 +72,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "allowedHosts": ["192.168.1.36"]
+            "allowedHosts": ["192.168.1.36"],
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "release": {

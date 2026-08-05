@@ -36,9 +36,9 @@ interface NavTab {
 })
 export class BottomNavComponent {
   protected readonly tabs: readonly NavTab[] = [
-    { label: 'Home', icon: 'home', route: '/', ready: true },
     { label: 'Modules', icon: 'grid_view', route: '/modules', ready: false },
     { label: 'Workspaces', icon: 'layers', route: '/workspaces', ready: false },
+    { label: 'Home', icon: 'home', route: '/', ready: true },
     { label: 'Insights', icon: 'donut_small', route: '/insights', ready: false },
     { label: 'Profile', icon: 'person', route: '/profile', ready: false },
   ];

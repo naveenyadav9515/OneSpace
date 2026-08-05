@@ -1,29 +1,24 @@
 @if (visibleReminders(); as list) {
   <section class="pr-container" aria-labelledby="pr-heading">
-    <!-- Header with 2 aligned rows -->
+    <!-- Streamlined Header: Bell + Tags on Left, + Add Button Parallel on Right -->
     <div class="pr-header">
-      <div class="pr-header-top">
-        <div class="pr-header-title-group">
-          <div class="pr-bell-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">notifications_active</span>
-            <span class="pr-badge">{{ hiddenCount() + 2 }}</span>
-          </div>
-          <h2 id="pr-heading" class="pr-section-title">Priority Reminders</h2>
+      <div class="pr-header-left-group">
+        <div class="pr-bell-icon" aria-hidden="true">
+          <span class="material-symbols-outlined">notifications_active</span>
+          <span class="pr-badge">{{ hiddenCount() + 2 }}</span>
         </div>
-        <button class="pr-add-btn" aria-label="Add Reminder">
-          <span class="material-symbols-outlined">add</span>
-        </button>
+        <div class="pr-summary-chips">
+          <span class="pr-summary-chip pr-summary-active">
+            <span class="material-symbols-outlined">flag</span>
+            3 Priority
+          </span>
+          <span class="pr-summary-chip">2 This Week</span>
+          <span class="pr-summary-chip">5 Total</span>
+        </div>
       </div>
-
-      <!-- Summary Footer Chips -->
-      <div class="pr-summary-footer">
-        <span class="pr-summary-chip pr-summary-active">
-          <span class="material-symbols-outlined">flag</span>
-          3 Priority
-        </span>
-        <span class="pr-summary-chip">2 This Week</span>
-        <span class="pr-summary-chip">5 Total</span>
-      </div>
+      <button class="pr-add-btn" aria-label="Add Reminder">
+        <span class="material-symbols-outlined">add</span>
+      </button>
     </div>
 
     <!-- List layout -->

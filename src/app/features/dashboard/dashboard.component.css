@@ -1730,15 +1730,15 @@
 .ex-summary-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--lm-color-surface);
-  background-image: var(--lm-surface-sheen);
-  border-radius: var(--lm-radius-lg);
-  border: var(--lm-border-card);
-  padding: clamp(16px, 5vw, 24px);
+  background-color: transparent;
+  background-image: none;
+  border-radius: 0;
+  border: none;
+  padding: 0;
   margin-top: 0;
   text-decoration: none;
   transition: transform 0.2s;
-  box-shadow: var(--lm-shadow-card);
+  box-shadow: none;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;

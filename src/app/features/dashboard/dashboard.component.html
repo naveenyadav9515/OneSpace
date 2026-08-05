@@ -40,16 +40,14 @@
                       </linearGradient>
                     </defs>
                     <!-- Background arc -->
-                    <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="var(--lm-color-surface-subtle)" stroke-width="12" stroke-linecap="round"/>
+                    <path class="ex-track-bg" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke-width="12" stroke-linecap="round"/>
                     <!-- Foreground arc -->
                     <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#exGrad)" stroke-width="12" stroke-linecap="round"
                           [style.stroke-dasharray]="251.32"
                           [style.stroke-dashoffset]="251.32 - (251.32 * (summary.budgetUsedPct / 100))" />
                   </svg>
                   <div class="ex-chart-text">
-                    <span class="ex-pct">
-                      {{ summary.budgetUsedPct }}<span class="ex-pct-sym">%</span>
-                    </span>
+                    <span class="ex-pct">{{ summary.budgetUsedPct }}<span class="ex-pct-sym">%</span></span>
                     <span class="ex-lbl">of budget used</span>
                   </div>
                 </div>
@@ -66,9 +64,9 @@
                 </div>
               </div>
 
-              <!-- Bottom Cards Carousel: Available, Top Category, Recent, Goal -->
+              <!-- Bottom Cards Carousel: Available and Top Category -->
               <div class="ex-bottom-cards">
-                <div class="ex-mini-card">
+                <div class="ex-mini-panel">
                   <div class="ex-mini-icon green-icon">
                     <span class="material-symbols-outlined">account_balance_wallet</span>
                   </div>
@@ -77,8 +75,7 @@
                     <span class="ex-mini-val-green">₹{{ summary.available | number:'1.0-0' }}</span>
                   </div>
                 </div>
-                
-                <div class="ex-mini-card">
+                <div class="ex-mini-panel">
                   <div class="ex-mini-icon rose-icon">
                     <span class="material-symbols-outlined">shopping_cart</span>
                   </div>

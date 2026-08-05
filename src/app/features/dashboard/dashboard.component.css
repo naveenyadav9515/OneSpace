@@ -383,7 +383,7 @@
 .hybrid-flow {
   display: flex;
   flex-direction: column;
-  gap: var(--lm-space-lg);
+  gap: 12px;
   animation: fade-in-flow 0.4s ease-out;
 
   /* Sections are flex items and would otherwise refuse to shrink past their
@@ -1730,15 +1730,14 @@
 .ex-summary-card {
   display: flex;
   flex-direction: column;
-  background-color: transparent;
-  background-image: none;
+  background-color: transparent !important;
+  border: none !important;
   border-radius: 0;
-  border: none;
   padding: 0;
   margin-top: 0;
   text-decoration: none;
   transition: transform 0.2s;
-  box-shadow: none;
+  box-shadow: none !important;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
@@ -1746,6 +1745,8 @@
 
 .ex-summary-card:hover {
   transform: translateY(-2px);
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* ── Header Row ── */
@@ -1823,24 +1824,38 @@
   color: var(--lm-color-primary);
 }
 
-/* ── Main Content: Arc + Stats — ALWAYS side-by-side ── */
+/* ── Main Content: Glassmorphic Bento Grid ── */
 .ex-main {
-  display: flex;
-  align-items: stretch; /* Allows side-by-side containers to share height */
-  gap: clamp(12px, 4vw, 20px);
-  margin-bottom: clamp(16px, 5vw, 24px);
-  /* Critical: prevent wrapping to next line */
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 2.2vw, 12px);
+  align-items: center;
+  margin-bottom: clamp(10px, 2.5vw, 12px);
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: clamp(10px, 2.5vw, 14px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
 }
 
-/* The gauge keeps its share of the row proportionally instead of holding a hard
-   130px floor, which on a 320px screen left the amount beside it too little
-   width to render without clipping. */
+[data-theme="light"] .ex-main {
+  background: rgba(0, 0, 0, 0.025);
+  border-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
 .ex-chart-wrap {
   position: relative;
-  /* Increased size as requested */
-  width: clamp(140px, 42vw, 190px);
-  height: clamp(100px, 30vw, 130px);
+  width: 100%;
+  max-width: 145px;
+  height: 85px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -1850,6 +1865,14 @@
   overflow: visible;
 }
 
+.ex-track-bg {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .ex-track-bg {
+  stroke: rgba(0, 0, 0, 0.08);
+}
+
 .ex-chart-text {
   position: absolute;
   inset: 0;
@@ -1857,173 +1880,208 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  /* Dropped to 12% to align with the absolute bottom visual edge of the stroke, giving maximum horizontal width */
-  padding-bottom: 12%;
+  padding-bottom: 2px;
 }
 
 .ex-pct {
   color: var(--lm-color-text-primary);
-  /* Increased size as requested */
-  font-size: clamp(28px, 8vw, 36px);
-  font-weight: 700;
+  font-size: clamp(20px, 5vw, 25px);
+  font-weight: 800;
   line-height: 1;
-  position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  letter-spacing: -0.5px;
 }
 
 .ex-pct-sym {
-  position: absolute;
-  left: 100%;
-  bottom: 0.15em;
-  font-size: 0.5em; /* Keeps the % small as an indicator */
-  font-weight: 600;
-  padding-left: 2px;
+  font-size: 0.52em;
+  font-weight: 700;
+  margin-left: 2px;
   color: var(--lm-color-text-secondary);
 }
 
 .ex-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 11px; /* Slightly smaller to fit cleanly */
-  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-top: 2px;
   white-space: nowrap;
 }
 
-/* ── Stats (right side of arc) ── */
+/* ── Stats (right column of grid) ── */
 .ex-stats {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  justify-content: center;
+  width: 100%;
   min-width: 0;
-  /* Push text down to align exactly with the visual top of the SVG arc */
-  padding-top: clamp(18px, 5.5vw, 26px); 
+  padding-top: 0;
   padding-bottom: 2px;
 }
 
 .ex-stats-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 14px;
-  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 3px;
   white-space: nowrap;
 }
 
 .ex-stats-val {
   color: var(--lm-color-text-primary);
-  font-size: clamp(20px, 6.6vw, 28px);
-  font-weight: 700;
-  margin-bottom: auto; /* Pushes the progress bar to perfectly align with the bottom */
+  font-size: clamp(17px, 5vw, 23px);
+  font-weight: 800;
+  margin-bottom: 6px;
   line-height: 1.1;
   white-space: nowrap;
+  letter-spacing: -0.3px;
 }
 
 .ex-progress-bar {
   width: 100%;
-  height: 8px;
-  background-color: var(--lm-color-surface-subtle);
-  border-radius: 4px;
-  margin-bottom: 8px;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  margin-bottom: 5px;
   overflow: hidden;
 }
 
 [data-theme="light"] .ex-progress-bar {
-  background-color: rgba(0, 0, 0, 0.06);
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 .ex-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #EC4899, #F97316);
-  border-radius: 4px;
-  transition: width 0.5s ease-out;
+  background: linear-gradient(90deg, #A855F7 0%, #EC4899 50%, #F97316 100%);
+  border-radius: 99px;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .ex-stats-total {
   color: var(--lm-color-text-secondary);
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 500;
   white-space: nowrap;
+  opacity: 0.85;
 }
 
-/* ── Bottom Cards Carousel: Scroll horizontally ── */
+/* ── Bottom Cards: 2-Column Equal Grid ── */
 .ex-bottom-cards {
-  display: flex;
-  gap: clamp(8px, 2.6vw, 12px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 2.2vw, 12px);
   width: 100%;
 }
 
-.ex-mini-card {
-  flex: 1;
+.ex-mini-panel {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
   border-radius: 14px;
-  padding: clamp(10px, 3.2vw, 14px);
+  padding: clamp(9px, 2.2vw, 12px);
   display: flex;
   align-items: center;
-  gap: clamp(8px, 2.5vw, 12px);
-  /* Prevent children from wrapping */
+  gap: clamp(8px, 2vw, 11px);
   flex-wrap: nowrap;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ex-mini-panel:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 14px rgba(34, 211, 238, 0.12) !important;
+}
+
+[data-theme="light"] .ex-mini-panel {
+  background: rgba(0, 0, 0, 0.025) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 .ex-mini-icon {
-  width: clamp(34px, 10vw, 40px);
-  height: clamp(34px, 10vw, 40px);
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.ex-mini-panel:hover .ex-mini-icon {
+  transform: scale(1.06);
 }
 
 .ex-mini-icon .material-symbols-outlined {
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .green-icon {
-  background-color: rgba(34, 197, 94, 0.14);
-  color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(34, 197, 94, 0.08));
+  color: #4ADE80;
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.2);
 }
 
 .purple-icon {
-  background-color: rgba(99, 102, 241, 0.14);
-  color: #818cf8;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(99, 102, 241, 0.08));
+  color: #818CF8;
+  border: 1px solid rgba(99, 102, 241, 0.28);
 }
 
 .blue-icon {
-  background-color: rgba(59, 130, 246, 0.14);
-  color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.08));
+  color: #60A5FA;
+  border: 1px solid rgba(59, 130, 246, 0.28);
 }
 
 .rose-icon {
-  background-color: rgba(244, 63, 94, 0.14);
-  color: #f43f5e;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(244, 63, 94, 0.08));
+  color: #FB7185;
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  box-shadow: 0 2px 10px rgba(244, 63, 94, 0.2);
 }
 
 .ex-mini-data {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-self: center;
   min-width: 0;
 }
 
 .ex-mini-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 500;
   margin-bottom: 2px;
   white-space: nowrap;
 }
 
 .ex-mini-val {
   color: var(--lm-color-text-primary);
-  font-size: clamp(14px, 4.2vw, 17px);
-  font-weight: 600;
+  font-size: clamp(13px, 3.8vw, 15px);
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .ex-mini-val-green {
-  color: #22c55e;
-  font-size: clamp(14px, 4.2vw, 17px);
-  font-weight: 600;
+  color: #4ADE80;
+  font-size: clamp(13px, 3.8vw, 15px);
+  font-weight: 700;
   white-space: nowrap;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.25);
 }
 
 .ex-mini-sub {
   color: var(--lm-color-text-secondary);
   font-size: 11px;
-  font-weight: 400;
   white-space: nowrap;
 }
 

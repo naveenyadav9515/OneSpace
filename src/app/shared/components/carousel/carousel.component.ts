@@ -100,27 +100,15 @@ export class CarouselComponent {
   private isDragging = false;
   private startX = 0;
   private scrollLeftStart = 0;
+  private dragDeltaX = 0;
 
   constructor() {
     // afterNextRender never runs on the server, which is what keeps ResizeObserver
     // — a browser-only API — out of the prerender pass.
     afterNextRender(() => {
       if (this.autoPlay()) {
-        this.autoPlayTimer = setInterval(() => {
-          const el = this.track()?.nativeElement;
-          if (!el) return;
-
-          // Check if we've reached the maximum physical scroll limit.
-          // Using a 1px tolerance for fractional pixels.
-          const isAtEnd = Math.abs((el.scrollWidth - el.clientWidth) - el.scrollLeft) <= 1;
-
-          if (isAtEnd) {
-            this.scrollTo(0);
-          } else {
-            this.scrollTo(this.activeIndex() + 1);
-          }
-        }, this.autoPlayInterval());
-        this.destroyRef.onDestroy(() => clearInterval(this.autoPlayTimer));
+        this.startAutoPlay();
+        this.destroyRef.onDestroy(() => this.stopAutoPlay());
       }
 
       if (!this.fitToActive()) return;
@@ -137,6 +125,46 @@ export class CarouselComponent {
       this.count();
       if (this.observer) this.syncObserved();
     });
+  }
+
+  /** Starts the autoplay interval timer safely. */
+  private startAutoPlay(): void {
+    this.stopAutoPlay();
+    if (!this.autoPlay()) return;
+
+    this.autoPlayTimer = setInterval(() => {
+      const el = this.track()?.nativeElement;
+      if (!el || this.isDragging) return;
+
+      // Check if we've reached the maximum physical scroll limit.
+      const isAtEnd = Math.abs((el.scrollWidth - el.clientWidth) - el.scrollLeft) <= 2;
+
+      if (isAtEnd) {
+        this.scrollTo(0);
+      } else {
+        this.scrollTo(this.activeIndex() + 1);
+      }
+    }, this.autoPlayInterval());
+  }
+
+  /** Clears the autoplay interval timer. */
+  private stopAutoPlay(): void {
+    if (this.autoPlayTimer) {
+      clearInterval(this.autoPlayTimer);
+      this.autoPlayTimer = undefined;
+    }
+  }
+
+  protected onMouseEnter(): void {
+    if (this.autoPlay()) {
+      this.stopAutoPlay();
+    }
+  }
+
+  protected onMouseLeave(): void {
+    if (this.autoPlay() && !this.isDragging) {
+      this.startAutoPlay();
+    }
   }
 
   /**
@@ -159,25 +187,31 @@ export class CarouselComponent {
     this.measureActive();
   }
 
-  // --- Drag to Scroll Implementation ---
+  // --- Drag & Swipe Implementation ---
 
   protected onPointerDown(e: PointerEvent): void {
-    // Only allow primary button drag (usually left click), not right click or middle click
-    if (e.button !== 0) return;
+    // Only allow primary button drag or touch interaction
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
     
     const el = this.track()?.nativeElement;
     if (!el) return;
 
+    this.stopAutoPlay();
     this.isDragging = true;
-    this.startX = e.pageX;
+    this.startX = e.clientX;
     this.scrollLeftStart = el.scrollLeft;
+    this.dragDeltaX = 0;
     
     // Disable CSS scroll snapping and smooth scrolling while manually dragging
     el.style.scrollSnapType = 'none';
     el.style.scrollBehavior = 'auto';
+    el.style.userSelect = 'none';
     
-    // Capture the pointer so events are tracked even if the cursor leaves the element
-    el.setPointerCapture(e.pointerId);
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      // Fallback
+    }
   }
 
   protected onPointerMove(e: PointerEvent): void {
@@ -186,9 +220,8 @@ export class CarouselComponent {
     const el = this.track()?.nativeElement;
     if (!el) return;
 
-    // Optional: Cancel clicks if we drag a significant amount to prevent accidental activation
-    const walk = (this.startX - e.pageX) * 1.5; // Multiply for faster scrolling feel
-    el.scrollLeft = this.scrollLeftStart + walk;
+    this.dragDeltaX = this.startX - e.clientX;
+    el.scrollLeft = this.scrollLeftStart + this.dragDeltaX;
   }
 
   protected onPointerUp(e: PointerEvent): void {
@@ -201,8 +234,28 @@ export class CarouselComponent {
     // Restore CSS snapping and smooth scrolling
     el.style.scrollSnapType = 'x mandatory';
     el.style.scrollBehavior = 'smooth';
+    el.style.userSelect = '';
     
-    el.releasePointerCapture(e.pointerId);
+    try {
+      if (el.hasPointerCapture(e.pointerId)) {
+        el.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Fallback
+    }
+
+    // Determine target index: if dragged > 30px, snap to next/previous item
+    const step = this.itemStep(el);
+    if (step > 0 && Math.abs(this.dragDeltaX) > 30) {
+      const targetIndex = this.dragDeltaX > 0 ? this.activeIndex() + 1 : this.activeIndex() - 1;
+      this.scrollTo(targetIndex);
+    } else {
+      this.onScroll();
+    }
+
+    if (this.autoPlay()) {
+      this.startAutoPlay();
+    }
   }
 
   protected scrollTo(index: number): void {

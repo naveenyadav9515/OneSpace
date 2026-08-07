@@ -208,13 +208,6 @@ export class ExpenseService {
     );
   }
 
-  public simulateAutoLog(): Observable<{ status: string, data: PendingTransaction }> {
-    return this.http.post<{ status: string, data: PendingTransaction }>(
-      `${this.apiUrl}/expenses/pending/simulate`,
-      {}
-    );
-  }
-
   public syncExpenses(): Observable<{ status: string, message: string, data: SyncResult }> {
     return this.http.post<{ status: string, message: string, data: SyncResult }>(`${this.apiUrl}/expenses/sync`, {});
   }

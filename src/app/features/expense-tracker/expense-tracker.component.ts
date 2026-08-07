@@ -49,7 +49,6 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected activePendingId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
   protected isSyncing = signal(false);
-  protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
 
   protected readonly dailyLimit = computed(() => {
     const sum = this.expenseService.summary();
@@ -452,15 +451,6 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected cancelReview() {
     this.activePendingId.set(null);
     this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
-  }
-
-  protected simulateAutoLog() {
-    this.expenseService.simulateAutoLog().subscribe({
-      next: () => {
-        this.fetchPendingTransactions();
-      },
-      error: (err) => console.error('Error simulating auto log', err)
-    });
   }
 
   protected submitExpense() {

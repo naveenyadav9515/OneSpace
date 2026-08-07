@@ -6,6 +6,5 @@ export const environment = {
   featureFlags: {
     enableMediaUploads: true,
     enableAIInsights: true,
-    enableExpenseSimulator: true,
   }
 };

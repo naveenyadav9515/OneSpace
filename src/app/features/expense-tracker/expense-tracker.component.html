@@ -37,36 +37,31 @@
       </button>
 
       <!-- Settings -->
-      <button (click)="toggleAutomationSettings()" title="Automation Settings" class="hh-btn">
-        <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
-      </button>
+      <div style="position: relative;">
+        <button (click)="isSettingsDropdownOpen.set(!isSettingsDropdownOpen())" title="Settings" class="hh-btn">
+          <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+        </button>
+        
+        @if (isSettingsDropdownOpen()) {
+          <div class="hh-dropdown-menu">
+            <button class="hh-dropdown-item" (click)="toggleAutomationSettings(); isSettingsDropdownOpen.set(false)">
+              <span class="material-symbols-outlined" style="font-size: 20px; color: var(--lm-color-primary);">settings_suggest</span>
+              Automation Settings
+            </button>
+            <button class="hh-dropdown-item" (click)="isSettingsDropdownOpen.set(false)">
+              <span class="material-symbols-outlined" style="font-size: 20px; color: var(--lm-color-text-muted);">close</span>
+              Cancel
+            </button>
+          </div>
+        }
+      </div>
 
     </div>
   </header>
 
-  <!-- ── Automation Settings Panel ── -->
-  @if (isSettingsOpen()) {
-    <section class="flow-item fade-in-bottom">
-      <div style="padding: 24px; border-radius: 24px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--lm-color-border); margin-bottom: 24px;">
-
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;">
-          <div style="display: flex; gap: 12px; align-items: center;">
-            <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(167, 139, 250, 0.12);">
-              <span class="material-symbols-outlined">settings_suggest</span>
-            </div>
-            <div>
-              <h2 class="card-name" style="font-size: 20px; font-weight: 700;">Automation Engine</h2>
-              <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Optional background transaction alerts</p>
-            </div>
-          </div>
-          <button class="settings-btn" (click)="toggleAutomationSettings()" title="Close Settings" style="border: 1px solid var(--lm-color-border); width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0;">
-            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--lm-color-text-primary);">close</span>
-          </button>
-        </div>
-
-        <!-- Settings Body -->
-        <div style="display: flex; flex-direction: column; gap: 20px;">
+  <!-- ── Automation Settings Modal ── -->
+  <app-modal [isOpen]="isSettingsOpen()" (onClose)="toggleAutomationSettings()" title="Automation Engine" icon="settings_suggest">
+    <div style="padding: 0 16px 16px;">
 
           <!-- Core Toggle -->
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;">
@@ -134,10 +129,8 @@
             </p>
           </div>
 
-        </div>
-
-      </div>
-    </section>
+    </div>
+  </app-modal>
   }
 
   <!-- ── Monthly Summary Block ── -->

@@ -53,6 +53,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected isLogModalOpen = signal(false);
   protected isHistoryModalOpen = signal(false);
   protected isPendingModalOpen = signal(false);
+  protected isSettingsDropdownOpen = signal(false);
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),

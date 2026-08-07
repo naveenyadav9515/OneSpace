@@ -1,39 +1,30 @@
 <!-- App Shell (§8.3: Mobile-perfect, Desktop-contained) -->
 <div class="app-shell fade-in-bottom">
 
-  <!-- ── Premium Header ── -->
-  <header class="dashboard-header" style="padding-top: 16px; padding-bottom: 24px; border-bottom: none;">
+  <!-- ── Premium Header (Matches Dashboard) ── -->
+  <header class="dashboard-header" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding-top: 16px; padding-bottom: 24px; border-bottom: none;">
+    
+    <!-- Back Button -->
+    <a routerLink="/" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--lm-color-text-primary); text-decoration: none; flex-shrink: 0;" aria-label="Go Back">
+      <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+    </a>
 
-    <!-- Top Row: Back Navigation -->
-    <div style="margin-bottom: 20px;">
-      <a routerLink="/" class="nav-back-btn" style="margin: 0; width: 40px; height: 40px;">
-        <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
-      </a>
+    <!-- Title & Subtitle -->
+    <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+      <h1 style="font-size: 20px; font-weight: 800; color: rgba(255, 255, 255, 0.9); margin: 0; line-height: 1.1; letter-spacing: -0.02em;">Expenses</h1>
+      <p style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Track your financial footprint</p>
     </div>
 
-    <!-- Main Header Row -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; width: 100%;">
-
-      <!-- Title Area -->
-      <div class="title-stack">
-        <h1 class="brand-name" style="font-size: 36px; margin-bottom: 8px; line-height: 1.1;">Expenses</h1>
-        <p class="greeting-text" style="font-size: 15px; opacity: 0.85; max-width: 280px; line-height: 1.4;">Track your financial footprint</p>
-      </div>
-
-      <!-- Actions Area -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="settings-btn premium-action-btn" (click)="toggleAutomationSettings()" title="Automation Settings" [class.active]="isSettingsOpen()">
-          <span class="material-symbols-outlined btn-icon" style="color: var(--lm-color-primary);">settings</span>
-          <span class="btn-text">Automation Settings</span>
+    <!-- Actions Area -->
+    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+      <button (click)="toggleAutomationSettings()" title="Automation Settings" style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.85); cursor: pointer; padding: 0;">
+        <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+      </button>
+      @if (canSimulateAutoLog) {
+        <button (click)="simulateAutoLog()" title="Simulate Auto-Log" style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent; border: 1px solid rgba(245,158,11,0.4); color: var(--lm-color-warning); cursor: pointer; padding: 0;">
+          <span class="material-symbols-outlined" style="font-size: 20px;">mark_email_unread</span>
         </button>
-        @if (canSimulateAutoLog) {
-          <button class="settings-btn premium-action-btn" (click)="simulateAutoLog()" title="Simulate Auto-Log">
-            <span class="material-symbols-outlined btn-icon" style="color: var(--lm-color-warning);">mark_email_unread</span>
-            <span class="btn-text">Simulate Email</span>
-          </button>
-        }
-      </div>
-
+      }
     </div>
   </header>
 

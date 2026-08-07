@@ -4,26 +4,29 @@
   top: 0;
   z-index: 100;
   
-  /* Glassmorphism background so content scrolls underneath gracefully */
-  background: var(--lm-color-header-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  
-  /* Create a smooth fade out of the glass effect at the bottom */
-  padding-bottom: 48px;
-  margin-bottom: -48px; /* Pull content up so it doesn't leave a huge gap */
-  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
-  
   /* Pull the header up to cover the app-shell padding */
   margin-top: calc(-1 * (var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)));
-  padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)); /* removed 24px extra clear space above */
+  padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px));
   
   /* Break out of container constraints to span full 100vw */
   max-width: 100vw !important;
   width: 100vw !important;
   margin-inline: calc(50% - 50vw);
   padding-inline: calc(50vw - 50%);
+}
+
+/* ── Smooth Glass Fade (Pseudo-element prevents layout gaps) ── */
+:host::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -48px 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--lm-color-header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
 }
 
 @media (min-width: 768px) {

@@ -1106,3 +1106,144 @@ input:checked + .slider:before {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* ── Spending Trend Bento ── */
+.trend-bento {
+  background: var(--lm-color-surface);
+  border-radius: 24px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+.trend-chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120px;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.trend-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  height: 100%;
+}
+.trend-bar-track {
+  width: 100%;
+  max-width: 32px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+.trend-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--lm-color-primary) 0%, rgba(167, 139, 250, 0.4) 100%);
+  border-radius: 5px;
+  transition: height 1s cubic-bezier(0.1, 0, 0.1, 1);
+  min-height: 4px;
+}
+.trend-bar-lbl {
+  font-size: 11px;
+  color: var(--lm-color-text-muted);
+  font-weight: 500;
+}
+
+/* ── Category Breakdown Bento ── */
+.cat-list-bento {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--lm-color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 16px;
+  border-radius: 16px;
+  transition: transform 0.2s, background 0.2s;
+}
+.cat-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  transform: translateY(-2px);
+}
+.cat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cat-icon-wrap .material-symbols-outlined { font-size: 22px; }
+
+/* Same color classes as txn-icon-- */
+.cat-icon--food { background: rgba(245, 158, 11, 0.14); color: #F59E0B; }
+.cat-icon--transport { background: rgba(56, 189, 248, 0.14); color: #38BDF8; }
+.cat-icon--shopping { background: rgba(236, 72, 153, 0.14); color: #EC4899; }
+.cat-icon--utilities { background: rgba(34, 197, 94, 0.14); color: #22C55E; }
+.cat-icon--entertainment { background: rgba(168, 85, 247, 0.14); color: #A855F7; }
+.cat-icon--health { background: rgba(244, 63, 94, 0.14); color: #F43F5E; }
+.cat-icon--other { background: rgba(34, 197, 94, 0.14); color: #22C55E; }
+
+.cat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cat-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+}
+.cat-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cat-progress-fill {
+  height: 100%;
+  background: var(--lm-color-primary);
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+.cat-amt-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.cat-amt {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+}
+.cat-pct {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--lm-color-text-muted);
+}
+
+
+/* Span last odd card across both columns */
+.es-metric-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.es-metric-icon.orange {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+}

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { SwipeableTabsComponent, TabDefinition } from '@shared/components/swipeable-tabs/swipeable-tabs.component';
 import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.component';
@@ -54,6 +54,10 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected isHistoryModalOpen = signal(false);
   protected isPendingModalOpen = signal(false);
   protected isSettingsDropdownOpen = signal(false);
+  protected isCategorySettingsOpen = signal(false);
+
+  protected customCategories = signal<string[]>([]);
+  protected newCategoryControl = new FormControl('', Validators.required);
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -84,6 +88,13 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
         this.completeGmailConnection(code);
       }
     });
+
+    const savedCats = localStorage.getItem('onespace_custom_categories');
+    if (savedCats) {
+      try {
+        this.customCategories.set(JSON.parse(savedCats));
+      } catch (e) {}
+    }
   }
 
   ngOnDestroy() {
@@ -434,6 +445,38 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     this.activePendingId.set(null);
     this.isLogModalOpen.set(false);
     this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+  }
+
+  protected isFormInvalid(): boolean {
+    return this.expenseForm.invalid;
+  }
+
+  protected addCategory() {
+    const val = this.newCategoryControl.value?.trim();
+    if (!val) return;
+    const current = this.customCategories();
+    if (!current.includes(val)) {
+      const next = [...current, val];
+      this.customCategories.set(next);
+      localStorage.setItem('onespace_custom_categories', JSON.stringify(next));
+    }
+    this.newCategoryControl.reset();
+  }
+
+  protected removeCategory(cat: string) {
+    const next = this.customCategories().filter(c => c !== cat);
+    this.customCategories.set(next);
+    localStorage.setItem('onespace_custom_categories', JSON.stringify(next));
+  }
+
+  protected getAllCategories(): string[] {
+    const defaultCats = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health'];
+    return [...defaultCats, ...this.customCategories(), 'Other'];
+  }
+
+  protected getMaxValue(data: number[] | undefined): number {
+    if (!data || data.length === 0) return 100;
+    return Math.max(...data, 1);
   }
 
   protected submitExpense() {

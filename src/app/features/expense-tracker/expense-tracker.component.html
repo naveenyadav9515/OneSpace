@@ -44,9 +44,13 @@
         
         @if (isSettingsDropdownOpen()) {
           <div class="hh-dropdown-menu">
-            <button class="hh-dropdown-item" (click)="toggleAutomationSettings(); isSettingsDropdownOpen.set(false)">
-              <span class="material-symbols-outlined" style="font-size: 20px; color: var(--lm-color-primary);">settings_suggest</span>
+            <button class="hh-dropdown-item" (click)="isSettingsOpen.set(true); isSettingsDropdownOpen.set(false)">
+              <span class="material-symbols-outlined">smart_toy</span>
               Automation Settings
+            </button>
+            <button class="hh-dropdown-item" (click)="isCategorySettingsOpen.set(true); isSettingsDropdownOpen.set(false)">
+              <span class="material-symbols-outlined">category</span>
+              Manage Categories
             </button>
             <button class="hh-dropdown-item" (click)="isSettingsDropdownOpen.set(false)">
               <span class="material-symbols-outlined" style="font-size: 20px; color: var(--lm-color-text-muted);">close</span>
@@ -184,10 +188,89 @@
               <span class="es-metric-val">₹{{ dailyLimit() | number:'1.0-0' }} <span style="font-size:10px; opacity: 0.6; font-weight: 500;">/day</span></span>
             </div>
           </div>
+
+          @if (summary.forecast) {
+            <div class="es-metric-card">
+              <div class="es-metric-icon orange">
+                <span class="material-symbols-outlined">monitoring</span>
+              </div>
+              <div class="es-metric-info" style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                  <span class="es-metric-lbl">Projected</span>
+                  <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 6px; white-space: nowrap;"
+                        [ngStyle]="{'background': summary.forecast.statusColor + '20', 'color': summary.forecast.statusColor}">
+                    {{ summary.forecast.statusText }}
+                  </span>
+                </div>
+                <span class="es-metric-val">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          }
         </div>
 
       </div>
     </section>
+
+    <!-- ── Spending Trend Chart ── -->
+    @if (summary.spendingTrend && summary.spendingTrend.labels && summary.spendingTrend.labels.length > 0) {
+      <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px; animation-delay: 0.1s;">
+        <div class="trend-bento">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 4px 0;">Spending Trend</h3>
+              <p style="font-size: 12px; color: var(--lm-color-text-muted); margin: 0;">This month</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 18px; font-weight: 800; color: var(--lm-color-text-primary);">₹{{ summary.spendingTrend.avgPerWeek | number:'1.0-0' }}</span>
+              <span style="font-size: 11px; color: var(--lm-color-text-muted); display: block;">avg/week</span>
+            </div>
+          </div>
+          <div class="trend-chart-wrap">
+            @for (val of summary.spendingTrend.data; track $index) {
+              <div class="trend-bar-col">
+                <div class="trend-bar-track">
+                  <div class="trend-bar-fill" [style.height.%]="(val / getMaxValue(summary.spendingTrend.data)) * 100"></div>
+                </div>
+                <span class="trend-bar-lbl">{{ summary.spendingTrend.labels[$index] }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ── Category Breakdown ── -->
+    @if (summary.topCategories && summary.topCategories.length > 0) {
+      <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px; animation-delay: 0.2s;">
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 16px 4px;">Category Breakdown</h3>
+        <div class="cat-list-bento">
+          @for (cat of summary.topCategories; track cat.name) {
+            <div class="cat-row">
+              <div class="cat-icon-wrap" [ngClass]="'cat-icon--' + (cat.name || 'Other').toLowerCase()">
+                <span class="material-symbols-outlined">
+                    {{ cat.name === 'Food' ? 'restaurant' :
+                       cat.name === 'Transport' ? 'directions_car' :
+                       cat.name === 'Shopping' ? 'local_mall' :
+                       cat.name === 'Utilities' ? 'bolt' :
+                       cat.name === 'Entertainment' ? 'movie' :
+                       cat.name === 'Health' ? 'medical_services' : 'category' }}
+                </span>
+              </div>
+              <div class="cat-info">
+                <span class="cat-name">{{ cat.name }}</span>
+                <div class="cat-progress-track">
+                  <div class="cat-progress-fill" [style.width.%]="cat.percentage > 100 ? 100 : cat.percentage"></div>
+                </div>
+              </div>
+              <div class="cat-amt-block">
+                <span class="cat-amt">₹{{ cat.amount | number:'1.0-0' }}</span>
+                <span class="cat-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
   }
 
   <app-modal [isOpen]="isLogModalOpen()" (onClose)="cancelReview()" [title]="activePendingId() ? 'Complete Pending Review' : 'Log New Expense'" [icon]="activePendingId() ? 'rule' : 'add_circle'">
@@ -219,13 +302,9 @@
               <div class="input-wrapper">
                 <span class="material-symbols-outlined input-icon">category</span>
                 <select formControlName="category" class="premium-input select-caret">
-                  <option value="Food">Food & Dining</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Utilities">Utilities</option>
-                  <option value="Entertainment">Entertainment</option>
-                  <option value="Health">Health</option>
-                  <option value="Other">Other</option>
+                  @for (cat of getAllCategories(); track cat) {
+                    <option [value]="cat">{{ cat === 'Food' ? 'Food & Dining' : cat }}</option>
+                  }
                 </select>
               </div>
             </div>
@@ -426,6 +505,37 @@
     </div>
   </app-modal>
   
+  <!-- ── Category Settings Modal ── -->
+  <app-modal [isOpen]="isCategorySettingsOpen()" (onClose)="isCategorySettingsOpen.set(false)" title="Manage Categories" icon="category">
+    <div style="padding: 0 4px 16px;">
+      <p style="font-size: 13px; color: var(--lm-color-text-muted); margin-bottom: 20px; line-height: 1.4;">
+        Add custom categories to personalize your expense tracking.
+      </p>
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <input type="text" [formControl]="newCategoryControl" placeholder="New category name" class="premium-input" style="flex: 1;" (keyup.enter)="addCategory()">
+        <button class="premium-submit-btn" style="width: auto; padding: 0 20px; margin-top: 0; min-height: 48px;" (click)="addCategory()">Add</button>
+      </div>
+
+      <h4 style="font-size: 12px; font-weight: 600; color: var(--lm-color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Custom Categories</h4>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        @for (cat of customCategories(); track cat) {
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px 16px; border-radius: 12px;">
+            <span style="font-size: 14px; font-weight: 500; color: var(--lm-color-text-primary);">{{ cat }}</span>
+            <button (click)="removeCategory(cat)" style="background: transparent; border: none; color: var(--lm-color-error); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px;">
+              <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+            </button>
+          </div>
+        }
+        @if (customCategories().length === 0) {
+          <div style="text-align: center; padding: 24px 0; background: rgba(255,255,255,0.01); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.08);">
+            <p style="color: var(--lm-color-text-secondary); font-size: 13px; margin: 0;">No custom categories added yet.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </app-modal>
+
   <!-- ── Global Navigation Footer ── -->
   <app-bottom-nav />
 

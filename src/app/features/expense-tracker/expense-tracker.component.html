@@ -286,18 +286,9 @@
   <!-- ── 2. History ── -->
   <app-modal [isOpen]="isHistoryModalOpen()" (onClose)="isHistoryModalOpen.set(false)" title="History" icon="receipt_long">
     <div class="history-section-wrap">
-      <div class="history-section-header">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div class="icon-wrap" style="color: var(--lm-color-primary); background: rgba(168, 85, 247, 0.15);">
-            <span class="material-symbols-outlined" style="font-size: 24px;">receipt_long</span>
-          </div>
-          <div class="card-titles">
-            <h2 class="card-name" style="font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">History</h2>
-            <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Recent activity</p>
-          </div>
-        </div>
-        <button class="premium-icon-btn" (click)="fetchExpenses()" [disabled]="isLoading()" title="Refresh">
-          <span class="material-symbols-outlined" [class.spin]="isLoading()" style="font-size: 20px;">refresh</span>
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; margin-top: -8px;">
+        <button (click)="fetchExpenses()" [disabled]="isLoading()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer;">
+          <span class="material-symbols-outlined" style="font-size: 14px;" [class.spin]="isLoading()">refresh</span> Refresh
         </button>
       </div>
 
@@ -327,12 +318,10 @@
                 <div class="txn-info">
                   <h4 class="txn-merchant">{{ exp.merchant }}</h4>
                   <div class="txn-meta-row">
-                    <span class="material-symbols-outlined txn-meta-icon">calendar_today</span>
                     <span>{{ exp.date | date:'MMM d, y' }}</span>
-                    <span class="txn-meta-sep">|</span>
-                    <span class="material-symbols-outlined txn-meta-icon">schedule</span>
-                    <span>{{ exp.date | date:'hh:mm a' }}</span>
-                    <span class="txn-meta-sep">|</span>
+                    <span class="txn-meta-sep">•</span>
+                    <span>{{ exp.date | date:'shortTime' }}</span>
+                    <span class="txn-meta-sep">•</span>
                     <span>{{ exp.paymentMethod }}</span>
                   </div>
 
@@ -361,6 +350,9 @@
                 </div>
 
                 <div class="txn-right-block">
+                  <div class="txn-amount-block" style="margin-bottom: 8px;">
+                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+                  </div>
                   <div class="txn-actions">
                     <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
                       <span class="material-symbols-outlined">edit</span>
@@ -368,9 +360,6 @@
                     <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="deleteExpense(exp._id)">
                       <span class="material-symbols-outlined">delete</span>
                     </button>
-                  </div>
-                  <div class="txn-amount-block">
-                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
                   </div>
                 </div>
               </div>
@@ -383,27 +372,16 @@
   <!-- ── 3. Pending Transactions (Auto Log) ── -->
   <app-modal [isOpen]="isPendingModalOpen()" (onClose)="isPendingModalOpen.set(false)" title="Pending Review" icon="mark_email_unread">
     <div style="padding: 20px; border-radius: 24px; background: rgba(245, 158, 11, 0.02); border: 1px solid rgba(245, 158, 11, 0.2);">
-      <div class="panel-head">
-        <div class="panel-head-lead">
-          <div class="icon-wrap" style="color: var(--lm-color-warning); background: rgba(245, 158, 11, 0.15);">
-            <span class="material-symbols-outlined" style="font-size: 24px;">mark_email_unread</span>
-          </div>
-          <div class="card-titles">
-            <h2 class="card-name" style="font-size: 20px; font-weight: 700; letter-spacing: 0.5px; color: var(--lm-color-warning);">Pending Review</h2>
-            <p class="card-description" style="font-size: 13px; color: var(--lm-color-text-muted);">Auto-detected transactions</p>
-          </div>
-        </div>
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; margin-top: -8px;">
         <button
           type="button"
-          class="panel-sync-btn"
           (click)="syncGmailManually()"
           [disabled]="isSyncDisabled()"
-          [title]="syncCooldownSeconds() > 0
-            ? 'Google is rate-limiting this account — syncing resumes shortly'
-            : 'Sync Gmail Transactions'"
+          [title]="syncCooldownSeconds() > 0 ? 'Google is rate-limiting this account' : 'Sync Gmail Transactions'"
+          style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--lm-color-warning); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;"
         >
-          <span class="material-symbols-outlined btn-icon" [class.spin]="isSyncing()">sync</span>
-          <span class="btn-label">
+          <span class="material-symbols-outlined" style="font-size: 14px;" [class.spin]="isSyncing()">sync</span>
+          <span>
             @if (isSyncing()) {
               Syncing...
             } @else if (syncCooldownSeconds() > 0) {

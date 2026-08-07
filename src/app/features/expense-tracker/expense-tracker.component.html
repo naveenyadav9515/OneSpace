@@ -131,7 +131,6 @@
 
     </div>
   </app-modal>
-  }
 
   <!-- ── Monthly Summary Block ── -->
   @if (expenseService.summary(); as summary) {
@@ -281,8 +280,8 @@
             </button>
           </div>
         </form>
-      </div>
-    </section>
+    </div>
+  </app-modal>
 
   <!-- ── 2. History ── -->
   <app-modal [isOpen]="isHistoryModalOpen()" (onClose)="isHistoryModalOpen.set(false)" title="History" icon="receipt_long">

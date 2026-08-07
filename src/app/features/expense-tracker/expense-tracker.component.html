@@ -124,6 +124,64 @@
     </section>
   }
 
+  <!-- ── Monthly Summary Block ── -->
+  @if (expenseService.summary(); as summary) {
+    <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px;">
+      <div class="expense-summary-bento">
+        
+        <!-- Top Section: Overview -->
+        <div class="es-top-row">
+          <div class="es-spent-block">
+            <span class="es-label">Spent this month</span>
+            <span class="es-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
+          </div>
+          <div class="es-budget-block">
+            <span class="es-label">Budget</span>
+            <span class="es-amount-small">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="es-progress-wrap">
+          <div class="es-progress-track">
+            <div class="es-progress-fill" 
+                 [style.width.%]="summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct"
+                 [class.over-budget]="summary.budgetUsedPct > 100">
+            </div>
+          </div>
+          <div class="es-progress-labels">
+            <span>{{ summary.budgetUsedPct }}% used</span>
+            <span>{{ summary.daysLeft }} days left</span>
+          </div>
+        </div>
+
+        <!-- Bottom Section: Metrics Grid -->
+        <div class="es-metrics-grid">
+          <div class="es-metric-card">
+            <div class="es-metric-icon green">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </div>
+            <div class="es-metric-info">
+              <span class="es-metric-lbl">Available</span>
+              <span class="es-metric-val">₹{{ summary.available | number:'1.0-0' }}</span>
+            </div>
+          </div>
+          
+          <div class="es-metric-card">
+            <div class="es-metric-icon cyan">
+              <span class="material-symbols-outlined">bolt</span>
+            </div>
+            <div class="es-metric-info">
+              <span class="es-metric-lbl">Safe to Spend</span>
+              <span class="es-metric-val">₹{{ dailyLimit() | number:'1.0-0' }} <span style="font-size:10px; opacity: 0.6; font-weight: 500;">/day</span></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  }
+
   <!--
     ── Tabbed content ──
     Panels are projected in tab order (Log · History · Pending) and are reachable

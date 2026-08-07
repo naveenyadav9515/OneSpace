@@ -32,7 +32,7 @@ const TAB_LOG = 0;
 })
 export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
-  private readonly expenseService = inject(ExpenseService);
+  protected readonly expenseService = inject(ExpenseService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -50,6 +50,13 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected deleteConfirmId = signal<string | null>(null);
   protected isSyncing = signal(false);
   protected readonly canSimulateAutoLog = !environment.production && environment.featureFlags.enableExpenseSimulator;
+
+  protected readonly dailyLimit = computed(() => {
+    const sum = this.expenseService.summary();
+    if (!sum) return 0;
+    if (sum.daysLeft <= 0) return sum.available;
+    return Math.floor(sum.available / sum.daysLeft);
+  });
 
   /** Index of the visible tab. Order must match the panels in the template. */
   protected readonly activeTab = signal(TAB_LOG);
@@ -86,6 +93,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     this.fetchExpenses();
     this.fetchPendingTransactions();
     this.fetchAutomationStatus();
+    this.expenseService.fetchSummary().subscribe();
     
     // Check for Google OAuth code
     this.route.queryParams.subscribe(params => {

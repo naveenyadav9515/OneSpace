@@ -194,15 +194,17 @@
               <div class="es-metric-icon orange">
                 <span class="material-symbols-outlined">monitoring</span>
               </div>
-              <div class="es-metric-info" style="flex: 1; min-width: 0;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+              <div class="es-metric-info" style="flex: 1; min-width: 0; padding-top: 2px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   <span class="es-metric-lbl">Projected</span>
-                  <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 6px; white-space: nowrap;"
-                        [ngStyle]="{'background': summary.forecast.statusColor + '20', 'color': summary.forecast.statusColor}">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                  <span class="es-metric-val">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
+                  <span style="font-size: 11px; font-weight: 500; line-height: 1.3; opacity: 0.9;"
+                        [ngStyle]="{'color': summary.forecast.statusColor}">
                     {{ summary.forecast.statusText }}
                   </span>
                 </div>
-                <span class="es-metric-val">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
               </div>
             </div>
           }
@@ -246,14 +248,14 @@
         <div class="cat-list-bento">
           @for (cat of summary.topCategories; track cat.name) {
             <div class="cat-row">
-              <div class="cat-icon-wrap" [ngClass]="'cat-icon--' + (cat.name || 'Other').toLowerCase()">
+              <div class="cat-icon-wrap" [ngClass]="'cat-icon--' + (cat.name.includes('Food') ? 'food' : cat.name.includes('Transport') ? 'transport' : cat.name.includes('Shopping') ? 'shopping' : cat.name.includes('Utilities') ? 'utilities' : cat.name.includes('Entertainment') ? 'entertainment' : cat.name.includes('Health') ? 'health' : 'other')">
                 <span class="material-symbols-outlined">
-                    {{ cat.name === 'Food' ? 'restaurant' :
-                       cat.name === 'Transport' ? 'directions_car' :
-                       cat.name === 'Shopping' ? 'local_mall' :
-                       cat.name === 'Utilities' ? 'bolt' :
-                       cat.name === 'Entertainment' ? 'movie' :
-                       cat.name === 'Health' ? 'medical_services' : 'category' }}
+                    {{ cat.name.includes('Food') ? 'restaurant' :
+                       cat.name.includes('Transport') ? 'directions_car' :
+                       cat.name.includes('Shopping') ? 'local_mall' :
+                       cat.name.includes('Utilities') ? 'bolt' :
+                       cat.name.includes('Entertainment') ? 'movie' :
+                       cat.name.includes('Health') ? 'medical_services' : 'category' }}
                 </span>
               </div>
               <div class="cat-info">

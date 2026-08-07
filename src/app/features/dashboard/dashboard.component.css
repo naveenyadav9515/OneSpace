@@ -1782,7 +1782,7 @@
 .snapshot-title {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.85);
   letter-spacing: -0.3px;
 }
 
@@ -1862,7 +1862,7 @@
 
 .snapshot-pct-arc {
   font-size: 28px;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -1px;
@@ -1903,7 +1903,7 @@
 
 .snapshot-amount {
   font-size: 28px;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.85);
   letter-spacing: -0.5px;
   font-weight: 700;
   line-height: 1;
@@ -1978,7 +1978,7 @@
 .metric-val {
   font-size: 16px;
   font-weight: 700;
-  color: var(--lm-color-text-primary);
+  color: rgba(255, 255, 255, 0.85);
   letter-spacing: -0.3px;
 }
 
@@ -2046,13 +2046,13 @@
   background: rgba(255, 255, 255, 0.12);
   padding: 2px 5px;
   border-radius: 4px;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 600;
   line-height: 1.2;
 }
 
 .cat-item-amount {
   font-size: 13px;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 700;
 }

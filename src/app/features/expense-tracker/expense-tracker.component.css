@@ -860,11 +860,15 @@ input:checked + .slider:before {
   margin-top: calc(-1 * (var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)));
   padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px) + 16px);
   padding-bottom: 24px;
+  margin-bottom: -24px;
+  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 24px), transparent 100%);
+  
   max-width: 100vw !important;
   width: 100vw !important;
   margin-inline: calc(50% - 50vw);
   padding-inline: calc(50vw - 50%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: none !important;
 }
 
 @media (min-width: 768px) {

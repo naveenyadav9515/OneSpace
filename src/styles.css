@@ -178,7 +178,7 @@
   --lm-touch-target-min: 44px;
 
   /* --- Sticky Header Variables --- */
-  --lm-color-header-bg: rgba(9, 9, 11, 0.7); 
+  --lm-color-header-bg: color-mix(in srgb, var(--lm-color-bg) 80%, transparent);
   --lm-color-header-border: rgba(255, 255, 255, 0.05);
   --lm-color-header-divider: rgba(255, 255, 255, 0.08);
 

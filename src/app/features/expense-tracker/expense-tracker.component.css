@@ -296,17 +296,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Single Transaction Card ── */
-.txn-card {
-  background: var(--lm-color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
-  padding: 18px 20px 16px;
-  transition: var(--lm-transition-smooth);
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
+.txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
 .txn-card:hover {
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
@@ -360,12 +350,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Center Column (Text Content) ── */
-.txn-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
+.txn-card-top { display: flex; align-items: flex-start; gap: 16px; }
+.txn-info-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 .txn-merchant {
   font-family: var(--lm-font-display);
@@ -420,14 +406,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Right Column (Actions + Amount) ── */
-.txn-right-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
+.txn-card-bottom { display: flex; flex-direction: column; gap: 8px; padding-left: 68px; }
+.txn-actions-bottom { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
 .txn-actions {
   display: flex;
@@ -549,10 +529,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Light Mode Overrides ── */
-:host-context(html[data-theme="light"]) .txn-card {
-  background: var(--lm-color-surface);
-  border-color: rgba(0, 0, 0, 0.06);
-}
+:host-context(html[data-theme="light"]) .txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
 :host-context(html[data-theme="light"]) .txn-card:hover {
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -576,10 +553,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 /* ── Mobile Responsive ── */
 @media (max-width: 480px) {
-  .txn-card {
-    padding: 14px 16px 14px;
-    gap: 10px;
-  }
+  .txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
   .txn-icon-circle {
     width: 44px;
     height: 44px;

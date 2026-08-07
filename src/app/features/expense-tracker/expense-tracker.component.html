@@ -385,27 +385,35 @@
           <div class="txn-card-list">
             @for (exp of expenses(); track exp._id) {
               <div class="txn-card">
-                <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
-                  <span class="material-symbols-outlined">
-                    {{ exp.category === 'Food' ? 'restaurant' :
-                       exp.category === 'Transport' ? 'directions_car' :
-                       exp.category === 'Shopping' ? 'local_mall' :
-                       exp.category === 'Utilities' ? 'bolt' :
-                       exp.category === 'Entertainment' ? 'movie' :
-                       exp.category === 'Health' ? 'medical_services' : 'home' }}
-                  </span>
-                </div>
-
-                <div class="txn-info">
-                  <h4 class="txn-merchant">{{ exp.merchant }}</h4>
-                  <div class="txn-meta-row">
-                    <span>{{ exp.date | date:'MMM d, y' }}</span>
-                    <span class="txn-meta-sep">•</span>
-                    <span>{{ exp.date | date:'shortTime' }}</span>
-                    <span class="txn-meta-sep">•</span>
-                    <span>{{ exp.paymentMethod }}</span>
+                <div class="txn-card-top">
+                  <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                    <span class="material-symbols-outlined">
+                      {{ exp.category === 'Food' ? 'restaurant' :
+                         exp.category === 'Transport' ? 'directions_car' :
+                         exp.category === 'Shopping' ? 'local_mall' :
+                         exp.category === 'Utilities' ? 'bolt' :
+                         exp.category === 'Entertainment' ? 'movie' :
+                         exp.category === 'Health' ? 'medical_services' : 'home' }}
+                    </span>
                   </div>
 
+                  <div class="txn-info-main">
+                    <h4 class="txn-merchant">{{ exp.merchant }}</h4>
+                    <div class="txn-meta-row">
+                      <span>{{ exp.date | date:'MMM d' }}</span>
+                      <span class="txn-meta-sep">•</span>
+                      <span>{{ exp.date | date:'shortTime' }}</span>
+                      <span class="txn-meta-sep">•</span>
+                      <span>{{ exp.paymentMethod }}</span>
+                    </div>
+                  </div>
+
+                  <div class="txn-amount-block">
+                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+
+                <div class="txn-card-bottom">
                   <div class="txn-tags-row">
                     <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
                       {{ exp.category === 'Food' ? 'Food & Dining' :
@@ -428,13 +436,8 @@
                       <span class="txn-notes-text">{{ exp.notes }}</span>
                     </div>
                   }
-                </div>
 
-                <div class="txn-right-block">
-                  <div class="txn-amount-block" style="margin-bottom: 8px;">
-                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
-                  </div>
-                  <div class="txn-actions">
+                  <div class="txn-actions-bottom">
                     <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
                       <span class="material-symbols-outlined">edit</span>
                     </button>

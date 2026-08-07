@@ -10,10 +10,10 @@
   -webkit-backdrop-filter: blur(16px);
   
   /* Create a smooth fade out of the glass effect at the bottom */
-  padding-bottom: 24px;
-  margin-bottom: -24px; /* Pull content up so it doesn't leave a huge gap */
-  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 24px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 24px), transparent 100%);
+  padding-bottom: 48px;
+  margin-bottom: -48px; /* Pull content up so it doesn't leave a huge gap */
+  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
   
   /* Pull the header up to cover the app-shell padding */
   margin-top: calc(-1 * (var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)));

@@ -29,46 +29,44 @@
 
 .pr-bell-icon {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.06));
-  border: 1px solid rgba(34, 211, 238, 0.25);
-  box-shadow: 0 2px 10px rgba(34, 211, 238, 0.15);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #22D3EE;
+  color: rgba(255, 255, 255, 0.85);
   flex-shrink: 0;
 }
 
 .pr-bell-icon .material-symbols-outlined {
-  font-size: 19px;
+  font-size: 16px;
 }
 
 .pr-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   background: #EC4899;
   color: white;
   font-size: 10px;
   font-weight: 800;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--lm-color-bg, #0B1320);
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
 }
 
 /* ── Summary Chips ── */
 .pr-summary-chips {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
@@ -85,21 +83,20 @@
   gap: 4px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--lm-color-text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   padding: 5px 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .pr-summary-chip.pr-summary-active {
-  color: #22D3EE;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(34, 211, 238, 0.05));
-  border: 1px solid rgba(34, 211, 238, 0.28);
-  box-shadow: 0 2px 8px rgba(34, 211, 238, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .pr-summary-chip .material-symbols-outlined {
@@ -110,30 +107,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(34, 211, 238, 0.06));
-  border: 1px solid rgba(34, 211, 238, 0.25);
-  color: #22D3EE;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
   margin-left: 8px;
 }
 
 .pr-add-btn:hover {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.28), rgba(34, 211, 238, 0.12));
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 14px rgba(34, 211, 238, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  transform: scale(1.05);
 }
 
 .pr-add-btn .material-symbols-outlined {
-  font-size: 19px;
+  font-size: 16px;
 }
 
-/* ── Tone map ── */
+/* ── Tone map (Kept for inner icon tiles if needed) ── */
 [data-tone='cyan']   { --tone: var(--lm-tone-cyan, #22D3EE); }
 [data-tone='violet'] { --tone: var(--lm-tone-violet, #A855F7); }
 [data-tone='purple'] { --tone: var(--lm-tone-purple, #C084FC); }
@@ -147,35 +143,26 @@
 .pr-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* ── Individual list card ── */
+/* ── Individual list card (Neutralized) ── */
 .pr-list-card {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--tone, var(--lm-color-accent)) 25%, transparent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  border-radius: 16px;
-  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 12px 16px;
   box-sizing: border-box;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--lm-transition-fast, all 0.2s ease);
 }
 
 .pr-list-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 30%, transparent), 0 0 12px color-mix(in srgb, var(--tone, var(--lm-color-accent)) 15%, transparent);
-  border-color: color-mix(in srgb, var(--tone, var(--lm-color-accent)) 45%, transparent);
-}
-
-[data-theme="light"] .pr-list-card {
-  background: rgba(0, 0, 0, 0.025);
-  border-color: color-mix(in srgb, var(--tone, var(--lm-color-accent)) 20%, transparent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .pr-icon-col {
@@ -196,8 +183,8 @@
 
 .pr-title {
   font-size: 14px;
-  font-weight: 700;
-  color: var(--lm-color-text-primary);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -207,11 +194,10 @@
 .pr-detail-text {
   font-size: 12px;
   font-weight: 400;
-  color: var(--lm-color-text-secondary);
+  color: rgba(255, 255, 255, 0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.85;
 }
 
 .pr-meta-col {
@@ -221,7 +207,7 @@
   justify-content: center;
   text-align: right;
   flex-shrink: 0;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pr-meta-date-group {
@@ -230,33 +216,30 @@
   align-items: flex-end;
 }
 
-/* Pill badge - Compact Glassmorphic */
+/* Pill badge - Muted */
 .pr-badge-pill {
   display: inline-block;
-  padding: 2px 7px;
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  background: color-mix(in srgb, var(--tone) 20%, transparent);
-  color: var(--tone);
-  border: 1px solid color-mix(in srgb, var(--tone) 35%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--tone) 15%, transparent);
 }
 
 .pr-meta-date {
   font-size: 13px;
-  font-weight: 700;
-  color: var(--tone);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   letter-spacing: -0.2px;
 }
 
 .pr-meta-time {
   font-size: 11px;
   font-weight: 500;
-  color: var(--lm-color-text-secondary);
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.5);
 }

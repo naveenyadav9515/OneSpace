@@ -11,15 +11,10 @@
   justify-content: center;
   flex: 0 0 auto;
 
-  background: color-mix(in srgb, var(--tone) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  background: color-mix(in srgb, var(--tone) 10%, transparent);
+  border: none;
   color: var(--tone);
-
-  /* A tone-matched bloom rather than a neutral drop shadow — it is what makes
-     the tiles read as lit rather than pasted onto the card. */
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--tone) 8%, transparent),
-    0 4px 16px color-mix(in srgb, var(--tone) 18%, transparent);
+  box-shadow: none;
 }
 
 /* ── Tones ── */
@@ -65,7 +60,7 @@
   background: var(--tone);
   border-color: var(--tone);
   color: var(--lm-color-bg);
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--tone) 40%, transparent);
+  box-shadow: none;
 }
 
 .glyph {

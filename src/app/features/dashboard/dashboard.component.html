@@ -26,9 +26,14 @@
       @if (getFeature('Finance Tracker'); as feat) {
         <section class="flow-item full-width">
           @if (expenseService.summary(); as summary) {
-            <a routerLink="/expenses" class="ex-summary-card" style="text-decoration: none; color: inherit;">
+            <div class="ex-summary-card">
+              <!-- Add button: absolutely positioned top-right -->
+              <a class="ex-launch-btn add-icon-btn" routerLink="/expenses" [queryParams]="{ action: 'add' }" title="Quick add expense">
+                <span class="material-symbols-outlined">add</span>
+              </a>
+
               <!-- Main Content: Arc gauge + Spent stats (always side-by-side) -->
-              <div class="ex-main">
+              <div class="ex-main" routerLink="/expenses" style="cursor: pointer;" title="Open Expenses">
                 <!-- Arc Chart -->
                 <div class="ex-chart-wrap">
                   <svg viewBox="0 0 200 130" class="ex-donut-svg">
@@ -87,7 +92,7 @@
                 </div>
               </div>
 
-              <!-- Top 4 Categories — Single horizontal row -->
+              <!-- Top Categories — Single horizontal row -->
               @if (summary.topCategories?.length) {
                 <div class="ex-cat-row">
                   @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
@@ -97,13 +102,16 @@
                       </div>
                       <div class="ex-cat-chip-info">
                         <span class="ex-cat-name" [title]="cat.name">{{ getCategoryDisplayName(cat.name) }}</span>
-                        <span class="ex-cat-amount">₹{{ cat.amount | number:'1.0-0' }} · {{ cat.percentage }}%</span>
+                        <div class="ex-cat-stats">
+                          <span class="ex-cat-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
+                          <span class="ex-cat-pct">{{ cat.percentage }}%</span>
+                        </div>
                       </div>
                     </div>
                   }
                 </div>
               }
-            </a>
+            </div>
           } @else if (expenseService.isLoading()) {
             <div class="glimpse-box preview-flex" style="justify-content: center; padding: 40px;">
               <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>

@@ -4,6 +4,7 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { SwipeableTabsComponent, TabDefinition } from '@shared/components/swipeable-tabs/swipeable-tabs.component';
+import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.component';
 import {
   Expense,
   ExpensePayload,
@@ -24,7 +25,7 @@ const TAB_LOG = 0;
 @Component({
   selector: 'app-expense-tracker',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ModalComponent, SwipeableTabsComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ModalComponent, SwipeableTabsComponent, BottomNavComponent],
   templateUrl: './expense-tracker.component.html',
   styleUrl: './expense-tracker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

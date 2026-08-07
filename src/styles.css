@@ -28,157 +28,118 @@
   --lm-font-body: 'Geist', 'Inter', -apple-system, sans-serif;
   --lm-font-mono: 'Geist Mono', 'Fira Code', monospace;
 
-  /* Typography Scale
-   *
-   * The display and heading steps are fluid: each clamp tops out at the size the
-   * scale always used, so anything from roughly 430px up is pixel-identical to
-   * before and only genuinely small phones scale down. That matters most for the
-   * figures — "₹27,743" at a fixed 2.85rem overflows its card on a 320px screen,
-   * and a headline that wraps mid-number is worse than one a few points smaller.
-   * Body steps stay fixed; they are already at the floor of comfortable reading.
-   */
+  /* Typography Scale */
   --lm-type-display-lg: 800 clamp(2.2rem, 8.8vw, 3rem)/1.1 var(--lm-font-display);
   --lm-type-display-md: 700 clamp(1.8rem, 6.6vw, 2.2rem)/1.2 var(--lm-font-display);
   --lm-type-display-sm: 600 clamp(1.4rem, 5vw, 1.7rem)/1.25 var(--lm-font-display);
-  --lm-type-heading-lg: 700 clamp(1.2rem, 4.2vw, 1.4rem)/1.3 var(--lm-font-display);
-  --lm-type-heading-md: 600 clamp(1.05rem, 3.5vw, 1.15rem)/1.35 var(--lm-font-display);
-  --lm-type-heading-sm: 600 0.95rem/1.4 var(--lm-font-display);
+  --lm-type-heading-lg: 600 24px/1.3 var(--lm-font-display);
+  --lm-type-heading-md: 500 18px/1.35 var(--lm-font-display);
+  --lm-type-heading-sm: 500 16px/1.4 var(--lm-font-display);
   
-  --lm-type-body-lg: 500 1.15rem/1.5 var(--lm-font-body);
-  --lm-type-body-md: 400 1.05rem/1.6 var(--lm-font-body);
-  --lm-type-body-sm: 400 0.95rem/1.6 var(--lm-font-body);
-  --lm-type-caption: 400 0.85rem/1.5 var(--lm-font-body);
-  --lm-type-overline: 700 0.75rem/1.4 var(--lm-font-display); /* Using display font for punchy overlines */
-  --lm-type-mono-sm: 400 0.85rem/1.5 var(--lm-font-mono);
+  --lm-type-body-lg: 400 16px/1.5 var(--lm-font-body);
+  --lm-type-body-md: 400 14px/1.6 var(--lm-font-body);
+  --lm-type-body-sm: 400 13px/1.6 var(--lm-font-body);
+  --lm-type-caption: 400 12px/1.5 var(--lm-font-body);
+  --lm-type-overline: 600 11px/1.4 var(--lm-font-display);
+  --lm-type-mono-sm: 400 12px/1.5 var(--lm-font-mono);
 
-  /* --- Color Palette — Deep Space Navy ---
-   * The home reference is a near-black navy, not the violet-tinted charcoal this
-   * started as: cards sit only a few steps above the page so the accent rings and
-   * tone tiles are the only saturated things on screen. The surfaces stay in one
-   * hue family (215–220°) so a card on a card still reads as a step up rather
-   * than a colour change.
-   */
-  --lm-color-bg: #050A12;
-  --lm-color-surface: #0B1320;
+  /* --- Color Palette — Deep Neutral Zinc --- */
+  --lm-color-bg: #09090B;
+  --lm-color-surface: #18181B;
   --lm-color-surface-hover: rgba(255, 255, 255, 0.05);
-  --lm-color-surface-subtle: #111C2B;
-  --lm-color-surface-elevated: #162232;
-  --lm-color-surface-glass: rgba(11, 19, 32, 0.75);
+  --lm-color-surface-subtle: #27272A;
+  --lm-color-surface-elevated: #27272A;
+  --lm-color-surface-glass: rgba(24, 24, 27, 0.75);
 
-  /* Barely-there accent wash on large card surfaces. The reference cards are not
-   * flat fills — they lift towards the accent at the top-left corner. Kept under
-   * 7% so it never becomes a colour in its own right. */
-  --lm-surface-sheen: radial-gradient(
-    130% 105% at 0% 0%,
-    rgba(34, 211, 238, 0.09) 0%,
-    rgba(34, 211, 238, 0) 55%
-  );
+  --lm-surface-sheen: none;
 
-  --lm-color-primary: #A855F7;
-  --lm-color-primary-hover: #B96DFF;
-  --lm-color-primary-pressed: #8D3DF2;
-  --lm-color-primary-glow: rgba(168, 85, 247, 0.15);
+  /* Primary Accent: Calm Cyan */
+  --lm-color-primary: #06B6D4;
+  --lm-color-primary-hover: #22D3EE;
+  --lm-color-primary-pressed: #0891B2;
+  --lm-color-primary-glow: rgba(6, 182, 212, 0.15);
   
-  --lm-color-secondary: #7C5CFF; /* Electric Indigo */
+  /* Secondary Accent: Deep Purple */
+  --lm-color-secondary: #A855F7; 
   --lm-color-tertiary: #A855F7;
 
-  --lm-color-success: #22C55E;
-  --lm-color-success-subtle: rgba(34, 197, 94, 0.12);
-  --lm-color-success-glow: rgba(34, 197, 94, 0.15);
+  /* Semantic Colors */
+  --lm-color-success: #10B981;
+  --lm-color-success-subtle: rgba(16, 185, 129, 0.12);
+  --lm-color-success-glow: rgba(16, 185, 129, 0.15);
   --lm-color-warning: #F59E0B;
   --lm-color-warning-subtle: rgba(245, 158, 11, 0.12);
-  --lm-color-error: #F43F5E;
-  --lm-color-error-subtle: rgba(244, 63, 94, 0.12);
-  --lm-color-error-glow: rgba(244, 63, 94, 0.15);
-  --lm-color-info: #38BDF8;
-  --lm-color-info-subtle: rgba(56, 189, 248, 0.12);
+  --lm-color-error: #EF4444;
+  --lm-color-error-subtle: rgba(239, 68, 68, 0.12);
+  --lm-color-error-glow: rgba(239, 68, 68, 0.15);
+  --lm-color-info: #0EA5E9;
+  --lm-color-info-subtle: rgba(14, 165, 233, 0.12);
 
   /* Status badge colors */
-  --lm-color-status-completed: #22C55E;
-  --lm-color-status-completed-bg: rgba(34, 197, 94, 0.12);
+  --lm-color-status-completed: #10B981;
+  --lm-color-status-completed-bg: rgba(16, 185, 129, 0.12);
   --lm-color-status-delayed: #F59E0B;
   --lm-color-status-delayed-bg: rgba(245, 158, 11, 0.12);
-  --lm-color-status-at-risk: #F43F5E;
-  --lm-color-status-at-risk-bg: rgba(244, 63, 94, 0.12);
-  --lm-color-status-ongoing: #38BDF8;
-  --lm-color-status-ongoing-bg: rgba(56, 189, 248, 0.12);
+  --lm-color-status-at-risk: #EF4444;
+  --lm-color-status-at-risk-bg: rgba(239, 68, 68, 0.12);
+  --lm-color-status-ongoing: #0EA5E9;
+  --lm-color-status-ongoing-bg: rgba(14, 165, 233, 0.12);
 
   /* Icon circle accent colors */
   --lm-color-icon-purple: rgba(168, 85, 247, 0.12);
-  --lm-color-icon-indigo: rgba(124, 92, 255, 0.12);
-  --lm-color-icon-blue: rgba(56, 189, 248, 0.12);
-  --lm-color-icon-green: rgba(34, 197, 94, 0.12);
+  --lm-color-icon-indigo: rgba(99, 102, 241, 0.12);
+  --lm-color-icon-blue: rgba(14, 165, 233, 0.12);
+  --lm-color-icon-green: rgba(16, 185, 129, 0.12);
   --lm-color-icon-amber: rgba(245, 158, 11, 0.12);
   --lm-color-icon-rose: rgba(244, 63, 94, 0.12);
 
-  /* --- Accent scale (cyan) ---
-   * The home screen's signature colour: the brand's second word, icon rings,
-   * the budget gauge head, the active nav tab. Deliberately separate from
-   * --lm-color-primary (violet), which every other screen still leads with, so
-   * this palette can land on Home without repainting the rest of the app.
-   */
-  --lm-color-accent: #22D3EE;
-  --lm-color-accent-hover: #4FE3F7;
-  --lm-color-accent-soft: rgba(34, 211, 238, 0.12);
-  --lm-color-accent-glow: rgba(34, 211, 238, 0.30);
-  --lm-color-accent-border: rgba(34, 211, 238, 0.28);
+  --lm-color-accent: #06B6D4;
+  --lm-color-accent-hover: #22D3EE;
+  --lm-color-accent-soft: rgba(6, 182, 212, 0.12);
+  --lm-color-accent-glow: rgba(6, 182, 212, 0.20);
+  --lm-color-accent-border: rgba(6, 182, 212, 0.28);
 
-  /* --- Category tones ---
-   * One hue per category, shared by an item's icon tile, its timeline dot, its
-   * chip and its progress ring so a reminder or routine row reads as one object.
-   * Components derive their own soft fills from these with color-mix(), which is
-   * why there are no paired *-soft tokens here.
-   */
-  --lm-tone-cyan: #22D3EE;
+  --lm-tone-cyan: #06B6D4;
   --lm-tone-violet: #8B5CF6;
   --lm-tone-purple: #A855F7;
   --lm-tone-amber: #F59E0B;
   --lm-tone-pink: #EC4899;
   --lm-tone-blue: #3B82F6;
   --lm-tone-rose: #F43F5E;
-  --lm-tone-green: #22C55E;
+  --lm-tone-green: #10B981;
 
-  /* Cool slate rather than the previous mauve greys — a warm grey over a navy
-   * card reads as a slightly dirty white, which is what flattened the reference
-   * the first time round. */
-  --lm-color-text-primary: #F8FBFF;
-  --lm-color-text-secondary: #9BB0C5;
-  --lm-color-text-muted: #627D94;
-  --lm-color-text-disabled: #47586B;
+  --lm-color-text-primary: #FAFAFA;
+  --lm-color-text-secondary: #A1A1AA;
+  --lm-color-text-muted: #71717A;
+  --lm-color-text-disabled: #52525B;
 
   /* --- Gradients --- */
-  --lm-gradient-primary: linear-gradient(135deg, #7C5CFF 0%, #A855F7 100%);
-  --lm-gradient-budget: linear-gradient(135deg, #A855F7 0%, #F97316 100%);
-  --lm-gradient-success: linear-gradient(135deg, #22C55E 0%, #4ADE80 100%);
+  --lm-gradient-primary: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+  --lm-gradient-budget: linear-gradient(135deg, #06B6D4 0%, #10B981 100%);
+  --lm-gradient-success: linear-gradient(135deg, #10B981 0%, #34D399 100%);
   
-  /* Fallback aliases for existing usage */
   --lm-gradient-text: var(--lm-gradient-primary);
   --lm-gradient-button: var(--lm-gradient-primary);
-  --lm-gradient-button-hover: linear-gradient(135deg, #8D3DF2 0%, #B96DFF 100%);
+  --lm-gradient-button-hover: linear-gradient(135deg, #0891B2 0%, #2563EB 100%);
   --lm-gradient-header: var(--lm-gradient-primary);
 
-  /* --- Borders — Minimal and unified ---
-   * Tinted cool instead of pure white: a neutral hairline over navy goes grey and
-   * muddy, while the reference edges keep a faint blue cast that reads as light
-   * catching the card rather than a drawn line.
-   */
-  --lm-border-subtle: 1px solid rgba(34, 211, 238, 0.06);
-  --lm-border-hover: 1px solid rgba(34, 211, 238, 0.18);
-  --lm-border-etched: 1px solid rgba(34, 211, 238, 0.09);
-  --lm-border-accent: 1px solid rgba(34, 211, 238, 0.25);
-  --lm-border-card: 1px solid rgba(34, 211, 238, 0.14);
-  --lm-border-card-glow: 1px solid rgba(34, 211, 238, 0.18);
+  /* --- Borders — Minimal and unified --- */
+  --lm-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+  --lm-border-hover: 1px solid rgba(255, 255, 255, 0.12);
+  --lm-border-etched: 1px solid rgba(255, 255, 255, 0.08);
+  --lm-border-accent: 1px solid rgba(6, 182, 212, 0.25);
+  --lm-border-card: 1px solid rgba(255, 255, 255, 0.06);
+  --lm-border-card-glow: 1px solid rgba(255, 255, 255, 0.08);
 
   /* --- Elevation — Soft floating --- */
   --lm-blur-sm: 12px;
   --lm-blur-md: 24px;
   --lm-blur-lg: 32px;
-  /* Deeper than before — against a near-black page a 15%-alpha shadow is
-     invisible, and the reference cards clearly sit above their background. */
-  --lm-shadow-card: 0 4px 24px 0 rgba(0, 0, 0, 0.35);
-  --lm-shadow-panel: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
-  --lm-shadow-panel-hover: 0 12px 48px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px var(--lm-color-accent-border);
-  --lm-shadow-float: 0 16px 44px 0 rgba(0, 0, 0, 0.55);
+  
+  --lm-shadow-card: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+  --lm-shadow-panel: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --lm-shadow-panel-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+  --lm-shadow-float: 0 16px 48px 0 rgba(0, 0, 0, 0.4);
 
   /* --- Spacing System (8px based) --- */
   --lm-space-unit: 8px;
@@ -195,35 +156,18 @@
   --lm-space-stack-md: 16px;
   --lm-space-stack-lg: 24px;
 
-  /* Fluid edge padding and section rhythm.
-   *
-   * A flat 24px gutter costs 48px of a 320px screen — 15% of the viewport gone
-   * before any content, which is what makes the cards feel cramped on small
-   * phones. These scale down to 14px there and reach the original 24px by about
-   * 530px, so tablet and desktop are unchanged. The fixed --lm-space-* steps
-   * above are deliberately left alone: they set spacing *inside* components,
-   * where a viewport-relative unit would be the wrong input.
-   */
-  --lm-space-container-padding: clamp(14px, 4.6vw, 24px);
-  --lm-space-gutter: clamp(14px, 4.6vw, 24px);
-  --lm-space-section-gap: clamp(16px, 4.4vw, 24px);
-  --lm-space-band-gap: clamp(20px, 6vw, 32px);
-
-  /* Inner inset of a section card.
-   *
-   * Shared rather than repeated because four rules depend on it agreeing: the
-   * card's own padding, the negative margin that lets a carousel run flush to
-   * the card edge, the carousel's restored track padding, and the width of a
-   * card sized to one viewport. If they drift, the first item in every carousel
-   * stops aligning with the section title above it. */
-  --lm-space-card-inline: clamp(12px, 4vw, 16px);
+  --lm-space-container-padding: clamp(16px, 5vw, 24px);
+  --lm-space-gutter: clamp(16px, 5vw, 24px);
+  --lm-space-section-gap: 32px;
+  --lm-space-band-gap: 32px;
+  --lm-space-card-inline: 20px;
 
   /* --- Radius — Premium rounded --- */
   --lm-radius-xs: 8px;
   --lm-radius-sm: 12px;
   --lm-radius-md: 16px;
-  --lm-radius-lg: 24px;
-  --lm-radius-xl: 32px;
+  --lm-radius-lg: 20px;
+  --lm-radius-xl: 24px;
   --lm-radius-pill: 9999px;
 
   /* --- Transitions --- */
@@ -234,17 +178,14 @@
   --lm-touch-target-min: 44px;
 
   /* --- Sticky Header Variables --- */
-  --lm-color-header-bg: rgba(5, 10, 18, 0.55); /* High transparency for strong glass effect */
-  --lm-color-header-border: rgba(34, 211, 238, 0.08);
-  --lm-color-header-divider: rgba(160, 205, 230, 0.09);
+  --lm-color-header-bg: rgba(9, 9, 11, 0.7); 
+  --lm-color-header-border: rgba(255, 255, 255, 0.05);
+  --lm-color-header-divider: rgba(255, 255, 255, 0.08);
 
-  /* --- Ambient Orbs ---
-   * Retuned to the home palette: cyan lead, violet counterweight, blue fill. The
-   * previous purple/pink pair is what gave the page its warm cast underneath the
-   * cards. */
-  --lm-color-orb-1: #22D3EE;
-  --lm-color-orb-2: #8B5CF6;
-  --lm-color-orb-3: #3B82F6;
+  /* --- Ambient Orbs (Muted for cleaner look) --- */
+  --lm-color-orb-1: #06B6D4;
+  --lm-color-orb-2: #3B82F6;
+  --lm-color-orb-3: #A855F7;
 }
 
 /* ==========================================================================

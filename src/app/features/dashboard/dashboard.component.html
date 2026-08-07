@@ -26,91 +26,107 @@
       @if (getFeature('Finance Tracker'); as feat) {
         <section class="flow-item full-width">
           @if (expenseService.summary(); as summary) {
-            <div class="ex-summary-card">
-              <!-- Add button: absolutely positioned top-right -->
-              <a class="ex-launch-btn add-icon-btn" routerLink="/expenses" [queryParams]="{ action: 'add' }" title="Quick add expense">
-                <span class="material-symbols-outlined">add</span>
-              </a>
+            <div class="snapshot-widget">
+              
+              <!-- Header -->
+              <div class="snapshot-header">
+                <div class="snapshot-title-group">
+                  <div class="snapshot-icon-wrap">
+                    <span class="material-symbols-outlined">pie_chart</span>
+                  </div>
+                  <span class="snapshot-title">Expense Snapshot</span>
+                </div>
+                <div class="snapshot-actions">
+                   <a class="snapshot-add-btn" routerLink="/expenses" [queryParams]="{ action: 'add' }" (click)="$event.stopPropagation()" title="Quick add expense">
+                     <span class="material-symbols-outlined">add</span>
+                   </a>
+                   <a class="snapshot-launch-btn" routerLink="/expenses" title="Open Expenses">
+                     <span class="material-symbols-outlined">open_in_new</span>
+                   </a>
+                </div>
+              </div>
 
-              <!-- Main Content: Arc gauge + Spent stats (always side-by-side) -->
-              <div class="ex-main" routerLink="/expenses" style="cursor: pointer;" title="Open Expenses">
-                <!-- Arc Chart -->
-                <div class="ex-chart-wrap">
-                  <svg viewBox="0 0 200 130" class="ex-donut-svg">
+              <!-- Main Metric (Arc Chart + Stats) -->
+              <div class="snapshot-main-grid">
+                
+                <!-- Arc Chart (Left Column) -->
+                <div class="snapshot-chart-wrap">
+                  <!-- Tight viewBox to eliminate visual padding (x:12.5, y:20, w:175, h:100) -->
+                  <svg viewBox="12.5 20 175 100" class="snapshot-donut-svg">
                     <defs>
-                      <linearGradient id="exGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#4F46E5" />
-                        <stop offset="50%" stop-color="#EC4899" />
-                        <stop offset="100%" stop-color="#F97316" />
+                      <linearGradient id="snapshotGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#8B5CF6" />
+                        <stop offset="100%" stop-color="#EC4899" />
                       </linearGradient>
                     </defs>
                     <!-- Background arc -->
-                    <path class="ex-track-bg" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke-width="12" stroke-linecap="round"/>
+                    <path class="snapshot-track-bg" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke-width="15" stroke-linecap="round"/>
                     <!-- Foreground arc -->
-                    <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#exGrad)" stroke-width="12" stroke-linecap="round"
+                    <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#snapshotGrad)" stroke-width="15" stroke-linecap="round"
                           [style.stroke-dasharray]="251.32"
-                          [style.stroke-dashoffset]="251.32 - (251.32 * (summary.budgetUsedPct / 100))" />
+                          [style.stroke-dashoffset]="251.32 - (251.32 * ((summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct) / 100))" />
                   </svg>
-                  <div class="ex-chart-text">
-                    <span class="ex-pct">{{ summary.budgetUsedPct }}<span class="ex-pct-sym">%</span></span>
-                    <span class="ex-lbl">of budget used</span>
+                  <div class="snapshot-chart-text">
+                    <span class="snapshot-pct-arc">{{ summary.budgetUsedPct }}<span class="snapshot-pct-sym">%</span></span>
+                    <span class="snapshot-lbl-arc">of budget</span>
                   </div>
                 </div>
 
-                <!-- Stats -->
-                <div class="ex-stats">
-                  <span class="ex-stats-lbl">Spent this month</span>
-                  <span class="ex-stats-val">₹{{ summary.spent | number:'1.0-0' }}</span>
-                  
-                  <div class="ex-progress-bar">
-                    <div class="ex-progress-fill" [style.width]="summary.budgetUsedPct + '%'"></div>
+                <!-- Spend Info (Right Column) -->
+                <div class="snapshot-spend-details">
+                  <span class="snapshot-spend-lbl">Spent this month</span>
+                  <div class="snapshot-spend-amount-row">
+                    <span class="snapshot-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
                   </div>
-                  <span class="ex-stats-total">of ₹{{ summary.budgetTarget | number:'1.0-0' }} budget</span>
+                  <span class="snapshot-total">/ ₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
                 </div>
+                
               </div>
 
-              <!-- Bottom Cards: Available + Daily Limit -->
-              <div class="ex-bottom-cards">
-                <div class="ex-mini-panel">
-                  <div class="ex-mini-icon green-icon">
+              <!-- Secondary Metrics (Inner Cards) -->
+              <div class="snapshot-grid">
+                <div class="snapshot-metric-card">
+                  <div class="metric-icon-box green">
                     <span class="material-symbols-outlined">account_balance_wallet</span>
                   </div>
-                  <div class="ex-mini-data">
-                    <span class="ex-mini-lbl">Available</span>
-                    <span class="ex-mini-val-green">₹{{ summary.available | number:'1.0-0' }}</span>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Available</span>
+                    <span class="metric-val">₹{{ summary.available | number:'1.0-0' }}</span>
                   </div>
                 </div>
-                <div class="ex-mini-panel">
-                  <div class="ex-mini-icon cyan-icon">
-                    <span class="material-symbols-outlined">speed</span>
+                <div class="snapshot-metric-card">
+                  <div class="metric-icon-box cyan">
+                    <span class="material-symbols-outlined">bolt</span>
                   </div>
-                  <div class="ex-mini-data">
-                    <span class="ex-mini-lbl">Daily safe limit</span>
-                    <span class="ex-mini-val-cyan">₹{{ dailyLimit() | number:'1.0-0' }}</span>
-                    <span class="ex-mini-sub">{{ summary.daysLeft }} days left</span>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Daily Safe</span>
+                    <span class="metric-val">₹{{ dailyLimit() | number:'1.0-0' }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Top Categories — Single horizontal row -->
+              <!-- Top Categories (Grid View) -->
               @if (summary.topCategories?.length) {
-                <div class="ex-cat-row">
-                  @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
-                    <div class="ex-cat-chip">
-                      <div class="ex-cat-icon-wrap">
-                        <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
-                      </div>
-                      <div class="ex-cat-chip-info">
-                        <span class="ex-cat-name" [title]="cat.name">{{ getCategoryDisplayName(cat.name) }}</span>
-                        <div class="ex-cat-stats">
-                          <span class="ex-cat-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
-                          <span class="ex-cat-pct">{{ cat.percentage }}%</span>
+                <div class="snapshot-categories-wrap">
+                  <div class="snapshot-categories-grid">
+                    @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
+                      <div class="snapshot-cat-item">
+                        <div class="cat-item-top">
+                          <div class="cat-item-icon">
+                            <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
+                          </div>
+                          <span class="cat-item-name">{{ getCategoryDisplayName(cat.name) }}</span>
+                        </div>
+                        <div class="cat-item-bottom">
+                          <span class="cat-item-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
+                          <span class="cat-item-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
                         </div>
                       </div>
-                    </div>
-                  }
+                    }
+                  </div>
                 </div>
               }
+
             </div>
           } @else if (expenseService.isLoading()) {
             <div class="glimpse-box preview-flex" style="justify-content: center; padding: 40px;">

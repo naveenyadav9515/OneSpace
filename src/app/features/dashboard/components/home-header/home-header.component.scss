@@ -13,20 +13,10 @@
   width: 100vw !important;
   margin-inline: calc(50% - 50vw);
   padding-inline: calc(50vw - 50%);
-}
 
-/* ── Smooth Glass Fade (Pseudo-element prevents layout gaps) ── */
-:host::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 -48px 0;
-  z-index: -1;
-  pointer-events: none;
   background: var(--lm-color-header-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 48px), transparent 100%);
 }
 
 @media (min-width: 768px) {

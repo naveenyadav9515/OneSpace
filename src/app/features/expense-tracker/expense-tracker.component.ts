@@ -15,13 +15,6 @@ import {
 import { NotificationService } from '@core/services/notification.service';
 import { environment } from '@env/environment';
 
-/**
- * Index of the "Log" tab. Panel order in the template is Log, History, Pending;
- * Log is the only one navigated to programmatically, when a transaction is sent
- * to the form for review or editing.
- */
-const TAB_LOG = 0;
-
 @Component({
   selector: 'app-expense-tracker',
   standalone: true,
@@ -57,20 +50,9 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     return Math.floor(sum.available / sum.daysLeft);
   });
 
-  /** Index of the visible tab. Order must match the panels in the template. */
-  protected readonly activeTab = signal(TAB_LOG);
-
-  protected readonly tabs = computed<TabDefinition[]>(() => [
-    { id: 'log', label: 'Log', icon: 'add_circle' },
-    { id: 'history', label: 'History', icon: 'receipt_long' },
-    {
-      id: 'pending',
-      label: 'Pending',
-      icon: 'mark_email_unread',
-      // Surfaces work waiting on the user without them opening the tab.
-      badge: this.pendingTransactions().length,
-    },
-  ]);
+  protected isLogModalOpen = signal(false);
+  protected isHistoryModalOpen = signal(false);
+  protected isPendingModalOpen = signal(false);
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -395,8 +377,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   }
 
   protected reviewPending(ptx: PendingTransaction | Expense) {
-    // The form lives on the Log tab — surface it, or the tap appears to do nothing.
-    this.activeTab.set(TAB_LOG);
+    this.isLogModalOpen.set(true);
     this.activePendingId.set(ptx._id);
     this.expenseForm.patchValue({
       amount: ptx.amount,
@@ -434,7 +415,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   }
 
   protected editExpense(exp: Expense) {
-    this.activeTab.set(TAB_LOG);
+    this.isLogModalOpen.set(true);
     this.activePendingId.set(null);
     this.expenseForm.patchValue({
       amount: exp.amount,
@@ -450,6 +431,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
 
   protected cancelReview() {
     this.activePendingId.set(null);
+    this.isLogModalOpen.set(false);
     this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
   }
 
@@ -473,6 +455,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
           this.isAdding.set(false);
           this.activePendingId.set(null);
           this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+          this.isLogModalOpen.set(false);
           this.fetchPendingTransactions();
           this.fetchExpenses(); // Refresh list
         },
@@ -483,6 +466,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
         next: () => {
           this.isAdding.set(false);
           this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+          this.isLogModalOpen.set(false);
           this.fetchExpenses(); // Refresh list
         },
         error: () => this.isAdding.set(false)

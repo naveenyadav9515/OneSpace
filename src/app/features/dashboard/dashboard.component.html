@@ -64,7 +64,7 @@
                 </div>
               </div>
 
-              <!-- Bottom Cards Carousel: Available and Top Category -->
+              <!-- Bottom Cards: Available + Daily Limit -->
               <div class="ex-bottom-cards">
                 <div class="ex-mini-panel">
                   <div class="ex-mini-icon green-icon">
@@ -76,16 +76,33 @@
                   </div>
                 </div>
                 <div class="ex-mini-panel">
-                  <div class="ex-mini-icon rose-icon">
-                    <span class="material-symbols-outlined">shopping_cart</span>
+                  <div class="ex-mini-icon cyan-icon">
+                    <span class="material-symbols-outlined">speed</span>
                   </div>
                   <div class="ex-mini-data">
-                    <span class="ex-mini-lbl">Top category</span>
-                    <span class="ex-mini-val">Groceries</span>
-                    <span class="ex-mini-sub">₹1,718 • 76%</span>
+                    <span class="ex-mini-lbl">Daily safe limit</span>
+                    <span class="ex-mini-val-cyan">₹{{ dailyLimit() | number:'1.0-0' }}</span>
+                    <span class="ex-mini-sub">{{ summary.daysLeft }} days left</span>
                   </div>
                 </div>
               </div>
+
+              <!-- Top 4 Categories — Single horizontal row -->
+              @if (summary.topCategories?.length) {
+                <div class="ex-cat-row">
+                  @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
+                    <div class="ex-cat-chip">
+                      <div class="ex-cat-icon-wrap">
+                        <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
+                      </div>
+                      <div class="ex-cat-chip-info">
+                        <span class="ex-cat-name" [title]="cat.name">{{ getCategoryDisplayName(cat.name) }}</span>
+                        <span class="ex-cat-amount">₹{{ cat.amount | number:'1.0-0' }} · {{ cat.percentage }}%</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             </a>
           } @else if (expenseService.isLoading()) {
             <div class="glimpse-box preview-flex" style="justify-content: center; padding: 40px;">

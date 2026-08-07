@@ -1828,15 +1828,15 @@
 .ex-main {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(8px, 2.2vw, 12px);
+  gap: clamp(12px, 3vw, 18px);
   align-items: center;
-  margin-bottom: clamp(10px, 2.5vw, 12px);
+  margin-bottom: clamp(10px, 2.5vw, 14px);
   width: 100%;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: clamp(10px, 2.5vw, 14px);
+  padding: clamp(14px, 3.5vw, 20px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 }
@@ -1850,8 +1850,8 @@
 .ex-chart-wrap {
   position: relative;
   width: 100%;
-  max-width: 145px;
-  height: 85px;
+  max-width: 160px;
+  height: 95px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -1885,7 +1885,7 @@
 
 .ex-pct {
   color: var(--lm-color-text-primary);
-  font-size: clamp(20px, 5vw, 25px);
+  font-size: clamp(24px, 6vw, 30px);
   font-weight: 800;
   line-height: 1;
   display: inline-flex;
@@ -1903,9 +1903,9 @@
 
 .ex-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
-  margin-top: 2px;
+  margin-top: 3px;
   white-space: nowrap;
 }
 
@@ -1922,17 +1922,17 @@
 
 .ex-stats-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   white-space: nowrap;
 }
 
 .ex-stats-val {
   color: var(--lm-color-text-primary);
-  font-size: clamp(17px, 5vw, 23px);
+  font-size: clamp(22px, 6vw, 28px);
   font-weight: 800;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   line-height: 1.1;
   white-space: nowrap;
   letter-spacing: -0.3px;
@@ -1961,7 +1961,7 @@
 
 .ex-stats-total {
   color: var(--lm-color-text-secondary);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
   opacity: 0.85;
@@ -1982,10 +1982,10 @@
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
   border-radius: 14px;
-  padding: clamp(9px, 2.2vw, 12px);
+  padding: clamp(12px, 3vw, 16px);
   display: flex;
   align-items: center;
-  gap: clamp(8px, 2vw, 11px);
+  gap: clamp(10px, 2.5vw, 14px);
   flex-wrap: nowrap;
   box-sizing: border-box;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2004,9 +2004,9 @@
 }
 
 .ex-mini-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2019,7 +2019,7 @@
 }
 
 .ex-mini-icon .material-symbols-outlined {
-  font-size: 19px;
+  font-size: 21px;
 }
 
 .green-icon {
@@ -2058,22 +2058,22 @@
 
 .ex-mini-lbl {
   color: var(--lm-color-text-secondary);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
   white-space: nowrap;
 }
 
 .ex-mini-val {
   color: var(--lm-color-text-primary);
-  font-size: clamp(13px, 3.8vw, 15px);
+  font-size: clamp(15px, 4.2vw, 18px);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .ex-mini-val-green {
   color: #4ADE80;
-  font-size: clamp(13px, 3.8vw, 15px);
+  font-size: clamp(15px, 4.2vw, 18px);
   font-weight: 700;
   white-space: nowrap;
   text-shadow: 0 0 10px rgba(74, 222, 128, 0.25);
@@ -2081,8 +2081,118 @@
 
 .ex-mini-sub {
   color: var(--lm-color-text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
+}
+
+/* ── Cyan icon for Daily Limit card ── */
+.cyan-icon {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(34, 211, 238, 0.08));
+  color: #22D3EE;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  box-shadow: 0 2px 10px rgba(34, 211, 238, 0.2);
+}
+
+.ex-mini-val-cyan {
+  color: #22D3EE;
+  font-size: clamp(15px, 4.2vw, 18px);
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.25);
+}
+
+/* ==========================================================================
+   Top Categories — Single Horizontal Row
+   All 4 categories in one row as compact chips: icon + name + amount.
+   ========================================================================== */
+
+.ex-cat-row {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(6px, 1.5vw, 10px);
+  margin-top: clamp(10px, 2.5vw, 14px);
+  width: 100%;
+}
+
+.ex-cat-chip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ex-cat-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(167, 139, 250, 0.2);
+}
+
+[data-theme="light"] .ex-cat-chip {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .ex-cat-chip:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(124, 58, 237, 0.15);
+}
+
+.ex-cat-icon-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(139, 92, 246, 0.06));
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  flex-shrink: 0;
+}
+
+.ex-cat-icon-wrap .material-symbols-outlined {
+  font-size: 14px;
+  color: #A78BFA;
+}
+
+[data-theme="light"] .ex-cat-icon-wrap {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.03));
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+[data-theme="light"] .ex-cat-icon-wrap .material-symbols-outlined {
+  color: #7C3AED;
+}
+
+.ex-cat-chip-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.ex-cat-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.ex-cat-amount {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--lm-color-text-secondary);
+  white-space: nowrap;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
 }
 
 /* ==========================================================================

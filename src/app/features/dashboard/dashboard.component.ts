@@ -2,6 +2,7 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
+  computed,
   afterNextRender,
   inject,
 } from '@angular/core';
@@ -51,6 +52,74 @@ export class DashboardComponent {
 
   protected readonly dbStatus = signal<DbConnectionStatus>('connecting');
   protected readonly features = signal<Feature[]>([]);
+
+  /** Daily spend limit = available budget / remaining days in month */
+  protected readonly dailyLimit = computed(() => {
+    const s = this.expenseService.summary();
+    if (!s || !s.daysLeft || s.daysLeft <= 0) return 0;
+    return Math.round(s.available / s.daysLeft);
+  });
+
+  /** Maps common expense category names to Material Symbols icon names. */
+  private readonly categoryIconMap: Record<string, string> = {
+    groceries: 'local_grocery_store',
+    food: 'restaurant',
+    'food & dining': 'restaurant',
+    dining: 'restaurant',
+    transport: 'directions_car',
+    transportation: 'directions_car',
+    travel: 'flight',
+    shopping: 'shopping_bag',
+    entertainment: 'movie',
+    health: 'health_and_safety',
+    healthcare: 'health_and_safety',
+    medical: 'local_hospital',
+    utilities: 'bolt',
+    bills: 'receipt_long',
+    rent: 'home',
+    housing: 'home',
+    education: 'school',
+    fitness: 'fitness_center',
+    subscriptions: 'subscriptions',
+    insurance: 'shield',
+    clothing: 'checkroom',
+    gifts: 'redeem',
+    personal: 'person',
+    other: 'more_horiz',
+    miscellaneous: 'more_horiz',
+  };
+
+  /** Returns a Material Symbols icon name for a given category string. */
+  protected getCategoryIcon(category: string): string {
+    return this.categoryIconMap[category.toLowerCase().trim()] ?? 'category';
+  }
+
+  /** Short display names for categories that are too long for compact chips. */
+  private readonly categoryShortNameMap: Record<string, string> = {
+    groceries: 'Groc.',
+    entertainment: 'Entmt',
+    transportation: 'Trnsp',
+    subscriptions: 'Subs.',
+    miscellaneous: 'Misc.',
+    healthcare: 'Health',
+    'food & dining': 'Food',
+    insurance: 'Insur.',
+    clothing: 'Cloth.',
+    education: 'Edu.',
+    personal: 'Pers.',
+  };
+
+  /**
+   * Returns a display-friendly category name.
+   * If the name fits (≤ 10 chars), returns as-is.
+   * Otherwise falls back to a curated short name, or auto-truncates.
+   */
+  protected getCategoryDisplayName(name: string): string {
+    if (name.length <= 10) return name;
+    const short = this.categoryShortNameMap[name.toLowerCase().trim()];
+    if (short) return short;
+    return name.substring(0, 7) + '.';
+  }
 
   /* ── Private Dependencies ── */
   private readonly apiService = inject(ApiService);

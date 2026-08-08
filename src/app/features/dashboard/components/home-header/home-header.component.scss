@@ -19,6 +19,37 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
+/* ── The dissolve below the header ──
+ *
+ * Without this the header ends on a hard horizontal line and content scrolling
+ * under it is sliced mid-glyph. Fading only the background colour is not
+ * enough: the backdrop blur would still stop dead at the same edge and draw a
+ * second, sharper line. So this strip continues BOTH — the header tint and the
+ * blur — and is then masked out vertically, which ramps the blur itself to
+ * nothing rather than cutting it.
+ *
+ * It is `absolute` at `top: 100%` (the sticky host is its containing block), so
+ * it hangs below the header without occupying a single pixel of layout. That is
+ * what makes it safe: an earlier in-flow version of this effect is what left
+ * blank gaps in the page and had to be reverted.
+ */
+:host::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+
+  background: linear-gradient(to bottom, var(--lm-color-header-bg), transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+}
+
 @media (min-width: 768px) {
   :host {
     margin-top: calc(-1 * (var(--lm-space-xl) + env(safe-area-inset-top, 0px)));

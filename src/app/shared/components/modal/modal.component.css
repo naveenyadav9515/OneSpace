@@ -1,3 +1,12 @@
+/* The host renders nothing while closed, but as a child of a flex or grid
+   container it still counts as an item and pulls a full `gap` in after itself.
+   Pages that declare several modals inline were getting that gap multiplied
+   into visible dead space between sections. `contents` drops the host from the
+   layout entirely; the backdrop below is `fixed`, so it is unaffected. */
+:host {
+  display: contents;
+}
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -8,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--lm-space-lg);
+  padding: var(--lm-space-sm);
   animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -22,11 +31,14 @@
   overflow: hidden;
 }
 
+/* The header and body used --lm-space-lg/xl (32px/40px). On a 375px phone the
+   backdrop and body padding together consumed 144px — more than a third of the
+   screen — which is why list rows inside wrapped after two or three words. */
 .modal-header {
   display: flex;
   align-items: center;
-  gap: var(--lm-space-sm);
-  padding: var(--lm-space-lg) var(--lm-space-xl);
+  gap: var(--lm-space-xs);
+  padding: 16px 18px;
   border-bottom: var(--lm-border-subtle);
 }
 
@@ -34,9 +46,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  flex-shrink: 0;
   background: var(--lm-color-icon-purple);
   color: var(--lm-color-primary);
 }
@@ -80,10 +93,26 @@
 }
 
 .modal-body {
-  padding: var(--lm-space-xl);
+  padding: 16px 18px 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   font: var(--lm-type-body-md);
   color: var(--lm-color-text-secondary);
+}
+
+/* Below 400px every pixel of width matters more than the inset does. */
+@media (max-width: 400px) {
+  .modal-backdrop {
+    padding: 10px;
+  }
+
+  .modal-header {
+    padding: 14px 14px;
+  }
+
+  .modal-body {
+    padding: 14px 14px 16px;
+  }
 }
 
 @keyframes fadeIn {

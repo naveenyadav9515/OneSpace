@@ -126,9 +126,25 @@ export interface ExpenseSummary {
     amount: number;
     percentage: number;
   }[];
+  /** Per-day spend for the current month, index 0 = the 1st. */
+  monthDaily?: number[];
+  /** Today's day-of-month in IST, so the client knows where "now" sits. */
+  dayOfMonth?: number;
   spendingTrend: {
     labels: string[];
     data: number[];
+    /** Per-day detail for the current Sunday→Saturday week. */
+    days?: {
+      label: string;
+      dayOfMonth: number;
+      month: string;
+      date: string;
+      amount: number;
+      isToday: boolean;
+      isFuture: boolean;
+    }[];
+    weekStart?: string;
+    weekEnd?: string;
     avgPerWeek: number;
     trendPct: number;
     trendStatus: string;
@@ -188,6 +204,25 @@ export class ExpenseService {
 
   public createExpense(payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
     return this.http.post<{ status: string, data: Expense }>(`${this.apiUrl}/expenses`, payload);
+  }
+
+  /** Moves every transaction on `from` over to `to`. Backs category rename and delete. */
+  public reassignCategory(from: string, to: string): Observable<{ status: string, data: { expensesUpdated: number, pendingUpdated: number } }> {
+    return this.http.patch<{ status: string, data: { expensesUpdated: number, pendingUpdated: number } }>(
+      `${this.apiUrl}/expenses/categories/reassign`,
+      { from, to }
+    );
+  }
+
+  public updateBudget(monthlyBudget: number): Observable<{ status: string, data: { monthlyBudget: number } }> {
+    return this.http.patch<{ status: string, data: { monthlyBudget: number } }>(
+      `${this.apiUrl}/expenses/budget`,
+      { monthlyBudget }
+    );
+  }
+
+  public updateExpense(id: string, payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
+    return this.http.put<{ status: string, data: Expense }>(`${this.apiUrl}/expenses/${id}`, payload);
   }
 
   public deleteExpense(id: string): Observable<{ status: string, message: string }> {

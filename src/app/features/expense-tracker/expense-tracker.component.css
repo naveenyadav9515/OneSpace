@@ -1,3 +1,581 @@
+/* ==========================================================================
+   Popup surface tokens
+
+   The modal bodies were assembled from hardcoded rgba(255,255,255,…) fills.
+   Those only exist as a visible colour on a dark background — under
+   [data-theme="light"] they resolve to white-on-white and every card, divider
+   and input outline in the popups vanishes. These four variables carry the
+   same visual weight in both themes, and everything below is built from them
+   instead of raw white.
+   ========================================================================== */
+:host {
+  --pop-fill: rgba(255, 255, 255, 0.035);
+  --pop-fill-hover: rgba(255, 255, 255, 0.07);
+  --pop-line: rgba(255, 255, 255, 0.09);
+  --pop-line-strong: rgba(255, 255, 255, 0.16);
+}
+
+:host-context(html[data-theme="light"]) {
+  /* Slate rather than pure black: neutral greys go muddy over the warm light
+     surface, and the app's light palette is already blue-leaning. */
+  --pop-fill: rgba(15, 23, 42, 0.035);
+  --pop-fill-hover: rgba(15, 23, 42, 0.07);
+  --pop-line: rgba(15, 23, 42, 0.1);
+  --pop-line-strong: rgba(15, 23, 42, 0.18);
+}
+
+/* ==========================================================================
+   Popup content system
+
+   One vocabulary shared by every modal body, so the Automation, History,
+   Pending and Category popups read as the same product. Replaces ~90 inline
+   style attributes that each invented their own font size and spacing.
+   ========================================================================== */
+
+/* Modal bodies own their vertical rhythm — several previously stacked cards
+   with no gap at all, leaving them flush against each other. */
+.pop-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pop-card {
+  background: var(--pop-fill);
+  border: 1px solid var(--pop-line);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.pop-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.pop-card-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--lm-color-text-primary);
+  margin: 0 0 4px;
+}
+
+.pop-card-desc {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+}
+
+.pop-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lm-color-text-muted);
+  margin: 0 0 12px;
+}
+
+.pop-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--pop-fill);
+  border-left: 3px solid var(--lm-color-primary);
+  border-radius: 4px 14px 14px 4px;
+  padding: 14px 16px;
+}
+
+.pop-note .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--lm-color-primary);
+  flex-shrink: 0;
+}
+
+.pop-note p {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+}
+
+.pop-note strong {
+  color: var(--lm-color-text-secondary);
+  font-weight: 600;
+}
+
+/* ── Popup buttons ── */
+.pop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid var(--pop-line);
+  background: var(--pop-fill);
+  color: var(--lm-color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.pop-btn .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.pop-btn:hover:not([disabled]) {
+  background: var(--pop-fill-hover);
+  border-color: var(--pop-line-strong);
+}
+
+.pop-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pop-btn--success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--lm-color-success);
+}
+
+.pop-btn--danger {
+  border-color: rgba(225, 29, 72, 0.35);
+  background: rgba(225, 29, 72, 0.1);
+  color: var(--lm-color-error);
+}
+
+.pop-btn--warning {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--lm-color-warning);
+}
+
+.pop-btn--solid-warning {
+  border-color: transparent;
+  background: var(--lm-color-warning);
+  color: #1a1206;
+  font-weight: 700;
+}
+
+.pop-btn--solid-danger {
+  border-color: transparent;
+  background: var(--lm-color-error);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+}
+
+.pop-btn--solid-danger:hover:not([disabled]) {
+  background: var(--lm-color-error);
+  border-color: transparent;
+  filter: brightness(1.08);
+}
+
+.pop-btn--lg {
+  padding: 12px 24px;
+  font-size: 13.5px;
+}
+
+/* ── Confirm dialog ── */
+.pop-confirm {
+  text-align: center;
+  padding: 4px 0 8px;
+}
+
+.pop-confirm-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--lm-color-text-secondary);
+  margin: 0 0 24px;
+}
+
+.pop-confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.pop-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pop-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--lm-color-text-secondary);
+}
+
+/* ── Popup empty states ── */
+.pop-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 36px 16px;
+}
+
+.pop-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--pop-fill);
+  border: 1px solid var(--pop-line);
+  margin-bottom: 6px;
+}
+
+.pop-empty-icon .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--lm-color-text-muted);
+}
+
+.pop-empty-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+}
+
+.pop-empty-sub {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+  max-width: 260px;
+}
+
+/* ── Popup list rows (banks, custom categories) ── */
+.pop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--pop-fill);
+  border: 1px solid var(--pop-line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.pop-row-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--lm-color-text-primary);
+  min-width: 0;
+}
+
+.pop-row-label .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--lm-color-primary);
+  flex-shrink: 0;
+}
+
+.pop-row-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-error);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.pop-row-icon-btn:hover {
+  background: rgba(225, 29, 72, 0.12);
+}
+
+.pop-row-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--lm-color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pop-dashed {
+  text-align: center;
+  padding: 26px 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--pop-line-strong);
+  background: var(--pop-fill);
+}
+
+.pop-dashed p {
+  font-size: 12.5px;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+}
+
+/* ── Pending review items ──
+   Amber is the status colour here, so it stays on the item cards rather than
+   also framing the whole modal body — the popup already announces itself with
+   its header icon and title, and the second frame just boxed a box. */
+.pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pending-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.pending-item-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pending-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--lm-color-warning);
+}
+
+.pending-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.pending-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ellipsis rather than the old `| slice:0:30`, which cut merchant names at a
+   fixed character count regardless of how much room the row actually had. */
+.pending-merchant {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending-meta {
+  font-size: 11.5px;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending-amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pending-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(245, 158, 11, 0.18);
+}
+
+/* ── Manage Categories: create / edit / delete ── */
+.cat-add {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cat-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.cat-add-short {
+  flex: 0 0 84px;
+  min-width: 0;
+  text-align: center;
+}
+
+.cat-add-hint {
+  font-size: 11px;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cat-row-name {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.cat-name-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* How many transactions ride on this category — the number that matters before
+   deciding to delete it. */
+.cat-row-count {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+}
+
+.pop-row.is-protected {
+  border-style: dashed;
+}
+
+.pop-row-icon-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--lm-color-text-muted);
+}
+
+.pop-row-icon-btn[disabled]:hover {
+  background: transparent;
+}
+
+.cat-row-confirm {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  border-color: color-mix(in srgb, var(--lm-color-error) 45%, transparent);
+  background: color-mix(in srgb, var(--lm-color-error) 7%, transparent);
+}
+
+.cat-confirm-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--lm-color-text-secondary);
+}
+
+.cat-confirm-text strong {
+  color: var(--lm-color-text-primary);
+  font-weight: 700;
+}
+
+/* The short name rides beside the full one so the mapping is visible at a
+   glance — no need to open the editor to see what a category shortens to. */
+.cat-short-chip {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--lm-color-primary);
+  background: color-mix(in srgb, var(--lm-color-primary) 14%, transparent);
+}
+
+.cat-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cat-edit-btn {
+  color: var(--lm-color-text-muted);
+}
+
+.cat-edit-btn:hover {
+  background: var(--pop-fill-hover);
+  color: var(--lm-color-primary);
+}
+
+.cat-row-editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  border-color: var(--lm-color-primary);
+}
+
+.cat-edit-fields {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.cat-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* .premium-input reserves 48px of left padding for an icon prefix that this
+   field does not have, which left the caret floating mid-field. */
+.cat-add-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+.cat-add-btn {
+  padding: 0 20px;
+  flex-shrink: 0;
+  background: var(--lm-color-primary);
+  border-color: transparent;
+  color: #fff;
+  font-size: 13.5px;
+}
+
+.cat-add-btn:hover:not([disabled]) {
+  background: var(--lm-color-primary);
+  border-color: transparent;
+  filter: brightness(1.1);
+}
+
 /* ── Nav Header ── */
 .nav-back-btn {
   width: 44px;
@@ -110,8 +688,8 @@
 
 .premium-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--pop-fill);
+  border: 1px solid var(--pop-line-strong);
   border-radius: 12px;
   padding: 16px 16px 16px 48px;
   color: var(--lm-color-text-primary);
@@ -123,30 +701,49 @@
   color: var(--lm-color-text-muted);
 }
 .premium-input option {
-  background: var(--lm-color-surface-elevated);
-  color: var(--lm-color-text-primary);
+  background: #1a1a2e;
+  color: #e8e6f0;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.premium-input option:checked {
+  background: linear-gradient(0deg, rgba(168, 85, 247, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%);
+  color: #fff;
 }
 
 .premium-input.select-caret {
   appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 44px;
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239b95b0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat, repeat;
   background-position: right 1em top 50%, 0 0;
   background-size: .65em auto, 100%;
 }
+select.premium-input.select-caret::-ms-expand {
+  display: none;
+}
 
 .premium-input:focus {
   outline: none;
   border-color: var(--lm-color-primary);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pop-fill-hover);
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
 }
 
-/* Fix for dark mode native date picker icon */
+/* The native picker glyph is near-black, so it needs inverting on dark
+   surfaces — and must NOT be inverted on light ones, where it would turn
+   white and disappear into the field. */
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1) opacity(0.6);
   cursor: pointer;
   margin-right: -4px;
+}
+
+:host-context(html[data-theme="light"]) input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: opacity(0.6);
 }
 
 .premium-submit-btn {
@@ -177,67 +774,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   box-shadow: none;
 }
 
-/* ── Pending Transaction Styles (tx-* classes) ── */
-.tx-list {
-  display: flex;
-  flex-direction: column;
-}
-.tx-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border-radius: 16px;
-  background: transparent;
-  border: 1px solid transparent;
-  transition: var(--lm-transition-smooth);
-  margin-bottom: 8px;
-}
-.tx-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--lm-color-surface-subtle);
-  color: var(--lm-color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-  flex-shrink: 0;
-}
-.tx-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.tx-merchant {
-  font-family: var(--lm-font-display);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--lm-color-text-primary);
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-transform: capitalize;
-}
-.tx-meta {
-  font-size: 12px;
-  color: var(--lm-color-text-muted);
-  margin-top: 4px;
-  line-height: 1.4;
-}
-.tx-date-method {
-  color: var(--lm-color-text-secondary);
-  font-weight: 500;
-}
-.tx-amount {
-  font-family: var(--lm-font-display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--lm-color-text-primary);
-  letter-spacing: -0.5px;
-}
+/* The tx-* pending rows and the bespoke history empty state were replaced by
+   the shared .pending-* and .pop-empty vocabulary above. */
 
 /* ── Transaction History Section ── */
 .history-section-wrap {
@@ -253,39 +791,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.history-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-}
-.empty-icon-wrap {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--lm-color-surface-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-.empty-icon-wrap .material-symbols-outlined {
-  font-size: 32px;
-  color: var(--lm-color-text-muted);
-}
-.empty-title {
-  font: var(--lm-type-heading-md);
-  color: var(--lm-color-text-primary);
-  margin-bottom: 4px;
-}
-.empty-sub {
-  font: var(--lm-type-body-sm);
-  color: var(--lm-color-text-secondary);
+  border-bottom: 1px solid var(--pop-line);
 }
 
 /* ── Transaction Card List ── */
@@ -296,27 +802,36 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Single Transaction Card ── */
-.txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
+.txn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--lm-color-surface);
+  border: 1px solid var(--pop-line);
+  border-radius: 16px;
+  padding: 12px;
+  transition: var(--lm-transition-smooth);
+  position: relative;
+}
 .txn-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--pop-line-strong);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
 }
 
 /* ── Category Icon Circle ── */
 .txn-icon-circle {
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
-  border-radius: 16px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  align-self: flex-start;
+  align-self: center;
 }
 .txn-icon-circle .material-symbols-outlined {
-  font-size: 26px;
+  font-size: 21px;
 }
 
 /* Category color variants */
@@ -350,36 +865,37 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Center Column (Text Content) ── */
-.txn-card-top { display: flex; align-items: flex-start; gap: 16px; }
-.txn-info-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.txn-card-top { display: flex; align-items: center; gap: 12px; }
+.txn-info-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 
 .txn-merchant {
   font-family: var(--lm-font-display);
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--lm-color-text-primary);
-  letter-spacing: 0.3px;
   text-transform: capitalize;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.3;
-  margin-bottom: 4px; /* Space between name and date */
+  margin: 0;
 }
 
+/* nowrap, not wrap: at the old width this row broke "Aug 7 · 11:04 AM · UPI"
+   across three lines and tripled the height of every card. */
 .txn-meta-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  font-size: 12px;
+  flex-wrap: nowrap;
+  gap: 3px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--lm-color-text-muted);
-  line-height: 1.4;
-  margin-bottom: 12px; /* Space between date and tags */
-}
-.txn-meta-row:last-child {
-  margin-bottom: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .txn-meta-icon {
@@ -396,18 +912,33 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 /* ── Tags and Notes Rows ── */
 .txn-tags-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
   align-items: center;
-  margin-bottom: 8px;
-}
-.txn-tags-row:last-child {
-  margin-bottom: 0;
+  min-width: 0;
+  flex-shrink: 0;
+  margin: 0;
 }
 
-/* ── Right Column (Actions + Amount) ── */
-.txn-card-bottom { display: flex; flex-direction: column; gap: 8px; padding-left: 68px; }
-.txn-actions-bottom { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+/* One row instead of three stacked ones. The old version also indented itself
+   68px to clear the icon above, throwing away a third of the card's width on a
+   phone — and then wrapped the notes into three lines inside what was left. */
+.txn-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--pop-line);
+}
+
+.txn-actions-bottom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: 0 0 0 auto;
+  flex-shrink: 0;
+}
 
 .txn-actions {
   display: flex;
@@ -415,9 +946,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 .txn-action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -450,11 +981,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 .txn-amount {
   font-family: var(--lm-font-display);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--lm-color-text-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 
@@ -463,12 +995,16 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .txn-tag {
   display: inline-flex;
   align-items: center;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.2px;
-  line-height: 1.4;
+  line-height: 1.45;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Category tag — colored */
@@ -512,24 +1048,36 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .txn-notes-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
 }
 
 .txn-notes-icon {
-  font-size: 16px !important;
+  font-size: 14px !important;
   color: var(--lm-color-text-muted);
   opacity: 0.7;
+  flex-shrink: 0;
 }
 
+/* Truncated to a single line: notes are a detail here, and the full text is
+   available in edit. Italic dropped — it costs legibility at this size. */
 .txn-notes-text {
-  font-size: 13px;
-  font-style: italic;
+  font-size: 11.5px;
   color: var(--lm-color-text-muted);
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* ── Light Mode Overrides ── */
-:host-context(html[data-theme="light"]) .txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
+/* This previously restated the whole dark rule, white border included, so the
+   light theme inherited an invisible outline. Only the colour needs to change. */
+:host-context(html[data-theme="light"]) .txn-card {
+  border-color: var(--pop-line);
+}
 :host-context(html[data-theme="light"]) .txn-card:hover {
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -552,31 +1100,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Mobile Responsive ── */
-@media (max-width: 480px) {
-  .txn-card { display: flex; flex-direction: column; gap: 12px; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 16px; transition: var(--lm-transition-smooth); position: relative; }
-  .txn-icon-circle {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    border-radius: 14px;
-  }
-  .txn-icon-circle .material-symbols-outlined {
-    font-size: 22px;
-  }
-  .txn-merchant {
-    font-size: 14px;
-  }
-  .txn-meta-row {
-    font-size: 11px;
-  }
-  .txn-amount {
-    font-size: 17px;
-  }
-  .txn-tag {
-    padding: 3px 10px;
-    font-size: 11px;
-  }
-}
+/* The max-width:480px block that sat here scaled the transaction card *up* on
+   phones — 44px icon against the 40px base, 17px amount against 16px — and
+   re-declared .txn-card wholesale, reinstating the dark border over the
+   light-theme override. The card is designed at phone width now and the modal
+   never exceeds 480px, so one set of values covers both. */
 
 /* ── Custom Buttons ── */
 .premium-icon-btn {
@@ -615,33 +1143,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   width: auto !important;
 }
 
-.settings-btn {
-  border: var(--lm-border-subtle);
-  background: var(--lm-color-surface);
-  color: var(--lm-color-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--lm-transition-fast);
-  box-shadow: var(--lm-shadow-card);
-  outline: none;
-}
-
-.settings-btn:hover,
-.settings-btn.active {
-  color: var(--lm-color-primary);
-  background: var(--lm-color-surface-hover);
-  border-color: rgba(167, 139, 250, 0.2);
-}
-
-.settings-btn:hover .material-symbols-outlined {
-  transform: rotate(45deg);
-}
-
-.settings-btn .material-symbols-outlined {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* .settings-btn dropped with the Connect/Disconnect buttons it styled; those
+   now use .pop-btn--success / .pop-btn--danger. */
 
 /* Toggle Switch */
 .switch {
@@ -824,14 +1327,16 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: 10px;
   position: sticky;
   top: 0;
   z-index: 100;
   
   margin-top: calc(-1 * (var(--lm-space-container-padding) + env(safe-area-inset-top, 0px)));
   padding-top: calc(var(--lm-space-container-padding) + env(safe-area-inset-top, 0px) + 16px);
-  padding-bottom: 24px;
+  /* Enough to keep content off the header as it scrolls under the blur, and no
+     more — the shell gap below already separates it from the first card. */
+  padding-bottom: 10px;
   
   max-width: 100vw !important;
   width: 100vw !important;
@@ -841,6 +1346,27 @@ input:checked + .slider:before {
   background: var(--lm-color-header-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+/* Mirrors the home header's dissolve so both screens end their header the same
+   way. Continues the tint and the blur past the edge, then masks both out —
+   fading the colour alone would leave the blur's own hard line behind. Absolute
+   at top:100%, so it adds no layout height and cannot open a gap. */
+.dashboard-header::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+
+  background: linear-gradient(to bottom, var(--lm-color-header-bg), transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
 }
 
 @media (min-width: 768px) {
@@ -917,6 +1443,118 @@ input:checked + .slider:before {
   color: var(--lm-color-text-secondary);
 }
 
+/* ── Editable monthly budget ──
+   The figure itself is the control: a separate edit button beside a read-only
+   number would cost a row this card doesn't have. The pencil stays faint until
+   hover/focus so it hints at being editable without competing with the value. */
+.budget-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.2s ease;
+}
+
+.budget-display:hover,
+.budget-display:focus-visible {
+  background: var(--pop-fill-hover);
+}
+
+.budget-display .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--lm-color-text-muted);
+  opacity: 0.55;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.budget-display:hover .material-symbols-outlined,
+.budget-display:focus-visible .material-symbols-outlined {
+  opacity: 1;
+  color: var(--lm-color-primary);
+}
+
+.budget-edit {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--pop-fill);
+  border: 1px solid var(--lm-color-primary);
+  border-radius: 10px;
+  padding: 3px 4px 3px 8px;
+}
+
+.budget-edit-prefix {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lm-color-text-secondary);
+}
+
+/* Sized to the largest budget anyone plausibly sets, so the card doesn't
+   reflow as digits are typed. */
+.budget-edit-input {
+  width: 82px;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--lm-color-text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0;
+}
+
+/* The spinners are useless at this size and steal width. */
+.budget-edit-input::-webkit-outer-spin-button,
+.budget-edit-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.budget-edit-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.budget-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--lm-color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.budget-edit-btn:hover:not([disabled]) {
+  background: var(--pop-fill-hover);
+  color: var(--lm-color-text-primary);
+}
+
+.budget-edit-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.budget-edit-btn--save {
+  color: var(--lm-color-success);
+}
+
+.budget-edit-btn .material-symbols-outlined {
+  font-size: 17px;
+}
+
 .es-progress-wrap {
   display: flex;
   flex-direction: column;
@@ -964,8 +1602,10 @@ input:checked + .slider:before {
   border-radius: 16px;
   padding: 12px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  /* stretch, not center: the info column below distributes itself over the full
+     card height so the values line up across the row. */
+  align-items: stretch;
+  gap: 10px;
 }
 
 .es-metric-icon {
@@ -975,6 +1615,8 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .es-metric-icon .material-symbols-outlined {
@@ -991,55 +1633,272 @@ input:checked + .slider:before {
   color: #06b6d4;
 }
 
+/* Label pinned to the top, value to the bottom. Grid rows already stretch both
+   cards to a common height, so the values share a baseline even when one label
+   wraps to two lines and the other does not. */
 .es-metric-info {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .es-metric-lbl {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--lm-color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  line-height: 1.25;
 }
 
 .es-metric-val {
   font-size: 15px;
   font-weight: 700;
   color: var(--lm-color-text-primary);
+  white-space: nowrap;
 }
 
 
+
+/* ==========================================================================
+   Page rhythm
+
+   .app-shell is a flex column with gap: var(--lm-space-band-gap) — 32px — and
+   the header adds another 24px below itself, so the strip under the header ran
+   to ~56px of nothing and every card was separated by a full 32px. That gap
+   suits the dashboard's loose bento flow; this screen is a dense stack of data
+   cards and reads better tight. Scoped to this component, so the dashboard
+   keeps its own spacing.
+   ========================================================================== */
+.app-shell {
+  gap: 16px;
+}
+
+/* ==========================================================================
+   Shortcut cards — History / Pending
+
+   These were icon-only buttons in the header. Two unlabelled glyphs are a
+   guessing game, and four of them were squeezing the title column hard enough
+   to clip the subtitle. As cards they get a name, a live count, and a tap
+   target the size of a thumb.
+   ========================================================================== */
+.shortcut-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shortcut-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 11px 10px;
+  border-radius: 14px;
+  background: var(--lm-color-surface);
+  border: 1px solid var(--pop-line);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: all 0.2s ease;
+}
+
+.shortcut-card:hover,
+.shortcut-card:focus-visible {
+  border-color: var(--pop-line-strong);
+  background: var(--lm-color-surface-elevated, #162232);
+}
+
+.shortcut-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.shortcut-icon .material-symbols-outlined {
+  font-size: 19px;
+}
+
+.shortcut-icon--history {
+  background: color-mix(in srgb, var(--lm-color-primary) 14%, transparent);
+  color: var(--lm-color-primary);
+}
+
+.shortcut-icon--pending {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--lm-color-warning);
+}
+
+.shortcut-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.shortcut-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shortcut-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--lm-color-text-muted);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Something waiting is worth saying in words, not just a dot. */
+.shortcut-card.has-pending .shortcut-sub {
+  color: var(--lm-color-warning);
+  font-weight: 600;
+}
+
+.shortcut-chevron {
+  font-size: 17px;
+  color: var(--lm-color-text-muted);
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.shortcut-card:hover .shortcut-chevron,
+.shortcut-card:focus-visible .shortcut-chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* Narrow phones: the chevron is decoration, the label is not. */
+@media (max-width: 360px) {
+  .shortcut-chevron {
+    display: none;
+  }
+}
+
+/* ── Header identity ──
+   Title and subtitle were hardcoded to rgba(255,255,255,.9) and .5, which are
+   invisible against the light theme's near-white header. */
+.hh-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  text-decoration: none;
+  background: var(--pop-fill);
+  border: 1px solid var(--pop-line);
+  color: var(--lm-color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.hh-back-btn:hover {
+  background: var(--pop-fill-hover);
+  border-color: var(--pop-line-strong);
+  color: var(--lm-color-primary);
+}
+
+.hh-back-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.hh-title-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Matches .hh-brand / .hh-greeting on the home header: the same type tokens,
+   the same clamp so the title scales with the viewport instead of sitting at a
+   fixed 20px, and the same tracking. Both headers now read as one system. */
+.hh-title {
+  font: var(--lm-type-heading-lg);
+  font-size: clamp(1.15rem, 4.5vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hh-subtitle {
+  font: var(--lm-type-body-sm);
+  font-size: 0.75rem;
+  color: var(--lm-color-text-secondary);
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .hh-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  /* 36px over 38px: four of these plus the back button were squeezing the title
+     column hard enough to clip the subtitle mid-word. */
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--pop-line-strong);
+  color: var(--lm-color-text-primary);
   cursor: pointer;
   padding: 0;
   transition: all 0.2s ease;
   position: relative;
 }
 .hh-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pop-fill-hover);
+  color: var(--lm-color-primary);
+  border-color: var(--pop-line-strong);
 }
-.indicator-dot {
+/* Replaces the bare dot: the count is the useful part, and a plain dot made
+   "one waiting" and "twelve waiting" look identical. Sits half outside the
+   button so it does not crowd the glyph. */
+.indicator-count {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
+  top: -3px;
+  right: -3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--lm-color-error);
-  border-radius: 50%;
-  border: 2px solid var(--lm-color-surface);
+  color: #fff;
+  border-radius: 9px;
+  border: 2px solid var(--lm-color-bg);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 
 .hh-dropdown-menu {
@@ -1053,8 +1912,13 @@ input:checked + .slider:before {
   padding: 8px;
   min-width: 200px;
   z-index: 50;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   animation: slideDown 0.2s ease-out;
+}
+
+/* A 50%-black drop shadow reads as a smudge on a light background. */
+:host-context(html[data-theme="light"]) .hh-dropdown-menu {
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
 }
 .hh-dropdown-item {
   display: flex;
@@ -1074,7 +1938,17 @@ input:checked + .slider:before {
   text-align: left;
 }
 .hh-dropdown-item:hover {
-  background: rgba(255,255,255,0.05);
+  background: var(--pop-fill-hover);
+  color: var(--lm-color-primary);
+}
+
+.hh-dropdown-item .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--lm-color-text-muted);
+}
+
+.hh-dropdown-item:hover .material-symbols-outlined {
+  color: var(--lm-color-primary);
 }
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
@@ -1083,6 +1957,132 @@ input:checked + .slider:before {
 
 
 /* ── Spending Trend Bento ── */
+/* %% Recent Transactions preview %% */
+.recent-bento {
+  background: var(--lm-color-surface);
+  border-radius: 24px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.recent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.recent-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  margin: 0 0 4px;
+}
+
+.recent-sub {
+  font-size: 12px;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+}
+
+.recent-viewall {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lm-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-viewall:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--lm-color-primary);
+  border-color: rgba(167, 139, 250, 0.25);
+}
+
+.recent-viewall .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* The head already reads as a divider, so the first row skips its own rule. */
+.recent-row:first-child {
+  border-top: none;
+  padding-top: 16px;
+}
+
+.recent-row:last-child {
+  padding-bottom: 0;
+}
+
+/* Overrides the 52px .txn-icon-circle sizing used inside the History modal —
+   including its min-width and flex-start alignment, which would otherwise win. */
+.recent-row-icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+  align-self: center;
+}
+
+.recent-row-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.recent-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-row-merchant {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-row-meta {
+  font-size: 11.5px;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-row-amount {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .trend-bento {
   background: var(--lm-color-surface);
   border-radius: 24px;
@@ -1090,46 +2090,216 @@ input:checked + .slider:before {
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
-.trend-chart-wrap {
+
+/* ==========================================================================
+   Daily spending — line chart
+
+   Trend over time, so a line with an area wash beneath it. The path is drawn
+   in a stretched 0–100 viewBox (preserveAspectRatio="none") to fill the card,
+   with vector-effect keeping the stroke an even 2px; the dots and the value
+   labels are HTML positioned from the same percentages, which keeps markers
+   circular and text upright where a stretched SVG would shear them.
+   ========================================================================== */
+.lchart {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 120px;
-  gap: 8px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  flex-direction: column;
+  gap: 10px;
 }
-.trend-bar-col {
+
+.lchart-plot {
+  position: relative;
+  height: 108px;
+  /* Headroom for the value chip above the highest point (15px lift + ~20px
+     chip), and enough side room that the first and last chips clear the card
+     edge. */
+  margin: 38px 20px 0;
+}
+
+.lchart-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* A zero-size anchor sitting exactly on the data coordinate.
+   It previously wrapped the chip and the dot in a flex column and centred the
+   whole stack on the point, which pushed the dot about 30px — the chip plus the
+   gap — below the line it was supposed to sit on. Both children now hang off
+   this anchor independently, so the dot lands on the coordinate and the label
+   floats above it without moving it. */
+.lchart-point {
+  position: absolute;
+  width: 0;
+  height: 0;
+  outline: none;
+}
+
+/* The hit target: 32px, far larger than the 8px mark, per the interaction
+   spec — a pinpoint dot is not reliably hoverable or tappable. */
+.lchart-point::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, 50%);
+  border-radius: 50%;
+}
+
+/* Always on: hover is unavailable on touch, so hiding values behind it would
+   put them out of reach on the device this screen is built for.
+   The chip is what makes them legible — the labels sit over the area wash and
+   sometimes the line itself, and plain text on a gradient is unreadable at
+   this size whatever colour it wears. */
+/* Every chip is identical. The peak and today used to be given heavier text and
+   a cyan border, which just made the first and last values look like a
+   different kind of thing. Today is already named on the axis and marked on its
+   dot, so the numbers themselves stay uniform and comparable. */
+.lchart-val {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  /* Centred on the point horizontally, lifted clear of the mark and the line
+     vertically — the label moves, never the dot. */
+  transform: translate(-50%, -15px);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--lm-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  padding: 3px 6px;
+  border-radius: 7px;
+  background: var(--lm-color-surface);
+  border: 1px solid var(--pop-line);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+/* 8px marker with a 2px ring in the surface colour, so it stays legible where
+   it sits on the line. */
+/* Centred on the anchor in both axes, so the mark sits on the line vertex. */
+.lchart-dot {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--lm-color-primary);
+  box-shadow: 0 0 0 2px var(--lm-color-surface);
+  transform: translate(-50%, 50%);
+  transition: box-shadow 0.15s ease;
+}
+
+/* Only today is singled out, and only on its mark — the peak had a matching
+   halo, which is what made the first point look like a second "special" one. */
+.lchart-point.is-today .lchart-dot {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 2px var(--lm-color-surface), 0 0 0 5px color-mix(in srgb, var(--lm-color-primary) 22%, transparent);
+}
+
+/* Scale from the same centre, so hovering never nudges the mark off the line. */
+.lchart-point:hover .lchart-dot,
+.lchart-point:focus-visible .lchart-dot,
+.lchart-point.is-open .lchart-dot {
+  transform: translate(-50%, 50%) scale(1.3);
+}
+
+.lchart-point {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The tapped readout: exact amount and full date, in place of the chip. */
+.lchart-detail {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  transform: translate(-50%, -15px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  flex: 1;
-  height: 100%;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  background: var(--lm-color-surface-elevated, #162232);
+  border: 1px solid color-mix(in srgb, var(--lm-color-primary) 45%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  z-index: 3;
 }
-.trend-bar-track {
-  width: 100%;
-  max-width: 32px;
-  flex: 1;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  border: 1px solid rgba(255,255,255,0.02);
+
+.lchart-detail-val {
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--lm-color-text-primary);
+  font-variant-numeric: tabular-nums;
 }
-.trend-bar-fill {
-  width: 100%;
-  background: linear-gradient(180deg, var(--lm-color-primary) 0%, rgba(167, 139, 250, 0.4) 100%);
-  border-radius: 5px;
-  transition: height 1s cubic-bezier(0.1, 0, 0.1, 1);
-  min-height: 4px;
-}
-.trend-bar-lbl {
-  font-size: 11px;
+
+.lchart-detail-day {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
   color: var(--lm-color-text-muted);
-  font-weight: 500;
 }
+
+.lchart-point:focus-visible .lchart-val {
+  color: var(--lm-color-primary);
+}
+
+.lchart-axis {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  border-top: 1px solid var(--pop-line);
+  padding-top: 9px;
+}
+
+.lchart-tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.lchart-dow {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--lm-color-text-secondary);
+  white-space: nowrap;
+}
+
+.lchart-date {
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Today is marked by weight and wording, never colour alone. */
+.lchart-tick.is-today .lchart-dow {
+  color: var(--lm-color-primary);
+  font-weight: 800;
+}
+
+.lchart-tick.is-today .lchart-date {
+  color: var(--lm-color-primary);
+  opacity: 0.85;
+}
+/* The column chart, the horizontal row list and the old vertical bars that
+   preceded the current line chart lived here. All three were superseded and
+   their rules removed once nothing referenced them. */
 
 /* ── Category Breakdown Bento ── */
 .cat-list-bento { display: flex; flex-direction: column; background: var(--lm-color-surface); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); }
@@ -1190,6 +2360,198 @@ input:checked + .slider:before {
 /* Span last odd card across both columns */
 .es-metric-card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Projection meter
+
+   The job is "one value against a limit", which is a meter, not a plot — there
+   is no month-to-date daily series to draw, and the forecast is a straight
+   average-based extrapolation, so a line chart would be inventing a shape the
+   data does not have.
+
+   The bar decomposes the projected total into spent → forecast → overrun. Fill
+   and track are steps of one ramp so the state reads across the whole bar;
+   danger enters only for the part that clears the budget. Segments are
+   separated by a 2px surface gap rather than strokes, and the data end is
+   rounded while the baseline end stays square.
+   ========================================================================== */
+.proj-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.proj-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.proj-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.proj-value {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  color: var(--lm-color-text-primary);
+  white-space: nowrap;
+}
+
+.proj-delta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--lm-color-error);
+  background: rgba(239, 68, 68, 0.12);
+  border-radius: 8px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Month projection chart ──
+   Cumulative spend against the budget: solid for what has happened, dashed
+   for what is forecast, a dashed rule for the limit. Cumulative because the
+   question is "will I clear the budget", and only a running total can be
+   compared with a limit. */
+.mproj {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Taller than the daily chart, and inset, because four labels now live inside
+   the plot and each needs room to sit clear of its mark. */
+.mproj-plot {
+  position: relative;
+  height: 118px;
+  margin: 24px 4px 0;
+}
+
+.mproj-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* On-plot annotations. Each is a chip so it stays readable over the area wash
+   and the lines it sits across. */
+.mproj-tag {
+  position: absolute;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--lm-color-text-secondary);
+  background: var(--lm-color-surface);
+  border: 1px solid var(--pop-line);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* One tag on the rule carrying both the limit and what is left of it. */
+.mproj-tag--budget {
+  left: 0;
+  transform: translateY(50%);
+}
+
+.mproj-tag-sub {
+  color: var(--lm-color-text-primary);
+}
+
+/* Horizontally tied to today's column; its vertical slot is chosen by
+   deconflictTags() so it can never land on another label. */
+.mproj-tag--spent {
+  transform: translate(-50%, 50%);
+  color: var(--lm-color-primary);
+  border-color: color-mix(in srgb, var(--lm-color-primary) 40%, transparent);
+  z-index: 2;
+}
+
+.mproj-tag--proj {
+  right: 0;
+  transform: translateY(50%);
+  color: var(--lm-color-success);
+  border-color: color-mix(in srgb, var(--lm-color-success) 40%, transparent);
+}
+
+.mproj-tag--proj.is-over {
+  color: var(--lm-color-error);
+  border-color: color-mix(in srgb, var(--lm-color-error) 40%, transparent);
+}
+
+/* Zero-size anchors, same approach as the daily chart: the marker centres on
+   the coordinate rather than a stack being centred on it. */
+.mproj-node {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, 50%);
+  box-shadow: 0 0 0 2px var(--lm-color-surface);
+}
+
+.mproj-node--today {
+  background: var(--lm-color-primary);
+}
+
+.mproj-node--end {
+  left: 100%;
+  background: var(--lm-color-success);
+}
+
+.mproj-node--end.is-over {
+  background: var(--lm-color-error);
+}
+
+.mproj-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--lm-color-text-muted);
+  padding-top: 7px;
+  border-top: 1px solid var(--pop-line);
+}
+
+.mproj-axis-today {
+  color: var(--lm-color-primary);
+  font-weight: 700;
+}
+
+/* The projection meter (.proj-seg/.proj-track/.proj-key) and the stats row
+   beneath the chart (.mproj-stat*) were replaced by on-plot labels. */
+
+/* Status keeps its colour but never carries meaning alone — icon plus wording. */
+.proj-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--lm-color-success);
+}
+
+.proj-card--over .proj-status {
+  color: var(--lm-color-error);
+}
+
+.proj-status .material-symbols-outlined {
+  font-size: 15px;
+  flex-shrink: 0;
 }
 .es-metric-icon.orange {
   background: rgba(249, 115, 22, 0.12);

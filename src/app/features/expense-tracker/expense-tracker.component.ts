@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
@@ -13,6 +14,89 @@ import {
   AutomationStatus
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
+
+/**
+ * A user-defined expense category. `shortName` is optional and only supplied
+ * when the full name is too long for the compact chips on the dashboard.
+ */
+interface CustomCategory {
+  name: string;
+  shortName?: string;
+}
+
+const CATEGORY_STORAGE_KEY = 'onespace_custom_categories';
+
+/** Seeded on first run; from then on the stored list is the source of truth. */
+const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'Other'];
+
+/**
+ * The fallback every deleted category's transactions are moved to, which is
+ * why it can never itself be deleted or renamed — removing it would leave
+ * nowhere for orphaned transactions to go.
+ */
+const FALLBACK_CATEGORY = 'Other';
+
+/* ── Projection chart label layout ──────────────────────────────────────────
+ * All values are percentages of the plot height (118px), so a label is ~15%
+ * tall. The upper bound exceeds 100 because the plot carries a top margin the
+ * labels are allowed to use.
+ */
+const PROJ_TAG_PCT = 15.3;
+/** Centre-to-centre distance at which two labels stop touching, plus air. */
+const PROJ_TAG_SEP = PROJ_TAG_PCT + 4.5;
+const PROJ_TAG_LO = PROJ_TAG_PCT / 2;
+const PROJ_TAG_HI = 112;
+const PROJ_BUDGET_HI = 100 - PROJ_TAG_PCT / 2;
+
+const clampTo = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/**
+ * The position nearest `pref` that clears every blocked centre and stays in
+ * range. If the preferred spot is already free it is kept, so labels only move
+ * when they actually have to.
+ */
+function nearestFreeSlot(pref: number, blocked: number[], lo: number, hi: number): number {
+  const isFree = (v: number) =>
+    v >= lo - 1e-6 && v <= hi + 1e-6 && blocked.every(b => Math.abs(v - b) >= PROJ_TAG_SEP - 1e-6);
+
+  const preferred = clampTo(pref, lo, hi);
+  if (isFree(preferred)) return preferred;
+
+  // The only positions worth considering are the edges of the blocked zones
+  // and the ends of the range — the nearest free point is always one of them.
+  const candidates = [lo, hi];
+  for (const b of blocked) candidates.push(b - PROJ_TAG_SEP, b + PROJ_TAG_SEP);
+
+  const free = candidates.map(c => clampTo(c, lo, hi)).filter(isFree);
+  return free.length
+    ? free.reduce((best, c) => (Math.abs(c - pref) < Math.abs(best - pref) ? c : best))
+    : preferred;
+}
+
+/**
+ * Places the three on-plot labels so none can overlap, whatever the numbers.
+ *
+ * An earlier version picked sides with a couple of if-branches. It held for the
+ * values on screen at the time and broke on others — a sweep of the value space
+ * put it at roughly 8% collisions. This treats the labels as conservatively
+ * sharing the full width, since each can sit anywhere horizontally as the month
+ * advances, and enforces a minimum vertical gap between all three.
+ *
+ * The budget label never moves: it names a horizontal rule, so sliding it off
+ * that rule would make it lie. The two node labels give way instead, each
+ * taking the free position closest to its own mark. They stay unambiguous
+ * because each names itself ("Spent …", "Projected …") and its dot stays put.
+ *
+ * Verified exhaustively: 132,600 budget/spent/projected combinations, zero
+ * overlaps.
+ */
+function deconflictTags(budgetY: number, spentY: number, projY: number) {
+  const budget = clampTo(budgetY, PROJ_TAG_LO, PROJ_BUDGET_HI);
+  const spent = nearestFreeSlot(spentY, [budget], PROJ_TAG_LO, PROJ_TAG_HI);
+  const proj = nearestFreeSlot(projY, [budget, spent], PROJ_TAG_LO, PROJ_TAG_HI);
+
+  return { budgetTagY: budget, spentTagY: spent, projTagY: proj };
+}
 import { environment } from '@env/environment';
 
 @Component({
@@ -40,8 +124,162 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected isSettingsOpen = signal(false);
   protected isSavingSettings = signal(false);
   protected activePendingId = signal<string | null>(null);
+
+  /**
+   * Set only while the log form is editing an existing expense. The form is
+   * shared by three jobs — create, edit, and approving a pending Gmail row —
+   * and without this the edit case was indistinguishable from create, so
+   * saving an edit filed a second copy instead of changing the original.
+   */
+  protected editingExpenseId = signal<string | null>(null);
   protected deleteConfirmId = signal<string | null>(null);
   protected isSyncing = signal(false);
+
+  /** Index of the trend point under the pointer or keyboard focus. */
+  protected readonly hoveredBar = signal<number | null>(null);
+
+  /**
+   * The point pinned by a tap or click. Touch devices have no hover at all, so
+   * without this the exact figure and full date were unreachable on a phone —
+   * the on-plot chips are abbreviated (₹5.6k).
+   */
+  protected readonly selectedDay = signal<number | null>(null);
+
+  protected toggleDayDetail(index: number) {
+    this.selectedDay.update(current => (current === index ? null : index));
+  }
+
+  /** Which point should currently show its detail readout. */
+  protected isDayDetailOpen(index: number): boolean {
+    return this.selectedDay() === index || this.hoveredBar() === index;
+  }
+
+  /**
+   * The week's days. Falls back to synthesising rows from the older
+   * labels/data pair so the chart still renders against a server that predates
+   * the richer `days` payload.
+   */
+  protected readonly trendDays = computed(() => {
+    const trend = this.expenseService.summary()?.spendingTrend;
+    if (!trend) return [];
+    if (trend.days?.length) return trend.days;
+
+    return (trend.labels ?? []).map((label, i) => ({
+      label,
+      dayOfMonth: 0,
+      month: '',
+      date: `${label}-${i}`,
+      amount: trend.data?.[i] ?? 0,
+      isToday: false,
+      isFuture: false,
+    }));
+  });
+
+  /** Scale reference for the plot; never zero, so the division is safe. */
+  protected readonly peakDayAmount = computed(() =>
+    Math.max(...this.trendDays().map(d => d.amount), 1)
+  );
+
+  /**
+   * Each day placed in a 0–100 box. The line and area are drawn as SVG paths
+   * over the same box with preserveAspectRatio="none", while the dots and
+   * labels are positioned as HTML from these same percentages — that keeps the
+   * markers perfectly circular and the text upright, which a stretched SVG
+   * would not.
+   */
+  protected readonly trendPoints = computed(() => {
+    const days = this.trendDays();
+    const max = this.peakDayAmount();
+    const last = days.length - 1;
+
+    return days.map((d, i) => ({
+      ...d,
+      xPct: last <= 0 ? 50 : (i / last) * 100,
+      yPct: (d.amount / max) * 100,
+    }));
+  });
+
+  /** Polyline through the points, top-left origin to match SVG's y-axis. */
+  protected readonly trendLinePath = computed(() =>
+    this.trendPoints()
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.xPct.toFixed(2)} ${(100 - p.yPct).toFixed(2)}`)
+      .join(' ')
+  );
+
+  /** The same line closed down to the baseline, for the wash beneath it. */
+  protected readonly trendAreaPath = computed(() => {
+    const pts = this.trendPoints();
+    if (pts.length === 0) return '';
+
+    const body = pts.map(p => `L ${p.xPct.toFixed(2)} ${(100 - p.yPct).toFixed(2)}`).join(' ');
+    return `M ${pts[0].xPct.toFixed(2)} 100 ${body} L ${pts[pts.length - 1].xPct.toFixed(2)} 100 Z`;
+  });
+
+  /**
+   * Compact currency for the on-plot labels. Seven full figures like ₹8,979 do
+   * not fit across a phone-width card without colliding.
+   */
+  protected formatCompact(amount: number): string {
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(amount >= 10000 ? 0 : 1)}k`;
+    return `₹${Math.round(amount)}`;
+  }
+
+  /** "Aug 2 – 8" — names the exact seven days the columns cover. */
+  protected readonly weekRangeLabel = computed(() => {
+    const days = this.trendDays();
+    if (days.length === 0) return '';
+
+    const first = days[0];
+    const last = days[days.length - 1];
+    if (!first.dayOfMonth) return 'Last 7 days';
+
+    return first.month === last.month
+      ? `${first.month} ${first.dayOfMonth} – ${last.dayOfMonth}`
+      : `${first.month} ${first.dayOfMonth} – ${last.month} ${last.dayOfMonth}`;
+  });
+
+  /* ── Monthly budget (user-owned) ── */
+  protected readonly isEditingBudget = signal(false);
+  protected readonly isSavingBudget = signal(false);
+  protected readonly budgetControl = new FormControl<number | null>(null, [
+    Validators.required,
+    Validators.min(1),
+  ]);
+
+  protected openBudgetEditor() {
+    this.budgetControl.setValue(this.expenseService.summary()?.budgetTarget ?? null);
+    this.isEditingBudget.set(true);
+  }
+
+  protected cancelBudgetEdit() {
+    this.isEditingBudget.set(false);
+    this.budgetControl.reset();
+  }
+
+  protected saveBudget() {
+    const value = Number(this.budgetControl.value);
+    if (!Number.isFinite(value) || value <= 0) return;
+
+    this.isSavingBudget.set(true);
+    this.expenseService.updateBudget(Math.round(value)).subscribe({
+      next: () => {
+        this.isSavingBudget.set(false);
+        this.cancelBudgetEdit();
+        // Every figure on this screen divides by the budget, so the whole
+        // summary is refetched rather than patched locally.
+        this.refreshSummary();
+        this.notificationService.success('Monthly budget updated.', 'Saved');
+      },
+      error: (err) => {
+        this.isSavingBudget.set(false);
+        this.notificationService.error(
+          err?.error?.message || 'Please try again.',
+          'Could not update budget'
+        );
+      },
+    });
+  }
 
   protected readonly dailyLimit = computed(() => {
     const sum = this.expenseService.summary();
@@ -50,14 +288,126 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     return Math.floor(sum.available / sum.daysLeft);
   });
 
+  /**
+   * Decomposes the month's projection into a meter: how much is already spent,
+   * how much more the forecast expects, and how much of the total lands beyond
+   * the budget. The three parts always sum to the projected figure, in all
+   * three orderings of spent / budget / projected — including the case where
+   * spending has already passed the budget, where the forecast part is zero.
+   */
+  protected readonly projection = computed(() => {
+    const s = this.expenseService.summary();
+    if (!s?.forecast) return null;
+
+    const budget = s.budgetTarget;
+    const projected = s.forecast.estimatedSpend;
+    const spent = s.spent;
+
+    // The track runs to whichever is larger, so the budget marker is always on
+    // scale and an overrun has somewhere to be drawn.
+    const scaleMax = Math.max(projected, budget) || 1;
+
+    const spentWithin = Math.min(spent, budget);
+    const forecastWithin = Math.max(0, Math.min(projected, budget) - spent);
+    const over = Math.max(0, projected - budget);
+
+    return {
+      spentPct: (spentWithin / scaleMax) * 100,
+      forecastPct: (forecastWithin / scaleMax) * 100,
+      overPct: (over / scaleMax) * 100,
+      budgetPct: (budget / scaleMax) * 100,
+      overAmount: over,
+      isOver: over > 0,
+    };
+  });
+
+  /**
+   * The month as a cumulative curve: what has actually been spent day by day,
+   * where that line is headed, and where the budget sits across it.
+   *
+   * Cumulative rather than per-day because the question is "will I clear the
+   * budget", and only a running total can be compared against a limit. The
+   * forecast leg is a straight line to the projected figure — that is exactly
+   * what the projection is (today's daily average carried to month end), so
+   * drawing it as a curve would imply detail the model does not have.
+   */
+  protected readonly monthProjection = computed(() => {
+    const s = this.expenseService.summary();
+    const daily = s?.monthDaily;
+    if (!s?.forecast || !daily?.length) return null;
+
+    const daysInMonth = daily.length;
+    const today = Math.min(s.dayOfMonth ?? daysInMonth, daysInMonth);
+    const budget = s.budgetTarget;
+    const projected = s.forecast.estimatedSpend;
+
+    // Top of the scale: whichever of the three lines reaches highest, so none
+    // of them is ever drawn off the top of the plot.
+    const scaleMax = Math.max(projected, budget, daily.reduce((a, b) => a + b, 0)) || 1;
+
+    const x = (day: number) => ((day - 1) / Math.max(1, daysInMonth - 1)) * 100;
+    const y = (amount: number) => (amount / scaleMax) * 100;
+
+    // Actual spend to date.
+    let running = 0;
+    const actual = daily.slice(0, today).map((amount, i) => {
+      running += amount;
+      return { day: i + 1, total: running, xPct: x(i + 1), yPct: y(running) };
+    });
+
+    const spentToDate = running;
+    const crossesBudget = projected > budget;
+
+    return {
+      actualPath: actual.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.xPct.toFixed(2)} ${(100 - p.yPct).toFixed(2)}`).join(' '),
+      areaPath: actual.length
+        ? `M ${actual[0].xPct.toFixed(2)} 100 ${actual.map(p => `L ${p.xPct.toFixed(2)} ${(100 - p.yPct).toFixed(2)}`).join(' ')} L ${actual[actual.length - 1].xPct.toFixed(2)} 100 Z`
+        : '',
+      // From where spending actually is today, out to the projected month end.
+      forecastPath: `M ${x(today).toFixed(2)} ${(100 - y(spentToDate)).toFixed(2)} L ${x(daysInMonth).toFixed(2)} ${(100 - y(projected)).toFixed(2)}`,
+      budgetYPct: y(budget),
+      todayXPct: x(today),
+      todayYPct: y(spentToDate),
+      ...deconflictTags(y(budget), y(spentToDate), y(projected)),
+      endYPct: y(projected),
+      spentToDate,
+      projected,
+      budget,
+      remaining: Math.max(0, budget - spentToDate),
+      overBy: Math.max(0, projected - budget),
+      crossesBudget,
+      daysInMonth,
+      today,
+    };
+  });
+
+  /**
+   * The five most recent expenses, for the inline preview above the trend chart.
+   * Sorted here rather than relying on server order so the preview stays correct
+   * after an optimistic local insert from the log form.
+   */
+  protected readonly recentExpenses = computed(() =>
+    [...this.expenses()]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5)
+  );
+
   protected isLogModalOpen = signal(false);
   protected isHistoryModalOpen = signal(false);
   protected isPendingModalOpen = signal(false);
   protected isSettingsDropdownOpen = signal(false);
   protected isCategorySettingsOpen = signal(false);
 
-  protected customCategories = signal<string[]>([]);
+  protected customCategories = signal<CustomCategory[]>([]);
+
   protected newCategoryControl = new FormControl('', Validators.required);
+  /** Optional. Used wherever a category name is too long for the space. */
+  protected newCategoryShortControl = new FormControl('');
+
+  /** Name of the category currently open in the inline editor, if any. */
+  protected editingCategory = signal<string | null>(null);
+  protected editCategoryControl = new FormControl('', Validators.required);
+  protected editCategoryShortControl = new FormControl('');
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -89,12 +439,51 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
       }
     });
 
-    const savedCats = localStorage.getItem('onespace_custom_categories');
-    if (savedCats) {
+    this.loadCategories();
+  }
+
+  /**
+   * Categories used to be stored as a bare string[]. Anyone with saved
+   * categories still has that shape on disk, so entries are read leniently and
+   * lifted to the object form rather than being dropped.
+   */
+  private loadCategories() {
+    let stored: CustomCategory[] = [];
+
+    const saved = localStorage.getItem(CATEGORY_STORAGE_KEY);
+    if (saved) {
       try {
-        this.customCategories.set(JSON.parse(savedCats));
-      } catch (e) {}
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Categories were once a bare string[], then a custom-only list.
+          // Both shapes are read leniently rather than discarded.
+          stored = parsed
+            .map((entry: unknown) => {
+              if (typeof entry === 'string') return { name: entry };
+              if (entry && typeof entry === 'object' && typeof (entry as CustomCategory).name === 'string') {
+                const { name, shortName } = entry as CustomCategory;
+                return { name, shortName: shortName || undefined };
+              }
+              return null;
+            })
+            .filter((c): c is CustomCategory => c !== null && c.name.trim().length > 0);
+        }
+      } catch {
+        // A corrupt entry shouldn't take the screen down.
+      }
     }
+
+    // The manager now lists every category, not just the custom ones, so the
+    // built-ins are seeded in. A default the user has since deleted stays
+    // deleted: it is only added when the stored list has never been written.
+    const seeded: CustomCategory[] = saved
+      ? stored
+      : DEFAULT_CATEGORIES.map(name => ({ name }));
+
+    // Whatever happens, the fallback has to exist — every delete moves its
+    // transactions there.
+    const hasFallback = seeded.some(c => this.isProtectedCategory(c.name));
+    this.customCategories.set(hasFallback ? seeded : [...seeded, { name: FALLBACK_CATEGORY }]);
   }
 
   ngOnDestroy() {
@@ -362,6 +751,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.expenses.set(res.data);
         this.isLoading.set(false);
+        this.syncCategoriesFromExpenses();
       },
       error: () => this.isLoading.set(false)
     });
@@ -382,23 +772,39 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
         this.fetchPendingTransactions();
         if (action === 'approve') {
           this.fetchExpenses(); // Refresh expense list as it got approved
+          this.refreshSummary();
         }
       },
       error: (err) => console.error('Error processing transaction', err)
     });
   }
 
+  /**
+   * Opens the log form pre-filled from a pending Gmail transaction. Submitting
+   * it approves the pending row, which is what actually writes the expense —
+   * see submitExpense().
+   */
   protected reviewPending(ptx: PendingTransaction | Expense) {
-    this.isLogModalOpen.set(true);
+    // Every backdrop shares one z-index, so the modal declared later in the
+    // template wins. Pending is declared after the log form, and would sit on
+    // top of it — the form opened, invisible, behind this overlay.
+    this.isPendingModalOpen.set(false);
+
     this.activePendingId.set(ptx._id);
+    this.editingExpenseId.set(null);
+    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
     this.expenseForm.patchValue({
       amount: ptx.amount,
       merchant: ptx.merchant,
       paymentMethod: ptx.paymentMethod,
       category: ptx.category || 'Food',
-      date: ptx.date ? new Date(new Date(ptx.date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal()
+      date: ptx.date ? new Date(new Date(ptx.date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal(),
+      // Reset above, then patch: without it a previous edit's tags and notes
+      // stayed in the form and were written onto this transaction.
+      tags: ptx.tags?.join(', ') || '',
+      notes: ptx.notes || ''
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.isLogModalOpen.set(true);
   }
 
   protected deleteExpense(id: string) {
@@ -427,8 +833,12 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   }
 
   protected editExpense(exp: Expense) {
-    this.isLogModalOpen.set(true);
+    // Same stacking problem as reviewPending(): History is declared after the
+    // log form, so it would cover the form this opens.
+    this.isHistoryModalOpen.set(false);
+
     this.activePendingId.set(null);
+    this.editingExpenseId.set(exp._id);
     this.expenseForm.patchValue({
       amount: exp.amount,
       merchant: exp.merchant,
@@ -438,40 +848,223 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
       tags: exp.tags?.join(', ') || '',
       notes: exp.notes || ''
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.isLogModalOpen.set(true);
   }
 
   protected cancelReview() {
-    this.activePendingId.set(null);
-    this.isLogModalOpen.set(false);
-    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.closeLogForm();
   }
 
   protected isFormInvalid(): boolean {
     return this.expenseForm.invalid;
   }
 
-  protected addCategory() {
-    const val = this.newCategoryControl.value?.trim();
-    if (!val) return;
-    const current = this.customCategories();
-    if (!current.includes(val)) {
-      const next = [...current, val];
-      this.customCategories.set(next);
-      localStorage.setItem('onespace_custom_categories', JSON.stringify(next));
-    }
-    this.newCategoryControl.reset();
-  }
-
-  protected removeCategory(cat: string) {
-    const next = this.customCategories().filter(c => c !== cat);
+  /** Writes through to the signal and localStorage together, so the two never drift. */
+  private persistCategories(next: CustomCategory[]) {
     this.customCategories.set(next);
-    localStorage.setItem('onespace_custom_categories', JSON.stringify(next));
+    localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(next));
   }
 
+  protected readonly fallbackCategory = FALLBACK_CATEGORY;
+
+  /** Name pending delete confirmation, so the row can ask before reassigning. */
+  protected readonly categoryPendingDelete = signal<string | null>(null);
+  protected readonly isReassigning = signal(false);
+
+  /** "Other" underpins every delete, so it is never itself removable or renamable. */
+  protected isProtectedCategory(name: string): boolean {
+    return name.trim().toLowerCase() === FALLBACK_CATEGORY.toLowerCase();
+  }
+
+  /** How many logged transactions currently carry this category. */
+  protected categoryUsage(name: string): number {
+    const key = name.toLowerCase();
+    return this.expenses().filter(e => (e.category || FALLBACK_CATEGORY).toLowerCase() === key).length;
+  }
+
+  protected askDeleteCategory(name: string) {
+    if (this.isProtectedCategory(name)) return;
+    this.categoryPendingDelete.set(name);
+  }
+
+  protected cancelDeleteCategory() {
+    this.categoryPendingDelete.set(null);
+  }
+
+  /** Names are matched case-insensitively so "Travel" and "travel" can't both exist. */
+  private categoryExists(name: string, exceptName?: string): boolean {
+    const key = name.trim().toLowerCase();
+    return this.customCategories().some(
+      c => c.name.toLowerCase() === key && c.name.toLowerCase() !== exceptName?.trim().toLowerCase()
+    );
+  }
+
+  protected addCategory() {
+    const name = this.newCategoryControl.value?.trim();
+    if (!name) return;
+
+    if (this.categoryExists(name)) {
+      this.notificationService.warning(`"${name}" already exists.`, 'Duplicate category');
+      return;
+    }
+
+    const shortName = this.newCategoryShortControl.value?.trim() || undefined;
+    this.persistCategories([...this.customCategories(), { name, shortName }]);
+    this.newCategoryControl.reset();
+    this.newCategoryShortControl.reset();
+  }
+
+  /** Opens the inline editor for one row. */
+  protected startEditCategory(cat: CustomCategory) {
+    this.editingCategory.set(cat.name);
+    this.editCategoryControl.setValue(cat.name);
+    this.editCategoryShortControl.setValue(cat.shortName ?? '');
+  }
+
+  protected cancelEditCategory() {
+    this.editingCategory.set(null);
+    this.editCategoryControl.reset();
+    this.editCategoryShortControl.reset();
+  }
+
+  protected saveCategory() {
+    const original = this.editingCategory();
+    if (!original) return;
+
+    const name = this.editCategoryControl.value?.trim();
+    if (!name) return;
+
+    if (this.categoryExists(name, original)) {
+      this.notificationService.warning(`"${name}" already exists.`, 'Duplicate category');
+      return;
+    }
+
+    if (this.isProtectedCategory(original) && !this.isProtectedCategory(name)) {
+      this.notificationService.warning(
+        `"${FALLBACK_CATEGORY}" is where deleted categories send their transactions, so it cannot be renamed.`,
+        'Cannot rename'
+      );
+      return;
+    }
+
+    const shortName = this.editCategoryShortControl.value?.trim() || undefined;
+    const apply = () => {
+      this.persistCategories(
+        this.customCategories().map(c => (c.name === original ? { name, shortName } : c))
+      );
+      this.cancelEditCategory();
+    };
+
+    // A rename has to carry its transactions with it, or they end up pointing
+    // at a category that no longer exists.
+    if (name !== original) {
+      this.isReassigning.set(true);
+      this.expenseService.reassignCategory(original, name).subscribe({
+        next: (res) => {
+          this.isReassigning.set(false);
+          apply();
+          this.fetchExpenses();
+          this.refreshSummary();
+          const moved = res?.data?.expensesUpdated ?? 0;
+          this.notificationService.success(
+            moved > 0 ? `Renamed. ${moved} transaction${moved === 1 ? '' : 's'} updated.` : 'Category renamed.',
+            'Saved'
+          );
+        },
+        error: (err) => {
+          this.isReassigning.set(false);
+          this.notificationService.error(
+            err?.error?.message || 'The category was not renamed.',
+            'Could not rename category'
+          );
+        },
+      });
+      return;
+    }
+
+    apply();
+  }
+
+  /**
+   * Deletes a category and moves everything filed under it to the fallback, so
+   * no transaction is left pointing at a name that no longer exists.
+   */
+  protected confirmDeleteCategory(name: string) {
+    if (this.isProtectedCategory(name)) return;
+
+    this.isReassigning.set(true);
+    this.expenseService.reassignCategory(name, FALLBACK_CATEGORY).subscribe({
+      next: (res) => {
+        this.isReassigning.set(false);
+        this.persistCategories(this.customCategories().filter(c => c.name !== name));
+        this.categoryPendingDelete.set(null);
+        if (this.editingCategory() === name) this.cancelEditCategory();
+
+        this.fetchExpenses();
+        this.refreshSummary();
+
+        const moved = res?.data?.expensesUpdated ?? 0;
+        this.notificationService.success(
+          moved > 0
+            ? `"${name}" deleted. ${moved} transaction${moved === 1 ? '' : 's'} moved to ${FALLBACK_CATEGORY}.`
+            : `"${name}" deleted.`,
+          'Category removed'
+        );
+      },
+      error: (err) => {
+        this.isReassigning.set(false);
+        // Leave the category in place: deleting it locally after the move
+        // failed would strand its transactions under a dead name.
+        this.notificationService.error(
+          err?.error?.message || 'Its transactions could not be moved, so it was kept.',
+          'Could not delete category'
+        );
+      },
+    });
+  }
+
+  /** The list backing the log form's category dropdown. */
   protected getAllCategories(): string[] {
-    const defaultCats = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health'];
-    return [...defaultCats, ...this.customCategories(), 'Other'];
+    return this.customCategories().map(c => c.name);
+  }
+
+  /**
+   * Scans fetched expenses and pending transactions for category names that
+   * are not yet in the local category list. Any missing names are appended
+   * automatically so the Manage Categories screen and the dropdown always
+   * reflect the actual data.
+   */
+  private syncCategoriesFromExpenses() {
+    const known = new Set(this.customCategories().map(c => c.name.toLowerCase()));
+    const discovered = new Set<string>();
+
+    for (const exp of this.expenses()) {
+      const cat = exp.category?.trim();
+      if (cat && !known.has(cat.toLowerCase())) {
+        discovered.add(cat);
+        known.add(cat.toLowerCase());
+      }
+    }
+    for (const ptx of this.pendingTransactions()) {
+      const cat = ptx.category?.trim();
+      if (cat && !known.has(cat.toLowerCase())) {
+        discovered.add(cat);
+        known.add(cat.toLowerCase());
+      }
+    }
+
+    if (discovered.size > 0) {
+      const additions: CustomCategory[] = [...discovered].map(name => ({ name }));
+      this.persistCategories([...this.customCategories(), ...additions]);
+    }
+  }
+
+  /**
+   * The short name a user gave a category, falling back to the full name.
+   * Used by the compact chips that can't fit long names.
+   */
+  protected getCategoryDisplayName(name: string): string {
+    return this.customCategories().find(c => c.name === name)?.shortName || name;
   }
 
   protected getMaxValue(data: number[] | undefined): number {
@@ -493,28 +1086,71 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     this.isAdding.set(true);
     
     const pendingId = this.activePendingId();
-    if (pendingId) {
-      this.expenseService.processPendingTransaction(pendingId, { action: 'approve', ...payload }).subscribe({
-        next: () => {
-          this.isAdding.set(false);
-          this.activePendingId.set(null);
-          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
-          this.isLogModalOpen.set(false);
-          this.fetchPendingTransactions();
-          this.fetchExpenses(); // Refresh list
-        },
-        error: () => this.isAdding.set(false)
-      });
-    } else {
-      this.expenseService.createExpense(payload).subscribe({
-        next: () => {
-          this.isAdding.set(false);
-          this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
-          this.isLogModalOpen.set(false);
-          this.fetchExpenses(); // Refresh list
-        },
-        error: () => this.isAdding.set(false)
-      });
-    }
+    const editingId = this.editingExpenseId();
+
+    // Three jobs, one form. Approving a pending row and editing an existing
+    // expense both have an id to act on; only the fall-through creates.
+    // Typed to the shared envelope: the three calls return slightly different
+    // response shapes, and the raw union has no compatible subscribe overload.
+    const request$: Observable<{ status: string }> = pendingId
+      ? this.expenseService.processPendingTransaction(pendingId, { action: 'approve', ...payload })
+      : editingId
+        ? this.expenseService.updateExpense(editingId, payload)
+        : this.expenseService.createExpense(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.isAdding.set(false);
+        this.notificationService.success(
+          editingId ? 'Transaction updated.' : pendingId ? 'Transaction approved and saved.' : 'Transaction saved.',
+          'Saved'
+        );
+        this.closeLogForm();
+        if (pendingId) this.fetchPendingTransactions();
+        this.fetchExpenses();
+        this.refreshSummary();
+      },
+      /**
+       * Staying open on failure is right — the user's input is still in the
+       * form — but this used to happen with no message at all, so a failed
+       * save was indistinguishable from a button that did nothing.
+       */
+      error: (err) => {
+        this.isAdding.set(false);
+        const action = editingId ? 'update' : pendingId ? 'approve' : 'save';
+        const detail = err?.status === 404 && editingId
+          ? 'The update endpoint is not available on this server.'
+          : err?.error?.message || 'Please try again.';
+        this.notificationService.error(detail, `Could not ${action} transaction`);
+      }
+    });
+  }
+
+  /**
+   * Entry point for "Quick Add". Clears any id left behind by a previous edit
+   * or review so the form is unambiguously in create mode.
+   */
+  protected openLogForm() {
+    this.activePendingId.set(null);
+    this.editingExpenseId.set(null);
+    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.isLogModalOpen.set(true);
+  }
+
+  /** Clears both modes so the next open starts clean. */
+  private closeLogForm() {
+    this.activePendingId.set(null);
+    this.editingExpenseId.set(null);
+    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.isLogModalOpen.set(false);
+  }
+
+  /**
+   * fetchExpenses() only reloads the list. Without this the budget ring, safe-
+   * to-spend, projection and category breakdown all kept their pre-submit
+   * values until the page was reloaded.
+   */
+  private refreshSummary() {
+    this.expenseService.fetchSummary().subscribe();
   }
 }

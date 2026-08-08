@@ -5,36 +5,25 @@
   <header class="dashboard-header">
     
     <!-- Back Button -->
-    <a routerLink="/" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--lm-color-text-primary); text-decoration: none; flex-shrink: 0;" aria-label="Go Back">
-      <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+    <a routerLink="/" class="hh-back-btn" aria-label="Go Back">
+      <span class="material-symbols-outlined">arrow_back</span>
     </a>
 
     <!-- Title & Subtitle -->
-    <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
-      <h1 style="font-size: 20px; font-weight: 800; color: rgba(255, 255, 255, 0.9); margin: 0; line-height: 1.1; letter-spacing: -0.02em;">Expenses</h1>
-      <p style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Track your financial footprint</p>
+    <div class="hh-title-wrap">
+      <h1 class="hh-title">Expenses</h1>
+      <p class="hh-subtitle">Track your spending</p>
     </div>
 
     <!-- Actions Area -->
-    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
       
       <!-- Quick Add -->
-      <button (click)="isLogModalOpen.set(true)" title="Quick Add" class="hh-btn">
+      <button (click)="openLogForm()" title="Quick Add" class="hh-btn">
         <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
       </button>
 
-      <!-- History -->
-      <button (click)="isHistoryModalOpen.set(true)" title="History" class="hh-btn">
-        <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
-      </button>
-
-      <!-- Pending -->
-      <button (click)="isPendingModalOpen.set(true)" title="Pending" class="hh-btn">
-        <span class="material-symbols-outlined" style="font-size: 20px;">mark_email_unread</span>
-        @if (pendingTransactions().length > 0) {
-          <span class="indicator-dot"></span>
-        }
-      </button>
+      <!-- History and Pending now live in the shortcut cards below the header. -->
 
       <!-- Settings -->
       <div style="position: relative;">
@@ -63,82 +52,116 @@
     </div>
   </header>
 
+  <!-- ── Shortcut cards: History / Pending ──
+       Moved out of the header, where they were two unlabelled glyphs competing
+       with the title for width. As cards they can carry a name and a count. -->
+  <div class="shortcut-row">
+    <button class="shortcut-card" (click)="isHistoryModalOpen.set(true)">
+      <span class="shortcut-icon shortcut-icon--history">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </span>
+      <span class="shortcut-text">
+        <span class="shortcut-title">History</span>
+        <span class="shortcut-sub">{{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}</span>
+      </span>
+      <span class="material-symbols-outlined shortcut-chevron">chevron_right</span>
+    </button>
+
+    <button class="shortcut-card" [class.has-pending]="pendingTransactions().length > 0" (click)="isPendingModalOpen.set(true)">
+      <span class="shortcut-icon shortcut-icon--pending">
+        <span class="material-symbols-outlined">mark_email_unread</span>
+        @if (pendingTransactions().length > 0) {
+          <span class="indicator-count">{{ pendingTransactions().length > 99 ? '99+' : pendingTransactions().length }}</span>
+        }
+      </span>
+      <span class="shortcut-text">
+        <span class="shortcut-title">Pending</span>
+        <span class="shortcut-sub">
+          @if (pendingTransactions().length > 0) {
+            {{ pendingTransactions().length }} to review
+          } @else {
+            All caught up
+          }
+        </span>
+      </span>
+      <span class="material-symbols-outlined shortcut-chevron">chevron_right</span>
+    </button>
+  </div>
+
   <!-- ── Automation Settings Modal ── -->
   <app-modal [isOpen]="isSettingsOpen()" (onClose)="toggleAutomationSettings()" title="Automation Engine" icon="settings_suggest">
-    <div style="padding: 0 16px 16px;">
+    <div class="pop-body">
 
-          <!-- Core Toggle -->
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;">
-            <div style="max-width: 80%;">
-              <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--lm-color-text-primary);">Enable Automatic Transaction Detection</h3>
-              <p style="font-size: 12px; color: var(--lm-color-text-muted); line-height: 1.4;">
-                This feature securely reads supported bank transaction emails in your Gmail inbox to suggest expense entries in the background. Every transaction must be confirmed by you before it's saved.
-              </p>
+      <!-- Core Toggle -->
+      <div class="pop-card pop-card-row">
+        <div>
+          <h3 class="pop-card-title">Automatic Transaction Detection</h3>
+          <p class="pop-card-desc">
+            Reads supported bank alert emails in your Gmail inbox and suggests expense entries in the background. Nothing is saved until you confirm it.
+          </p>
+        </div>
+
+        <label class="switch">
+          <input type="checkbox" [checked]="automationStatus()?.expenseAutomationEnabled" (change)="handleAutomationToggle(toggle.checked)" #toggle>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <!-- Connection Status Card -->
+      @if (automationStatus()?.expenseAutomationEnabled) {
+        <div class="pop-card pop-card-row fade-in-bottom">
+          <div>
+            <h3 class="pop-card-title">Gmail Connection</h3>
+            <div class="pop-status">
+              <span class="status-indicator" [class.connected]="automationStatus()?.gmailConnected"></span>
+              <span>{{ automationStatus()?.gmailConnected ? 'Connected' : 'Disconnected' }}</span>
             </div>
-
-            <label class="switch">
-              <input type="checkbox" [checked]="automationStatus()?.expenseAutomationEnabled" (change)="handleAutomationToggle(toggle.checked)" #toggle>
-              <span class="slider round"></span>
-            </label>
           </div>
 
-          <!-- Connection Status Card -->
-          @if (automationStatus()?.expenseAutomationEnabled) {
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;" class="fade-in-bottom">
-              <div>
-                <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--lm-color-text-primary);">Gmail Connection</h3>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span class="status-indicator" [class.connected]="automationStatus()?.gmailConnected"></span>
-                  <span style="font-size: 13px; color: var(--lm-color-text-secondary);">
-                    {{ automationStatus()?.gmailConnected ? 'Connected' : 'Disconnected' }}
-                  </span>
-                </div>
-              </div>
+          @if (automationStatus()?.gmailConnected) {
+            <button (click)="disconnectGmail()" [disabled]="isSavingSettings()" class="pop-btn pop-btn--danger">
+              <span class="material-symbols-outlined">link_off</span> Disconnect
+            </button>
+          } @else {
+            <button (click)="connectGmail()" class="pop-btn pop-btn--success">
+              <span class="material-symbols-outlined">link</span> Connect
+            </button>
+          }
+        </div>
 
-              @if (automationStatus()?.gmailConnected) {
-                <button (click)="disconnectGmail()" [disabled]="isSavingSettings()" class="settings-btn" style="border: 1px solid var(--lm-color-error); background: rgba(225, 29, 72, 0.08); color: var(--lm-color-error); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">link_off</span> Disconnect Gmail
-                </button>
-              } @else {
-                <button (click)="connectGmail()" class="settings-btn" style="border: 1px solid var(--lm-color-success); background: rgba(34, 197, 94, 0.08); color: var(--lm-color-success); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">link</span> Connect Gmail
-                </button>
+        <!-- Supported Banks Section -->
+        @if (automationStatus()?.gmailConnected) {
+          <div class="fade-in-bottom">
+            <h4 class="pop-eyebrow">Supported Banks</h4>
+            <div class="pop-list">
+              @for (bank of automationStatus()?.supportedBanks; track bank) {
+                <div class="pop-row">
+                  <span class="pop-row-label">
+                    <span class="material-symbols-outlined">account_balance</span>
+                    {{ bank }} Bank
+                  </span>
+                  <input type="checkbox" class="pop-row-checkbox" [checked]="automationStatus()?.enabledBanks?.includes(bank)" (change)="handleBankToggle(bank, bankCheckbox.checked)" #bankCheckbox>
+                </div>
               }
             </div>
-
-            <!-- Supported Banks Section -->
-            @if (automationStatus()?.gmailConnected) {
-              <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px;" class="fade-in-bottom">
-                <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--lm-color-text-primary);">Supported Banks</h3>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                  @for (bank of automationStatus()?.supportedBanks; track bank) {
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
-                      <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="material-symbols-outlined" style="color: var(--lm-color-primary);">account_balance</span>
-                        <span style="font-size: 14px; font-weight: 500;">{{ bank }} Bank</span>
-                      </div>
-                      <input type="checkbox" [checked]="automationStatus()?.enabledBanks?.includes(bank)" (change)="handleBankToggle(bank, bankCheckbox.checked)" #bankCheckbox style="width: 18px; height: 18px; accent-color: var(--lm-color-primary); cursor: pointer;">
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-          }
-
-          <!-- Privacy/Security Notice -->
-          <div style="background: rgba(255, 255, 255, 0.01); border-left: 3px solid var(--lm-color-primary); border-radius: 4px 12px 12px 4px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start;">
-            <span class="material-symbols-outlined" style="color: var(--lm-color-primary); font-size: 20px; margin-top: 2px;">security</span>
-            <p style="font-size: 11.5px; color: var(--lm-color-text-muted); line-height: 1.5; margin: 0;">
-              <strong>Least-Privilege Security Policy:</strong> Your data and access tokens remain exclusively on the backend. Emails are never modified, deleted, archived, sent, or marked as read. We only look for debit alert messages matching registered banking templates.
-            </p>
           </div>
+        }
+      }
+
+      <!-- Privacy/Security Notice -->
+      <div class="pop-note">
+        <span class="material-symbols-outlined">security</span>
+        <p>
+          <strong>Least-privilege policy.</strong> Your data and access tokens stay on the backend. Emails are never modified, deleted, archived, sent, or marked as read — we only read debit alerts matching registered bank templates.
+        </p>
+      </div>
 
     </div>
   </app-modal>
 
   <!-- ── Monthly Summary Block ── -->
   @if (expenseService.summary(); as summary) {
-    <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px;">
+    <section class="flow-item fade-in-bottom">
       <div class="expense-summary-bento">
         
         <!-- Top Section: Overview -->
@@ -149,7 +172,28 @@
           </div>
           <div class="es-budget-block">
             <span class="es-label">Budget</span>
-            <span class="es-amount-small">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+            @if (isEditingBudget()) {
+              <div class="budget-edit">
+                <span class="budget-edit-prefix">₹</span>
+                <input type="number" inputmode="numeric" class="budget-edit-input"
+                       [formControl]="budgetControl"
+                       (keyup.enter)="saveBudget()"
+                       (keyup.escape)="cancelBudgetEdit()"
+                       aria-label="Monthly budget">
+                <button class="budget-edit-btn budget-edit-btn--save" (click)="saveBudget()"
+                        [disabled]="budgetControl.invalid || isSavingBudget()" title="Save budget">
+                  <span class="material-symbols-outlined">{{ isSavingBudget() ? 'sync' : 'check' }}</span>
+                </button>
+                <button class="budget-edit-btn" (click)="cancelBudgetEdit()" title="Cancel">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            } @else {
+              <button class="budget-display" (click)="openBudgetEditor()" title="Edit monthly budget">
+                <span class="es-amount-small">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            }
           </div>
         </div>
 
@@ -189,23 +233,97 @@
             </div>
           </div>
 
-          @if (summary.forecast) {
-            <div class="es-metric-card">
-              <div class="es-metric-icon orange">
-                <span class="material-symbols-outlined">monitoring</span>
-              </div>
-              <div class="es-metric-info" style="flex: 1; min-width: 0; padding-top: 2px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span class="es-metric-lbl">Projected</span>
+          @if (summary.forecast && projection(); as proj) {
+            <div class="es-metric-card proj-card" [class.proj-card--over]="proj.isOver">
+              <div class="proj-head">
+                <div class="es-metric-icon orange">
+                  <span class="material-symbols-outlined">monitoring</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                  <span class="es-metric-val">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
-                  <span style="font-size: 11px; font-weight: 500; line-height: 1.3; opacity: 0.9;"
-                        [ngStyle]="{'color': summary.forecast.statusColor}">
-                    {{ summary.forecast.statusText }}
-                  </span>
+                <div class="proj-head-text">
+                  <span class="es-metric-lbl">Projected month end</span>
+                  <span class="proj-value">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
                 </div>
+                @if (proj.isOver) {
+                  <span class="proj-delta">+₹{{ proj.overAmount | number:'1.0-0' }}</span>
+                }
               </div>
+
+              <!-- Cumulative month: actual → forecast, against the budget line -->
+              @if (monthProjection(); as mp) {
+                <div class="mproj">
+                  <div class="mproj-plot">
+                    <svg class="mproj-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="mprojWash" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="var(--lm-color-primary)" stop-opacity="0.28" />
+                          <stop offset="100%" stop-color="var(--lm-color-primary)" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
+
+                      <!-- Budget threshold -->
+                      <line x1="0" [attr.y1]="100 - mp.budgetYPct" x2="100" [attr.y2]="100 - mp.budgetYPct"
+                            stroke="var(--lm-color-text-muted)" stroke-width="1" stroke-dasharray="3 3"
+                            vector-effect="non-scaling-stroke" opacity="0.65" />
+
+                      <path [attr.d]="mp.areaPath" fill="url(#mprojWash)" />
+
+                      <!-- Where spending is heading: dashed, because it hasn't happened -->
+                      <path [attr.d]="mp.forecastPath" fill="none"
+                            [attr.stroke]="mp.crossesBudget ? 'var(--lm-color-error)' : 'var(--lm-color-success)'"
+                            stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"
+                            vector-effect="non-scaling-stroke" />
+
+                      <!-- What has actually been spent: solid -->
+                      <path [attr.d]="mp.actualPath" fill="none" stroke="var(--lm-color-primary)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            vector-effect="non-scaling-stroke" />
+                    </svg>
+
+                    <!-- Limit and remaining share one tag on the rule: "left"
+                         is precisely the gap between the solid line and this
+                         rule, and two separate tags competed for the same space. -->
+                    <!-- Label positions come from deconflictTags(), which
+                         guarantees the three never collide at any values. -->
+                    <span class="mproj-tag mproj-tag--budget" [style.bottom.%]="mp.budgetTagY">
+                      Budget ₹{{ mp.budget | number:'1.0-0' }}
+                      <span class="mproj-tag-sub">
+                        @if (mp.remaining > 0) {
+                          · ₹{{ mp.remaining | number:'1.0-0' }} left
+                        } @else {
+                          · ₹{{ mp.spentToDate - mp.budget | number:'1.0-0' }} over
+                        }
+                      </span>
+                    </span>
+
+                    <span class="mproj-node mproj-node--today"
+                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.todayYPct"></span>
+                    <span class="mproj-tag mproj-tag--spent"
+                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.spentTagY">
+                      Spent ₹{{ mp.spentToDate | number:'1.0-0' }}
+                    </span>
+
+                    <span class="mproj-node mproj-node--end"
+                          [class.is-over]="mp.crossesBudget"
+                          [style.bottom.%]="mp.endYPct"></span>
+                    <span class="mproj-tag mproj-tag--proj"
+                          [class.is-over]="mp.crossesBudget"
+                          [style.bottom.%]="mp.projTagY">
+                      Projected ₹{{ mp.projected | number:'1.0-0' }}
+                    </span>
+                  </div>
+
+                  <div class="mproj-axis">
+                    <span>Day 1</span>
+                    <span class="mproj-axis-today">Day {{ mp.today }} · today</span>
+                    <span>Day {{ mp.daysInMonth }}</span>
+                  </div>
+                </div>
+              }
+
+              <p class="proj-status">
+                <span class="material-symbols-outlined">{{ proj.isOver ? 'warning' : 'check_circle' }}</span>
+                {{ summary.forecast.statusText }}
+              </p>
             </div>
           }
         </div>
@@ -213,27 +331,41 @@
       </div>
     </section>
 
-    <!-- ── Spending Trend Chart ── -->
-    @if (summary.spendingTrend && summary.spendingTrend.labels && summary.spendingTrend.labels.length > 0) {
-      <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px; animation-delay: 0.1s;">
-        <div class="trend-bento">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+    <!-- ── Recent Transactions (preview of the last 5, full list in History) ── -->
+    @if (recentExpenses().length > 0) {
+      <section class="flow-item fade-in-bottom" style="animation-delay: 0.05s;">
+        <div class="recent-bento">
+          <div class="recent-head">
             <div>
-              <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 4px 0;">Spending Trend</h3>
-              <p style="font-size: 12px; color: var(--lm-color-text-muted); margin: 0;">This month</p>
+              <h3 class="recent-title">Recent Transactions</h3>
+              <p class="recent-sub">Last {{ recentExpenses().length }} of {{ expenses().length }}</p>
             </div>
-            <div style="text-align: right;">
-              <span style="font-size: 18px; font-weight: 800; color: var(--lm-color-text-primary);">₹{{ summary.spendingTrend.avgPerWeek | number:'1.0-0' }}</span>
-              <span style="font-size: 11px; color: var(--lm-color-text-muted); display: block;">avg/week</span>
-            </div>
+            <button class="recent-viewall" (click)="isHistoryModalOpen.set(true)">
+              View all
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
           </div>
-          <div class="trend-chart-wrap">
-            @for (val of summary.spendingTrend.data; track $index) {
-              <div class="trend-bar-col">
-                <div class="trend-bar-track">
-                  <div class="trend-bar-fill" [style.height.%]="(val / getMaxValue(summary.spendingTrend.data)) * 100"></div>
+
+          <div class="recent-list">
+            @for (exp of recentExpenses(); track exp._id) {
+              <div class="recent-row">
+                <div class="txn-icon-circle recent-row-icon" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                  <span class="material-symbols-outlined">
+                    {{ exp.category === 'Food' ? 'restaurant' :
+                       exp.category === 'Transport' ? 'directions_car' :
+                       exp.category === 'Shopping' ? 'local_mall' :
+                       exp.category === 'Utilities' ? 'bolt' :
+                       exp.category === 'Entertainment' ? 'movie' :
+                       exp.category === 'Health' ? 'medical_services' : 'home' }}
+                  </span>
                 </div>
-                <span class="trend-bar-lbl">{{ summary.spendingTrend.labels[$index] }}</span>
+
+                <div class="recent-row-info">
+                  <span class="recent-row-merchant">{{ exp.merchant }}</span>
+                  <span class="recent-row-meta">{{ exp.date | date:'MMM d' }} · {{ exp.paymentMethod }}</span>
+                </div>
+
+                <span class="recent-row-amount">₹{{ exp.amount | number:'1.0-0' }}</span>
               </div>
             }
           </div>
@@ -241,10 +373,94 @@
       </section>
     }
 
+    <!-- ── Spending Trend Chart ── -->
+    @if (summary.spendingTrend && summary.spendingTrend.labels && summary.spendingTrend.labels.length > 0) {
+      <section class="flow-item fade-in-bottom" style="animation-delay: 0.1s;">
+        <div class="trend-bento">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 4px 0;">Daily Spending</h3>
+              <p style="font-size: 12px; color: var(--lm-color-text-muted); margin: 0;">{{ weekRangeLabel() }}</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 18px; font-weight: 800; color: var(--lm-color-text-primary);">₹{{ summary.spendingTrend.avgPerWeek | number:'1.0-0' }}</span>
+              <span style="font-size: 11px; color: var(--lm-color-text-muted); display: block;">last 7 days</span>
+            </div>
+          </div>
+
+          <!-- Line chart, newest on the right: the last point is always today. -->
+          <div class="lchart">
+            <div class="lchart-plot">
+              <svg class="lchart-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="lchartWash" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--lm-color-primary)" stop-opacity="0.22" />
+                    <stop offset="100%" stop-color="var(--lm-color-primary)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <path [attr.d]="trendAreaPath()" fill="url(#lchartWash)" />
+                <!-- non-scaling-stroke keeps the line an even 2px even though the
+                     viewBox is stretched to fill the card. -->
+                <path [attr.d]="trendLinePath()"
+                      fill="none"
+                      stroke="var(--lm-color-primary)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      vector-effect="non-scaling-stroke" />
+              </svg>
+
+              <!-- Dots and values as HTML so they stay round and upright. -->
+              @for (p of trendPoints(); track p.date; let i = $index) {
+                <div class="lchart-point"
+                     tabindex="0"
+                     role="button"
+                     [class.is-today]="p.isToday"
+                     [class.is-peak]="p.amount === peakDayAmount() && p.amount > 0"
+                     [class.is-open]="isDayDetailOpen(i)"
+                     [style.left.%]="p.xPct"
+                     [style.bottom.%]="p.yPct"
+                     (click)="toggleDayDetail(i)"
+                     (keyup.enter)="toggleDayDetail(i)"
+                     (keyup.space)="toggleDayDetail(i)"
+                     (mouseenter)="hoveredBar.set(i)"
+                     (mouseleave)="hoveredBar.set(null)"
+                     (focus)="hoveredBar.set(i)"
+                     (blur)="hoveredBar.set(null)"
+                     [attr.aria-label]="p.label + ' ' + p.dayOfMonth + ' ' + p.month + ': ₹' + (p.amount | number:'1.0-0')">
+
+                  <!-- Tapping swaps the abbreviated chip for the exact figure
+                       and the full date; touch has no hover to rely on. -->
+                  @if (isDayDetailOpen(i)) {
+                    <span class="lchart-detail" role="tooltip">
+                      <span class="lchart-detail-val">₹{{ p.amount | number:'1.0-0' }}</span>
+                      <span class="lchart-detail-day">{{ p.label }} {{ p.dayOfMonth }} {{ p.month }}</span>
+                    </span>
+                  } @else {
+                    <span class="lchart-val">{{ formatCompact(p.amount) }}</span>
+                  }
+                  <span class="lchart-dot"></span>
+                </div>
+              }
+            </div>
+
+            <div class="lchart-axis">
+              @for (p of trendPoints(); track p.date) {
+                <div class="lchart-tick" [class.is-today]="p.isToday">
+                  <span class="lchart-dow">{{ p.isToday ? 'Today' : p.label }}</span>
+                  <span class="lchart-date">{{ p.dayOfMonth }} {{ p.month }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
     <!-- ── Category Breakdown ── -->
     @if (summary.topCategories && summary.topCategories.length > 0) {
-      <section class="flow-item fade-in-bottom" style="margin-bottom: 24px; padding: 0 4px; animation-delay: 0.2s;">
-        <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 16px 4px;">Category Breakdown</h3>
+      <section class="flow-item fade-in-bottom" style="animation-delay: 0.2s;">
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 16px;">Category Breakdown</h3>
         <div class="cat-list-bento">
           @for (cat of summary.topCategories; track cat.name) {
             <div class="cat-row">
@@ -275,7 +491,11 @@
     }
   }
 
-  <app-modal [isOpen]="isLogModalOpen()" (onClose)="cancelReview()" [title]="activePendingId() ? 'Complete Pending Review' : 'Log New Expense'" [icon]="activePendingId() ? 'rule' : 'add_circle'">
+  <app-modal
+    [isOpen]="isLogModalOpen()"
+    (onClose)="cancelReview()"
+    [title]="activePendingId() ? 'Complete Pending Review' : editingExpenseId() ? 'Edit Transaction' : 'Log New Expense'"
+    [icon]="activePendingId() ? 'rule' : editingExpenseId() ? 'edit' : 'add_circle'">
       <div style="background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; gap: 16px; padding: 0 16px;">
 
         <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="expense-form">
@@ -356,7 +576,7 @@
               @if (isAdding()) {
                 <span class="material-symbols-outlined spin">sync</span> Saving...
               } @else {
-                {{ activePendingId() ? 'Approve & Save Transaction' : 'Save Transaction' }}
+                {{ activePendingId() ? 'Approve & Save Transaction' : editingExpenseId() ? 'Update Transaction' : 'Save Transaction' }}
               }
             </button>
           </div>
@@ -366,20 +586,20 @@
 
   <!-- ── 2. History ── -->
   <app-modal [isOpen]="isHistoryModalOpen()" (onClose)="isHistoryModalOpen.set(false)" title="History" icon="receipt_long">
-    <div class="history-section-wrap">
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; margin-top: -8px;">
-        <button (click)="fetchExpenses()" [disabled]="isLoading()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer;">
-          <span class="material-symbols-outlined" style="font-size: 14px;" [class.spin]="isLoading()">refresh</span> Refresh
+    <div class="pop-body history-section-wrap">
+      <div class="pop-toolbar">
+        <button class="pop-btn" (click)="fetchExpenses()" [disabled]="isLoading()">
+          <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span> Refresh
         </button>
       </div>
 
         @if (expenses().length === 0 && !isLoading()) {
-          <div class="history-empty">
-            <div class="empty-icon-wrap">
-              <span class="material-symbols-outlined">inbox</span>
+          <div class="pop-empty">
+            <div class="pop-empty-icon">
+              <span class="material-symbols-outlined">receipt_long</span>
             </div>
-            <p class="empty-title">No transactions yet</p>
-            <p class="empty-sub">Your recent expenses will appear here.</p>
+            <p class="pop-empty-title">No transactions yet</p>
+            <p class="pop-empty-sub">Expenses you log — or approve from Gmail — will appear here.</p>
           </div>
         } @else {
           <div class="txn-card-list">
@@ -455,88 +675,150 @@
 
   <!-- ── 3. Pending Transactions (Auto Log) ── -->
   <app-modal [isOpen]="isPendingModalOpen()" (onClose)="isPendingModalOpen.set(false)" title="Pending Review" icon="mark_email_unread">
-    <div style="padding: 20px; border-radius: 24px; background: rgba(245, 158, 11, 0.02); border: 1px solid rgba(245, 158, 11, 0.2);">
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; margin-top: -8px;">
+    <div class="pop-body">
+      <div class="pop-toolbar">
         <button
           type="button"
+          class="pop-btn pop-btn--warning"
           (click)="syncGmailManually()"
           [disabled]="isSyncDisabled()"
           [title]="syncCooldownSeconds() > 0 ? 'Google is rate-limiting this account' : 'Sync Gmail Transactions'"
-          style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--lm-color-warning); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;"
         >
-          <span class="material-symbols-outlined" style="font-size: 14px;" [class.spin]="isSyncing()">sync</span>
+          <span class="material-symbols-outlined" [class.spin]="isSyncing()">sync</span>
           <span>
             @if (isSyncing()) {
-              Syncing...
+              Syncing…
             } @else if (syncCooldownSeconds() > 0) {
               Wait {{ syncCooldownSeconds() }}s
             } @else {
-              Refresh
+              Sync now
             }
           </span>
         </button>
       </div>
 
-        @if (pendingTransactions().length === 0) {
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px; gap: 10px; opacity: 0.6;">
-            <span class="material-symbols-outlined" style="font-size: 36px; color: var(--lm-color-warning); opacity: 0.5;">inbox</span>
-            <p style="font-size: 14px; color: var(--lm-color-text-muted); font-weight: 500; margin: 0;">No pending transactions</p>
-            <p style="font-size: 12px; color: var(--lm-color-text-muted); margin: 0; text-align: center; max-width: 260px; line-height: 1.4;">New bank transactions from Gmail will appear here for your review.</p>
+      @if (pendingTransactions().length === 0) {
+        <div class="pop-empty">
+          <div class="pop-empty-icon">
+            <span class="material-symbols-outlined">inbox</span>
           </div>
-        } @else {
-          <div class="tx-list">
-            @for (ptx of pendingTransactions(); track ptx._id) {
-              <div class="tx-item" style="background: rgba(245, 158, 11, 0.05); border: 1px dashed var(--lm-color-warning); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
-                <div class="tx-icon">
-                  <span class="material-symbols-outlined" style="color: var(--lm-color-warning);">schedule</span>
+          <p class="pop-empty-title">Nothing to review</p>
+          <p class="pop-empty-sub">New bank transactions detected in Gmail will appear here for your approval.</p>
+        </div>
+      } @else {
+        <div class="pending-list">
+          @for (ptx of pendingTransactions(); track ptx._id) {
+            <div class="pending-item">
+              <div class="pending-item-head">
+                <span class="pending-icon">
+                  <span class="material-symbols-outlined">schedule</span>
+                </span>
+                <div class="pending-info">
+                  <h4 class="pending-merchant">{{ ptx.merchant }}</h4>
+                  <span class="pending-meta">{{ ptx.date | date:'MMM d' }} · {{ ptx.paymentMethod }}</span>
                 </div>
-                <div class="tx-body">
-                  <h4 class="tx-merchant">{{ ptx.merchant | slice:0:30 }}{{ ptx.merchant.length > 30 ? '...' : '' }}</h4>
-                  <div class="tx-meta">
-                    <span class="tx-date-method">{{ ptx.date | date:'MMM d' }} • {{ ptx.paymentMethod }}</span>
-                  </div>
-                </div>
-                <div class="tx-trailing" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                  <span class="tx-amount">₹{{ ptx.amount | number:'1.0-0' }}</span>
-                  <div style="display: flex; gap: 8px;">
-                    <button (click)="processPending(ptx._id, 'ignore')" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 600;">Ignore</button>
-                    <button (click)="reviewPending(ptx)" style="background: var(--lm-color-warning); border: none; color: #000; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 700;">Review</button>
-                  </div>
-                </div>
+                <span class="pending-amount">₹{{ ptx.amount | number:'1.0-0' }}</span>
               </div>
-            }
-          </div>
-        }
+
+              <div class="pending-actions">
+                <button class="pop-btn" (click)="processPending(ptx._id, 'ignore')">Ignore</button>
+                <button class="pop-btn pop-btn--solid-warning" (click)="reviewPending(ptx)">Review</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   </app-modal>
   
   <!-- ── Category Settings Modal ── -->
   <app-modal [isOpen]="isCategorySettingsOpen()" (onClose)="isCategorySettingsOpen.set(false)" title="Manage Categories" icon="category">
-    <div style="padding: 0 4px 16px;">
-      <p style="font-size: 13px; color: var(--lm-color-text-muted); margin-bottom: 20px; line-height: 1.4;">
-        Add custom categories to personalize your expense tracking.
+    <div class="pop-body">
+      <p class="pop-card-desc">
+        Rename, remove, or add categories. Deleting one moves its transactions to {{ fallbackCategory }}.
       </p>
-      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
-        <input type="text" [formControl]="newCategoryControl" placeholder="New category name" class="premium-input" style="flex: 1;" (keyup.enter)="addCategory()">
-        <button class="premium-submit-btn" style="width: auto; padding: 0 20px; margin-top: 0; min-height: 48px;" (click)="addCategory()">Add</button>
+
+      <div class="cat-add">
+        <div class="cat-add-row">
+          <input type="text" [formControl]="newCategoryControl" placeholder="Category name" class="premium-input cat-add-input" (keyup.enter)="addCategory()">
+          <input type="text" [formControl]="newCategoryShortControl" placeholder="Short" maxlength="8" class="premium-input cat-add-input cat-add-short" (keyup.enter)="addCategory()">
+          <button class="pop-btn cat-add-btn" (click)="addCategory()" [disabled]="!newCategoryControl.value?.trim()">Add</button>
+        </div>
+        <p class="cat-add-hint">Short name is optional — used where the full name won't fit.</p>
       </div>
 
-      <h4 style="font-size: 12px; font-weight: 600; color: var(--lm-color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Custom Categories</h4>
-      
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        @for (cat of customCategories(); track cat) {
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px 16px; border-radius: 12px;">
-            <span style="font-size: 14px; font-weight: 500; color: var(--lm-color-text-primary);">{{ cat }}</span>
-            <button (click)="removeCategory(cat)" style="background: transparent; border: none; color: var(--lm-color-error); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px;">
-              <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-            </button>
-          </div>
-        }
-        @if (customCategories().length === 0) {
-          <div style="text-align: center; padding: 24px 0; background: rgba(255,255,255,0.01); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.08);">
-            <p style="color: var(--lm-color-text-secondary); font-size: 13px; margin: 0;">No custom categories added yet.</p>
-          </div>
-        }
+      <div>
+        <h4 class="pop-eyebrow">All Categories · {{ customCategories().length }}</h4>
+
+        <div class="pop-list">
+          @for (cat of customCategories(); track cat.name) {
+            @if (editingCategory() === cat.name) {
+              <!-- Inline editor for this row -->
+              <div class="pop-row cat-row-editing">
+                <div class="cat-edit-fields">
+                  <input type="text" [formControl]="editCategoryControl" placeholder="Category name" class="premium-input cat-add-input" (keyup.enter)="saveCategory()">
+                  <input type="text" [formControl]="editCategoryShortControl" placeholder="Short" maxlength="8" class="premium-input cat-add-input cat-add-short" (keyup.enter)="saveCategory()">
+                </div>
+                <div class="cat-edit-actions">
+                  <button class="pop-btn" (click)="cancelEditCategory()">Cancel</button>
+                  <button class="pop-btn cat-add-btn" (click)="saveCategory()"
+                          [disabled]="!editCategoryControl.value?.trim() || isReassigning()">
+                    {{ isReassigning() ? 'Saving…' : 'Save' }}
+                  </button>
+                </div>
+              </div>
+            } @else if (categoryPendingDelete() === cat.name) {
+              <!-- Confirm: says plainly what happens to the transactions -->
+              <div class="pop-row cat-row-confirm">
+                <p class="cat-confirm-text">
+                  Delete <strong>{{ cat.name }}</strong>?
+                  @if (categoryUsage(cat.name) > 0) {
+                    {{ categoryUsage(cat.name) }} transaction{{ categoryUsage(cat.name) === 1 ? '' : 's' }}
+                    will move to {{ fallbackCategory }}.
+                  } @else {
+                    Nothing is filed under it.
+                  }
+                </p>
+                <div class="cat-edit-actions">
+                  <button class="pop-btn" (click)="cancelDeleteCategory()" [disabled]="isReassigning()">Cancel</button>
+                  <button class="pop-btn pop-btn--solid-danger" (click)="confirmDeleteCategory(cat.name)" [disabled]="isReassigning()">
+                    {{ isReassigning() ? 'Moving…' : 'Delete' }}
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="pop-row" [class.is-protected]="isProtectedCategory(cat.name)">
+                <span class="pop-row-label cat-row-name">
+                  <span class="cat-name-line">
+                    {{ cat.name }}
+                    @if (cat.shortName) {
+                      <span class="cat-short-chip" title="Short name">{{ cat.shortName }}</span>
+                    }
+                  </span>
+                  <span class="cat-row-count">
+                    @if (isProtectedCategory(cat.name)) {
+                      Default · where deleted categories go
+                    } @else {
+                      {{ categoryUsage(cat.name) }} transaction{{ categoryUsage(cat.name) === 1 ? '' : 's' }}
+                    }
+                  </span>
+                </span>
+                <span class="cat-row-actions">
+                  <button class="pop-row-icon-btn cat-edit-btn" (click)="startEditCategory(cat)"
+                          [disabled]="isProtectedCategory(cat.name)"
+                          [title]="isProtectedCategory(cat.name) ? fallbackCategory + ' cannot be renamed' : 'Edit ' + cat.name">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="pop-row-icon-btn" (click)="askDeleteCategory(cat.name)"
+                          [disabled]="isProtectedCategory(cat.name)"
+                          [title]="isProtectedCategory(cat.name) ? fallbackCategory + ' cannot be deleted' : 'Delete ' + cat.name">
+                    <span class="material-symbols-outlined">{{ isProtectedCategory(cat.name) ? 'lock' : 'delete' }}</span>
+                  </button>
+                </span>
+              </div>
+            }
+          }
+        </div>
       </div>
     </div>
   </app-modal>
@@ -552,21 +834,15 @@
   icon="warning"
   (onClose)="cancelDelete()"
 >
-  <div style="text-align: center; padding: 10px 0 20px;">
-    <p style="color: var(--lm-color-text-secondary); margin-bottom: 24px; font-size: 15px;">
-      Are you sure you want to delete this transaction? This action cannot be undone.
+  <div class="pop-confirm">
+    <p class="pop-confirm-text">
+      Delete this transaction? This cannot be undone.
     </p>
-    <div style="display: flex; gap: 12px; justify-content: center;">
-      <button
-        type="button"
-        (click)="cancelDelete()"
-        style="padding: 10px 24px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--lm-color-text-primary); cursor: pointer; font-weight: 600;">
+    <div class="pop-confirm-actions">
+      <button type="button" class="pop-btn pop-btn--lg" (click)="cancelDelete()">
         Cancel
       </button>
-      <button
-        type="button"
-        (click)="confirmDelete()"
-        style="padding: 10px 24px; border-radius: 12px; background: var(--lm-color-error); border: 1px solid var(--lm-color-error); color: #fff; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);">
+      <button type="button" class="pop-btn pop-btn--lg pop-btn--solid-danger" (click)="confirmDelete()">
         Delete
       </button>
     </div>

@@ -48,7 +48,7 @@ export class ExpenseFormComponent implements OnInit {
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     title: ['', [Validators.required, Validators.maxLength(100)]],
-    category: ['Food & Dining', Validators.required],
+    category: ['Other', Validators.required],
     notes: [''],
     date: [this.getCurrentDateTimeLocal(), Validators.required],
     merchant: [''],
@@ -198,9 +198,13 @@ export class ExpenseFormComponent implements OnInit {
       next: (res) => {
         if (res.data && Array.isArray(res.data) && res.data.length > 0) {
           this.categories.set(res.data);
-          // If in add mode and default category isn't set yet, pick first category
-          if (this.mode() === 'add' && !this.expenseForm.get('category')?.value) {
-            this.expenseForm.patchValue({ category: res.data[0].name });
+          // If in add mode, ensure selected category exists in the list
+          if (this.mode() === 'add') {
+            const currentCat = this.expenseForm.get('category')?.value;
+            const exists = res.data.some((c) => c.name.toLowerCase() === (currentCat || '').toLowerCase());
+            if (!exists) {
+              this.expenseForm.patchValue({ category: res.data[0].name });
+            }
           }
         }
       },

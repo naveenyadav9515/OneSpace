@@ -100,14 +100,8 @@
             </span>
             <span class="es-status-pill" [class.es-status-pill--live]="isCurrentMonth()" [class.es-status-pill--future]="summary.isFutureMonth">
               <span class="status-dot"></span>
-              {{ isCurrentMonth() ? 'Current' : (summary.isFutureMonth ? 'Upcoming' : 'Archive') }}
+              {{ isCurrentMonth() ? 'Current Month' : (summary.isFutureMonth ? 'Upcoming' : 'Past Month') }}
             </span>
-            @if (!isCurrentMonth()) {
-              <button type="button" class="es-jump-btn" (click)="resetCurrentMonth()" title="Jump to Current Month (September)">
-                <span class="material-symbols-outlined">today</span>
-                <span>Current</span>
-              </button>
-            }
           </div>
           <button type="button" class="month-nav-btn" (click)="nextMonth()" title="Next month">
             <span class="material-symbols-outlined">chevron_right</span>

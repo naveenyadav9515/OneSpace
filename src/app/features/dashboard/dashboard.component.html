@@ -57,11 +57,6 @@
                 </div>
 
                 <div class="snapshot-actions">
-                   @if (!isCurrentMonth()) {
-                     <button type="button" class="snapshot-reset-icon-btn" (click)="resetCurrentMonth()" title="Jump to Current Month (September)">
-                       <span class="material-symbols-outlined">today</span>
-                     </button>
-                   }
                    <a class="snapshot-add-btn" routerLink="/expenses/add" (click)="$event.stopPropagation()" title="Quick add expense">
                      <span class="material-symbols-outlined">add</span>
                    </a>

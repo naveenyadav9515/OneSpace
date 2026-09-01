@@ -1752,43 +1752,52 @@
 
 .snapshot-header {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.snapshot-header-top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  width: 100%;
 }
 
 .snapshot-title-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .snapshot-icon-wrap {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--lm-color-text-secondary);
+  color: #06B6D4;
 }
 
 .snapshot-icon-wrap .material-symbols-outlined {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .snapshot-title-box {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .snapshot-title {
   font-size: 15px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  color: #ffffff;
   letter-spacing: -0.3px;
   line-height: 1.2;
 }
@@ -1801,15 +1810,24 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
+  line-height: 1.2;
 }
 
 .snapshot-status-pill--live {
-  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
 }
 
 .snapshot-status-pill--future {
-  color: #818cf8;
+  background: rgba(129, 140, 248, 0.12);
+  border-color: rgba(129, 140, 248, 0.25);
+  color: #a5b4fc;
 }
 
 .status-dot {
@@ -1833,164 +1851,109 @@
   50% { transform: scale(1.4); opacity: 0.7; }
 }
 
-/* ── Month Navigator in Snapshot ── */
-.snapshot-month-nav {
-  display: inline-flex;
+.snapshot-actions {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 6px;
+}
+
+.snapshot-action-btn {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.snapshot-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.snapshot-action-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* ── Month Switcher Bar ── */
+.snapshot-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.snapshot-month-nav:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
 .month-nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
   background: transparent;
-  color: var(--lm-color-text-secondary);
-  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
+  outline: none;
   transition: all 0.15s ease;
 }
 
 .month-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.month-nav-btn[disabled] {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
+.month-nav-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.month-nav-btn:focus-visible {
+  outline: 2px solid rgba(6, 182, 212, 0.5);
+  outline-offset: 1px;
+}
+
+.month-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.month-cal-icon {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .month-nav-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--lm-color-text-primary);
-  padding: 0 4px;
+  color: rgba(255, 255, 255, 0.9);
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .month-nav-label.is-current {
   color: #67e8f9;
-}
-
-.snapshot-reset-icon-btn {
-  width: 32px;
-  height: 32px;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #a5b4fc;
-  cursor: pointer;
-  transition: var(--lm-transition-fast);
-}
-
-.snapshot-reset-icon-btn:hover {
-  background: rgba(99, 102, 241, 0.3);
-  color: #fff;
-  transform: scale(1.05);
-}
-
-.snapshot-reset-icon-btn .material-symbols-outlined {
-  font-size: 16px;
-}
-
-.month-current-tag {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 8px;
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.25);
-  white-space: nowrap;
-}
-
-.month-reset-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 2px 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.month-reset-btn:hover {
-  background: rgba(99, 102, 241, 0.28);
-  color: #fff;
-  border-color: #818cf8;
-}
-
-.month-reset-btn .reset-icon {
-  font-size: 13px;
-}
-
-@media (max-width: 480px) {
-  .snapshot-header {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .snapshot-month-nav {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-.snapshot-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.snapshot-add-btn,
-.snapshot-launch-btn {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  transition: var(--lm-transition-fast);
-  text-decoration: none;
-}
-
-.snapshot-add-btn:hover,
-.snapshot-launch-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
-  transform: scale(1.05);
-}
-
-.snapshot-add-btn .material-symbols-outlined,
-.snapshot-launch-btn .material-symbols-outlined {
-  font-size: 16px;
-  font-variation-settings: 'wght' 400;
 }
 
 /* ── Main Spend (Arc + Stats) ── */

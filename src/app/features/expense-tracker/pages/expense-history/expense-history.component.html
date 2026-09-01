@@ -69,11 +69,6 @@
           <span class="history-nav-label" [class.is-current]="isCurrentPeriod()">
             {{ periodLabel() }}
           </span>
-          @if (!isCurrentPeriod()) {
-            <button type="button" class="history-reset-pill" (click)="resetToCurrentPeriod()">
-              Current
-            </button>
-          }
         </div>
         <button type="button" class="history-nav-btn" (click)="nextPeriod()" title="Next period">
           <span class="material-symbols-outlined">chevron_right</span>

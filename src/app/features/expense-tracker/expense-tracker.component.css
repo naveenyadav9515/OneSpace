@@ -1487,6 +1487,12 @@ input:checked + .slider:before {
   border-color: rgba(34, 197, 94, 0.25);
 }
 
+.es-status-pill--future {
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
 .es-status-pill .status-dot {
   width: 5px;
   height: 5px;
@@ -1497,6 +1503,10 @@ input:checked + .slider:before {
 .es-status-pill--live .status-dot {
   box-shadow: 0 0 6px #22c55e;
   animation: pulse-dot-anim 2s infinite ease-in-out;
+}
+
+.es-status-pill--future .status-dot {
+  box-shadow: 0 0 6px #818cf8;
 }
 
 .es-jump-btn {

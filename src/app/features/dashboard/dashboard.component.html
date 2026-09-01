@@ -36,9 +36,9 @@
                   </div>
                   <div class="snapshot-title-box">
                     <span class="snapshot-title">Expense Snapshot</span>
-                    <span class="snapshot-status-pill" [class.snapshot-status-pill--live]="isCurrentMonth()">
+                    <span class="snapshot-status-pill" [class.snapshot-status-pill--live]="isCurrentMonth()" [class.snapshot-status-pill--future]="summary.isFutureMonth">
                       <span class="status-dot"></span>
-                      {{ isCurrentMonth() ? 'Current Month' : 'Past Month' }}
+                      {{ isCurrentMonth() ? 'Current Month' : (summary.isFutureMonth ? 'Upcoming' : 'Past Month') }}
                     </span>
                   </div>
                 </div>
@@ -51,7 +51,7 @@
                   <span class="month-nav-label" [class.is-current]="isCurrentMonth()">
                     {{ selectedMonthLabel() }}
                   </span>
-                  <button type="button" class="month-nav-btn" [disabled]="isCurrentMonth()" (click)="nextMonth()" title="Next month">
+                  <button type="button" class="month-nav-btn" (click)="nextMonth()" title="Next month">
                     <span class="material-symbols-outlined">chevron_right</span>
                   </button>
                 </div>
@@ -99,7 +99,7 @@
 
                 <!-- Spend Info (Right Column) -->
                 <div class="snapshot-spend-details">
-                  <span class="snapshot-spend-lbl">{{ isCurrentMonth() ? 'Spent this month' : 'Spent in ' + (summary.monthName || selectedMonthLabel()) }}</span>
+                  <span class="snapshot-spend-lbl">{{ isCurrentMonth() ? 'Spent this month' : (summary.isFutureMonth ? 'Planned in ' + (summary.monthName || selectedMonthLabel()) : 'Spent in ' + (summary.monthName || selectedMonthLabel())) }}</span>
                   <div class="snapshot-spend-amount-row">
                     <span class="snapshot-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
                   </div>
@@ -121,11 +121,11 @@
                 </div>
                 <div class="snapshot-metric-card">
                   <div class="metric-icon-box cyan">
-                    <span class="material-symbols-outlined">{{ isCurrentMonth() ? 'bolt' : 'bar_chart' }}</span>
+                    <span class="material-symbols-outlined">{{ isCurrentMonth() || summary.isFutureMonth ? 'bolt' : 'bar_chart' }}</span>
                   </div>
                   <div class="metric-data">
-                    <span class="metric-lbl">{{ isCurrentMonth() ? 'Daily Limit' : 'Daily Avg' }}</span>
-                    <span class="metric-val">₹{{ (isCurrentMonth() ? dailyLimit() : avgDailySpend()) | number:'1.0-0' }}</span>
+                    <span class="metric-lbl">{{ isCurrentMonth() ? 'Daily Limit' : (summary.isFutureMonth ? 'Planned Daily' : 'Daily Avg') }}</span>
+                    <span class="metric-val">₹{{ (isCurrentMonth() || summary.isFutureMonth ? dailyLimit() : avgDailySpend()) | number:'1.0-0' }}</span>
                   </div>
                 </div>
               </div>

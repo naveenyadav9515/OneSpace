@@ -1808,6 +1808,10 @@
   color: #22c55e;
 }
 
+.snapshot-status-pill--future {
+  color: #818cf8;
+}
+
 .status-dot {
   width: 5px;
   height: 5px;
@@ -1818,6 +1822,10 @@
 .snapshot-status-pill--live .status-dot {
   box-shadow: 0 0 6px #22c55e;
   animation: pulse-dot-anim 2s infinite ease-in-out;
+}
+
+.snapshot-status-pill--future .status-dot {
+  box-shadow: 0 0 6px #818cf8;
 }
 
 @keyframes pulse-dot-anim {

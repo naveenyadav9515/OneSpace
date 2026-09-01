@@ -98,9 +98,9 @@
             <span class="month-nav-label" [class.is-current]="isCurrentMonth()">
               {{ selectedMonthLabel() }}
             </span>
-            <span class="es-status-pill" [class.es-status-pill--live]="isCurrentMonth()">
+            <span class="es-status-pill" [class.es-status-pill--live]="isCurrentMonth()" [class.es-status-pill--future]="summary.isFutureMonth">
               <span class="status-dot"></span>
-              {{ isCurrentMonth() ? 'Current' : 'Archive' }}
+              {{ isCurrentMonth() ? 'Current' : (summary.isFutureMonth ? 'Upcoming' : 'Archive') }}
             </span>
             @if (!isCurrentMonth()) {
               <button type="button" class="es-jump-btn" (click)="resetCurrentMonth()" title="Jump to Current Month (September)">
@@ -109,7 +109,7 @@
               </button>
             }
           </div>
-          <button type="button" class="month-nav-btn" [disabled]="isCurrentMonth()" (click)="nextMonth()" title="Next month">
+          <button type="button" class="month-nav-btn" (click)="nextMonth()" title="Next month">
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
@@ -117,7 +117,7 @@
         <!-- Top Row: Spent & Editable Monthly Budget -->
         <div class="es-top-row">
           <div class="es-spent-block">
-            <span class="es-label">{{ isCurrentMonth() ? 'Spent this month' : 'Spent in ' + (summary.monthName || selectedMonthLabel()) }}</span>
+            <span class="es-label">{{ isCurrentMonth() ? 'Spent this month' : (summary.isFutureMonth ? 'Planned in ' + (summary.monthName || selectedMonthLabel()) : 'Spent in ' + (summary.monthName || selectedMonthLabel())) }}</span>
             <span class="es-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
           </div>
 

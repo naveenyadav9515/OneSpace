@@ -323,14 +323,36 @@
     @if (summary.spendingTrend && summary.spendingTrend.labels && summary.spendingTrend.labels.length > 0) {
       <section class="flow-item fade-in-bottom" style="animation-delay: 0.1s;">
         <div class="trend-bento">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+          <div class="trend-header-row">
             <div>
-              <h3 style="font-size: 15px; font-weight: 700; color: var(--lm-color-text-primary); margin: 0 0 4px 0;">Daily Spending</h3>
-              <p style="font-size: 12px; color: var(--lm-color-text-muted); margin: 0;">{{ weekRangeLabel() }}</p>
+              <div class="trend-title-row">
+                <h3 class="trend-title">{{ trendGranularity() === 'daily' ? 'Daily Spending' : (trendGranularity() === 'weekly' ? 'Weekly Spending' : 'Monthly Spending') }}</h3>
+                <div class="trend-granularity-pills">
+                  <button type="button"
+                          class="granularity-btn"
+                          [class.is-active]="trendGranularity() === 'daily'"
+                          (click)="trendGranularity.set('daily')">
+                    Daily
+                  </button>
+                  <button type="button"
+                          class="granularity-btn"
+                          [class.is-active]="trendGranularity() === 'weekly'"
+                          (click)="trendGranularity.set('weekly')">
+                    Weekly
+                  </button>
+                  <button type="button"
+                          class="granularity-btn"
+                          [class.is-active]="trendGranularity() === 'monthly'"
+                          (click)="trendGranularity.set('monthly')">
+                    Monthly
+                  </button>
+                </div>
+              </div>
+              <p class="trend-subtitle">{{ trendRangeLabel() }}</p>
             </div>
-            <div style="text-align: right;">
-              <span style="font-size: 18px; font-weight: 800; color: var(--lm-color-text-primary);">₹{{ summary.spendingTrend.avgPerWeek | number:'1.0-0' }}</span>
-              <span style="font-size: 11px; color: var(--lm-color-text-muted); display: block;">last 7 days</span>
+            <div class="trend-stat-block">
+              <span class="trend-stat-amount">₹{{ trendStatAmount() | number:'1.0-0' }}</span>
+              <span class="trend-stat-sub">{{ trendStatLabel() }}</span>
             </div>
           </div>
 
@@ -371,12 +393,12 @@
                      (mouseleave)="hoveredBar.set(null)"
                      (focus)="hoveredBar.set(i)"
                      (blur)="hoveredBar.set(null)"
-                     [attr.aria-label]="p.label + ' ' + p.dayOfMonth + ' ' + p.month + ': ₹' + (p.amount | number:'1.0-0')">
+                     [attr.aria-label]="p.label + ' ' + (p.subLabel || '') + ': ₹' + (p.amount | number:'1.0-0')">
 
                   @if (isDayDetailOpen(i)) {
                     <span class="lchart-detail" role="tooltip">
                       <span class="lchart-detail-val">₹{{ p.amount | number:'1.0-0' }}</span>
-                      <span class="lchart-detail-day">{{ p.label }} {{ p.dayOfMonth }} {{ p.month }}</span>
+                      <span class="lchart-detail-day">{{ p.label }} {{ p.subLabel }}</span>
                     </span>
                   } @else {
                     <span class="lchart-val">{{ formatCompact(p.amount) }}</span>
@@ -390,7 +412,7 @@
               @for (p of trendPoints(); track p.date) {
                 <div class="lchart-tick" [class.is-today]="p.isToday">
                   <span class="lchart-dow">{{ p.isToday ? 'Today' : p.label }}</span>
-                  <span class="lchart-date">{{ p.dayOfMonth }} {{ p.month }}</span>
+                  <span class="lchart-date">{{ p.subLabel }}</span>
                 </div>
               }
             </div>

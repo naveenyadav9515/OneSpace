@@ -2226,6 +2226,96 @@ input:checked + .slider:before {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
+.trend-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trend-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.trend-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.trend-granularity-pills {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.granularity-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.granularity-btn:hover {
+  color: var(--lm-color-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.granularity-btn.is-active {
+  background: rgba(6, 182, 212, 0.18);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: #67e8f9;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(6, 182, 212, 0.2);
+}
+
+.trend-subtitle {
+  font-size: 12px;
+  color: var(--lm-color-text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.trend-stat-block {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.trend-stat-amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--lm-color-text-primary);
+  display: block;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.trend-stat-sub {
+  font-size: 11px;
+  color: var(--lm-color-text-muted);
+  display: block;
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
 /* ==========================================================================
    Daily spending — line chart
 

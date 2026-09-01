@@ -76,7 +76,8 @@ export class ExpenseTrackerComponent implements OnInit {
   protected readonly isLoading = signal<boolean>(false);
   protected readonly isSettingsDropdownOpen = signal(false);
 
-  // Spending trend hover/pin state
+  // Spending trend granularity and hover state
+  protected readonly trendGranularity = signal<'daily' | 'weekly' | 'monthly'>('daily');
   protected readonly hoveredBar = signal<number | null>(null);
   protected readonly selectedDay = signal<number | null>(null);
 
@@ -90,7 +91,7 @@ export class ExpenseTrackerComponent implements OnInit {
       return s.isCurrentMonth;
     }
     const now = new Date();
-    return this.selectedMonth() === (now.getMonth() + 1) && this.selectedYear() === now.getFullYear();
+    return this.selectedMonth() === now.getMonth() + 1 && this.selectedYear() === now.getFullYear();
   });
 
   protected readonly selectedMonthLabel = computed(() => {
@@ -239,19 +240,117 @@ export class ExpenseTrackerComponent implements OnInit {
   });
 
   protected readonly trendDays = computed(() => {
-    const trend = this.expenseService.summary()?.spendingTrend;
-    if (!trend) return [];
-    if (trend.days?.length) return trend.days;
+    const mode = this.trendGranularity();
+    const sum = this.expenseService.summary();
+    const selMonth = this.selectedMonth() - 1;
+    const selYear = this.selectedYear();
+    const allExpenses = this.expenses();
 
-    return (trend.labels ?? []).map((label, i) => ({
-      label,
-      dayOfMonth: 0,
-      month: '',
-      date: `${label}-${i}`,
-      amount: trend.data?.[i] ?? 0,
-      isToday: false,
-      isFuture: false,
-    }));
+    if (mode === 'daily') {
+      const trend = sum?.spendingTrend;
+      if (trend?.days?.length) {
+        return trend.days.map((d) => ({
+          label: d.label,
+          subLabel: `${d.dayOfMonth || ''} ${d.month || ''}`.trim(),
+          dayOfMonth: d.dayOfMonth,
+          month: d.month,
+          date: d.date,
+          amount: d.amount,
+          isToday: d.isToday,
+          isFuture: d.isFuture,
+        }));
+      }
+      return (trend?.labels ?? []).map((label, i) => ({
+        label,
+        subLabel: '',
+        dayOfMonth: 0,
+        month: '',
+        date: `${label}-${i}`,
+        amount: trend?.data?.[i] ?? 0,
+        isToday: false,
+        isFuture: false,
+      }));
+    }
+
+    if (mode === 'weekly') {
+      const daysInMonth = sum?.daysInMonth || new Date(selYear, selMonth + 1, 0).getDate();
+      const monthExpenses = allExpenses.filter((e) => {
+        const d = new Date(e.date);
+        return d.getMonth() === selMonth && d.getFullYear() === selYear;
+      });
+
+      const monthShort = new Date(selYear, selMonth, 1).toLocaleDateString('en-US', { month: 'short' });
+      const now = new Date();
+      const isCur = sum?.isCurrentMonth ?? (now.getMonth() === selMonth && now.getFullYear() === selYear);
+      const curDay = now.getDate();
+
+      const weekRanges = [
+        { label: 'W1', start: 1, end: Math.min(7, daysInMonth) },
+        { label: 'W2', start: 8, end: Math.min(14, daysInMonth) },
+        { label: 'W3', start: 15, end: Math.min(21, daysInMonth) },
+        { label: 'W4', start: 22, end: Math.min(28, daysInMonth) },
+      ];
+      if (daysInMonth > 28) {
+        weekRanges.push({ label: 'W5', start: 29, end: daysInMonth });
+      }
+
+      return weekRanges.map((w) => {
+        const amount = monthExpenses
+          .filter((e) => {
+            const day = new Date(e.date).getDate();
+            return day >= w.start && day <= w.end;
+          })
+          .reduce((acc, e) => acc + e.amount, 0);
+
+        const isToday = isCur && curDay >= w.start && curDay <= w.end;
+
+        return {
+          label: w.label,
+          subLabel: `${w.start}–${w.end} ${monthShort}`,
+          dayOfMonth: w.start,
+          month: monthShort,
+          date: `${selYear}-${selMonth + 1}-${w.start}`,
+          amount,
+          isToday,
+          isFuture: !isCur && (selYear > now.getFullYear() || (selYear === now.getFullYear() && selMonth > now.getMonth())),
+        };
+      });
+    }
+
+    if (mode === 'monthly') {
+      const now = new Date();
+      const result = [];
+      for (let i = 5; i >= 0; i--) {
+        const targetDate = new Date(selYear, selMonth - i, 1);
+        const tMonth = targetDate.getMonth();
+        const tYear = targetDate.getFullYear();
+        const mLabel = targetDate.toLocaleDateString('en-US', { month: 'short' });
+        const yLabel = targetDate.getFullYear().toString();
+
+        const amount = allExpenses
+          .filter((e) => {
+            const d = new Date(e.date);
+            return d.getMonth() === tMonth && d.getFullYear() === tYear;
+          })
+          .reduce((acc, e) => acc + e.amount, 0);
+
+        const isToday = tMonth === now.getMonth() && tYear === now.getFullYear();
+
+        result.push({
+          label: mLabel,
+          subLabel: yLabel,
+          dayOfMonth: 1,
+          month: mLabel,
+          date: `${tYear}-${tMonth + 1}-01`,
+          amount,
+          isToday,
+          isFuture: tYear > now.getFullYear() || (tYear === now.getFullYear() && tMonth > now.getMonth()),
+        });
+      }
+      return result;
+    }
+
+    return [];
   });
 
   protected readonly peakDayAmount = computed(() =>
@@ -302,17 +401,50 @@ export class ExpenseTrackerComponent implements OnInit {
     return Math.round(s.spent / Math.max(1, day));
   });
 
-  protected readonly weekRangeLabel = computed(() => {
+  protected readonly trendRangeLabel = computed(() => {
+    const mode = this.trendGranularity();
     const days = this.trendDays();
     if (days.length === 0) return '';
 
-    const first = days[0];
-    const last = days[days.length - 1];
-    if (!first.dayOfMonth) return 'Last 7 days';
+    if (mode === 'daily') {
+      const first = days[0];
+      const last = days[days.length - 1];
+      if (!first.dayOfMonth) return 'Last 7 days';
+      return first.month === last.month
+        ? `${first.month} ${first.dayOfMonth} – ${last.dayOfMonth}`
+        : `${first.month} ${first.dayOfMonth} – ${last.month} ${last.dayOfMonth}`;
+    }
 
-    return first.month === last.month
-      ? `${first.month} ${first.dayOfMonth} – ${last.dayOfMonth}`
-      : `${first.month} ${first.dayOfMonth} – ${last.month} ${last.dayOfMonth}`;
+    if (mode === 'weekly') {
+      const sum = this.expenseService.summary();
+      const mName = sum?.monthName || this.selectedMonthLabel();
+      return `${mName} Weekly Breakdown`;
+    }
+
+    if (mode === 'monthly') {
+      const first = days[0];
+      const last = days[days.length - 1];
+      return `${first.label} ${first.subLabel} – ${last.label} ${last.subLabel}`;
+    }
+
+    return '';
+  });
+
+  protected readonly trendStatLabel = computed(() => {
+    const mode = this.trendGranularity();
+    if (mode === 'daily') return 'last 7 days';
+    if (mode === 'weekly') return 'month total';
+    if (mode === 'monthly') return '6-mo total';
+    return '';
+  });
+
+  protected readonly trendStatAmount = computed(() => {
+    const mode = this.trendGranularity();
+    const days = this.trendDays();
+    if (mode === 'daily') {
+      return this.expenseService.summary()?.spendingTrend?.avgPerWeek ?? days.reduce((a, b) => a + b.amount, 0);
+    }
+    return days.reduce((a, b) => a + b.amount, 0);
   });
 
   protected readonly projection = computed(() => {

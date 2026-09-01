@@ -2171,15 +2171,17 @@
 .snapshot-cat-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
 }
 
 .cat-item-top {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
+  justify-content: center;
+  gap: 5px;
 }
 
 .cat-item-icon {
@@ -2200,17 +2202,17 @@
 
 .cat-item-name {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .cat-item-pct {
   font-size: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   padding: 1px 5px;
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
@@ -2220,7 +2222,8 @@
 .cat-item-bottom {
   display: flex;
   align-items: center;
-  padding-left: 28px;
+  justify-content: center;
+  width: 100%;
 }
 
 .cat-item-amount {
@@ -2228,4 +2231,5 @@
   color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
   letter-spacing: -0.2px;
+  text-align: center;
 }

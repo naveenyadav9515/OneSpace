@@ -136,9 +136,9 @@
                             <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
                           </div>
                           <span class="cat-item-name">{{ getCategoryDisplayName(cat.name) }}</span>
+                          <span class="cat-item-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
                         </div>
                         <div class="cat-item-bottom">
-                          <span class="cat-item-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
                           <span class="cat-item-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
                         </div>
                       </div>

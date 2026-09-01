@@ -2180,7 +2180,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .cat-item-icon {
@@ -2203,29 +2203,28 @@
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.cat-item-pct {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .cat-item-bottom {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-}
-
-.cat-item-pct {
-  font-size: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 2px 5px;
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
-  line-height: 1.2;
 }
 
 .cat-item-amount {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
+  letter-spacing: -0.2px;
 }

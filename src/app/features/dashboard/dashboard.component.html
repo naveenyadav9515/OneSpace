@@ -34,7 +34,13 @@
                   <div class="snapshot-icon-wrap">
                     <span class="material-symbols-outlined">pie_chart</span>
                   </div>
-                  <span class="snapshot-title">Expense Snapshot</span>
+                  <div class="snapshot-title-box">
+                    <span class="snapshot-title">Expense Snapshot</span>
+                    <span class="snapshot-status-pill" [class.snapshot-status-pill--live]="isCurrentMonth()">
+                      <span class="status-dot"></span>
+                      {{ isCurrentMonth() ? 'Current Month' : 'Past Month' }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Month Navigator -->
@@ -42,7 +48,7 @@
                   <button type="button" class="month-nav-btn" (click)="prevMonth()" title="Previous month">
                     <span class="material-symbols-outlined">chevron_left</span>
                   </button>
-                  <span class="month-nav-label">
+                  <span class="month-nav-label" [class.is-current]="isCurrentMonth()">
                     {{ selectedMonthLabel() }}
                   </span>
                   <button type="button" class="month-nav-btn" [disabled]="isCurrentMonth()" (click)="nextMonth()" title="Next month">
@@ -51,6 +57,11 @@
                 </div>
 
                 <div class="snapshot-actions">
+                   @if (!isCurrentMonth()) {
+                     <button type="button" class="snapshot-reset-icon-btn" (click)="resetCurrentMonth()" title="Jump to Current Month (September)">
+                       <span class="material-symbols-outlined">today</span>
+                     </button>
+                   }
                    <a class="snapshot-add-btn" routerLink="/expenses/add" (click)="$event.stopPropagation()" title="Quick add expense">
                      <span class="material-symbols-outlined">add</span>
                    </a>

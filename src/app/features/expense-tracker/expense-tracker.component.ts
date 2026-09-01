@@ -85,6 +85,10 @@ export class ExpenseTrackerComponent implements OnInit {
   protected readonly selectedYear = signal<number>(new Date().getFullYear());
 
   protected readonly isCurrentMonth = computed(() => {
+    const s = this.expenseService.summary();
+    if (s && s.isCurrentMonth !== undefined) {
+      return s.isCurrentMonth;
+    }
     const now = new Date();
     return this.selectedMonth() === (now.getMonth() + 1) && this.selectedYear() === now.getFullYear();
   });
@@ -222,7 +226,7 @@ export class ExpenseTrackerComponent implements OnInit {
       return d.getMonth() === m && d.getFullYear() === y;
     });
 
-    return [...(monthTxns.length ? monthTxns : this.expenses())]
+    return [...monthTxns]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
   });

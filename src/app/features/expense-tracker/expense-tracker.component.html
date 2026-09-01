@@ -95,9 +95,19 @@
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
           <div class="month-nav-center">
-            <span class="month-nav-label">
+            <span class="month-nav-label" [class.is-current]="isCurrentMonth()">
               {{ selectedMonthLabel() }}
             </span>
+            <span class="es-status-pill" [class.es-status-pill--live]="isCurrentMonth()">
+              <span class="status-dot"></span>
+              {{ isCurrentMonth() ? 'Current' : 'Archive' }}
+            </span>
+            @if (!isCurrentMonth()) {
+              <button type="button" class="es-jump-btn" (click)="resetCurrentMonth()" title="Jump to Current Month (September)">
+                <span class="material-symbols-outlined">today</span>
+                <span>Current</span>
+              </button>
+            }
           </div>
           <button type="button" class="month-nav-btn" [disabled]="isCurrentMonth()" (click)="nextMonth()" title="Next month">
             <span class="material-symbols-outlined">chevron_right</span>

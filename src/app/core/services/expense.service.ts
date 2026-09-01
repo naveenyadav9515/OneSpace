@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, retry, timer, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 
+export interface CustomCategory {
+  name: string;
+  shortName?: string;
+}
+
 export interface Expense {
   _id: string;
   title?: string;
@@ -288,6 +293,19 @@ export class ExpenseService {
     return this.http.post<{ status: string, message: string }>(
       `${this.apiUrl}/expenses/automation/disconnect`,
       {}
+    );
+  }
+
+  public fetchCategories(): Observable<{ status: string, data: CustomCategory[] }> {
+    return this.http.get<{ status: string, data: CustomCategory[] }>(
+      `${this.apiUrl}/expenses/categories`
+    );
+  }
+
+  public updateCategories(categories: CustomCategory[]): Observable<{ status: string, data: CustomCategory[] }> {
+    return this.http.put<{ status: string, data: CustomCategory[] }>(
+      `${this.apiUrl}/expenses/categories`,
+      { categories }
     );
   }
 }

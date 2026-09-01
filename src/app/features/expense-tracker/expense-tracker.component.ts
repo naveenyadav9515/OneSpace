@@ -11,18 +11,10 @@ import {
   ExpensePayload,
   ExpenseService,
   PendingTransaction,
-  AutomationStatus
+  AutomationStatus,
+  CustomCategory
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
-
-/**
- * A user-defined expense category. `shortName` is optional and only supplied
- * when the full name is too long for the compact chips on the dashboard.
- */
-interface CustomCategory {
-  name: string;
-  shortName?: string;
-}
 
 const CATEGORY_STORAGE_KEY = 'onespace_custom_categories';
 
@@ -485,6 +477,38 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     // transactions there.
     const hasFallback = seeded.some(c => this.isProtectedCategory(c.name));
     this.customCategories.set(hasFallback ? seeded : [...seeded, { name: FALLBACK_CATEGORY }]);
+
+    // Synchronize categories with backend MongoDB so all devices (mobile, laptop) see the same categories
+    this.fetchCategoriesFromBackend();
+  }
+
+  /**
+   * Fetches the user's category list from the backend database and merges with local categories.
+   */
+  private fetchCategoriesFromBackend() {
+    this.expenseService.fetchCategories().subscribe({
+      next: (res) => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const serverCats: CustomCategory[] = res.data;
+          const serverNames = new Set(serverCats.map(c => c.name.toLowerCase()));
+          
+          // Merge any categories created locally in browser that server doesn't have yet
+          const localOnly = this.customCategories().filter(c => !serverNames.has(c.name.toLowerCase()));
+          const merged = [...serverCats, ...localOnly];
+          const hasFallback = merged.some(c => this.isProtectedCategory(c.name));
+          const finalCats = hasFallback ? merged : [...merged, { name: FALLBACK_CATEGORY }];
+
+          this.customCategories.set(finalCats);
+          localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(finalCats));
+
+          if (localOnly.length > 0) {
+            // Upload local additions to server so other devices get them immediately
+            this.expenseService.updateCategories(finalCats).subscribe();
+          }
+        }
+      },
+      error: (err) => console.error('Error syncing categories from server', err)
+    });
   }
 
   ngOnDestroy() {
@@ -862,10 +886,13 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     return this.expenseForm.invalid;
   }
 
-  /** Writes through to the signal and localStorage together, so the two never drift. */
+  /** Writes through to the signal, localStorage, and backend database so all devices stay in sync. */
   private persistCategories(next: CustomCategory[]) {
     this.customCategories.set(next);
     localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(next));
+    this.expenseService.updateCategories(next).subscribe({
+      error: (err) => console.error('Failed to sync categories with server', err)
+    });
   }
 
   protected readonly fallbackCategory = FALLBACK_CATEGORY;

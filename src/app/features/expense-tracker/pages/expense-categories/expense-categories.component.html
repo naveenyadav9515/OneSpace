@@ -94,17 +94,15 @@
                     </div>
 
                     <div class="cat-details">
-                      <div class="cat-headline">
-                        <span class="cat-name-label">{{ cat.name }}</span>
-                        @if (cat.shortName) {
-                          <span class="cat-short-pill">{{ cat.shortName }}</span>
-                        }
-                      </div>
+                      <div class="cat-name-label" [title]="cat.name">{{ cat.name }}</div>
 
                       <div class="cat-meta-row">
-                        <span class="material-symbols-outlined meta-icon">receipt_long</span>
+                        @if (cat.shortName) {
+                          <span class="cat-short-pill">{{ cat.shortName }}</span>
+                          <span class="cat-meta-dot">•</span>
+                        }
                         <span class="meta-count">
-                          {{ categoryUsage(cat.name) === 0 ? 'No transactions' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction' : ' transactions') }}
+                          {{ categoryUsage(cat.name) === 0 ? '0 transactions' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction' : ' transactions') }}
                         </span>
                       </div>
                     </div>
@@ -112,22 +110,25 @@
 
                   <div class="cat-card-actions">
                     @if (!isProtectedCategory(cat.name)) {
-                      <button
-                        type="button"
-                        class="cat-icon-action-btn cat-action-edit"
-                        (click)="startEditCategory(cat)"
-                        title="Edit category"
-                      >
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        class="cat-icon-action-btn cat-action-del"
-                        (click)="promptDeleteCategory(cat.name)"
-                        title="Delete category"
-                      >
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
+                      <div class="cat-action-pill">
+                        <button
+                          type="button"
+                          class="cat-action-btn edit-btn"
+                          (click)="startEditCategory(cat)"
+                          title="Edit category"
+                        >
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <span class="cat-action-divider"></span>
+                        <button
+                          type="button"
+                          class="cat-action-btn delete-btn"
+                          (click)="promptDeleteCategory(cat.name)"
+                          title="Delete category"
+                        >
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
                     } @else {
                       <span class="default-protected-tag" title="Default fallback category for deleted expenses">
                         <span class="material-symbols-outlined">verified</span>

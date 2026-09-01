@@ -2565,3 +2565,155 @@ input:checked + .slider:before {
   background: rgba(249, 115, 22, 0.12);
   color: #f97316;
 }
+
+/* ── Primary Action & Dropdown ── */
+.hh-btn--primary {
+  background: var(--lm-color-primary, #6366F1) !important;
+  border-color: var(--lm-color-primary, #6366F1) !important;
+  color: #fff !important;
+}
+.hh-btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+.hh-dropdown-item {
+  text-decoration: none;
+}
+
+/* ── Shortcut Cards ── */
+.shortcut-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.shortcut-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--pop-fill, rgba(255, 255, 255, 0.035));
+  border: 1px solid var(--pop-line, rgba(255, 255, 255, 0.09));
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.shortcut-card:hover {
+  background: var(--pop-fill-hover, rgba(255, 255, 255, 0.07));
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.shortcut-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.shortcut-icon--history {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--lm-color-primary, #6366F1);
+}
+.shortcut-icon--pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #F59E0B;
+}
+
+.indicator-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 10px;
+  border: 2px solid var(--lm-color-surface, #1E293B);
+  line-height: 1;
+}
+
+.shortcut-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shortcut-title {
+  font-family: var(--lm-font-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  line-height: 1.2;
+}
+
+.shortcut-sub {
+  font-size: 11.5px;
+  color: var(--lm-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shortcut-chevron {
+  font-size: 20px;
+  color: var(--lm-color-text-muted);
+  opacity: 0.6;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.shortcut-card:hover .shortcut-chevron {
+  transform: translateX(3px);
+  opacity: 1;
+}
+
+/* ── Recent Row Links ── */
+.recent-row-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.recent-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.recent-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.row-chevron {
+  font-size: 18px;
+  color: var(--lm-color-text-muted);
+  opacity: 0.5;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+.recent-row:hover .row-chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+:host-context(html[data-theme="light"]) {
+  .shortcut-card {
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  .shortcut-card:hover {
+    background: rgba(15, 23, 42, 0.06);
+  }
+  .recent-row:hover {
+    background: rgba(15, 23, 42, 0.03);
+  }
+}

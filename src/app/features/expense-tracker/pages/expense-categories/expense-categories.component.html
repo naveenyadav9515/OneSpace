@@ -1,0 +1,169 @@
+<div class="app-shell fade-in-bottom">
+  <!-- ── Page Header ── -->
+  <header class="dashboard-header">
+    <a routerLink="/expenses" class="hh-back-btn" aria-label="Back to Expenses">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="hh-title-wrap">
+      <h1 class="hh-title">Manage Categories</h1>
+      <p class="hh-subtitle">{{ categories().length }} categories available</p>
+    </div>
+
+    <div class="hh-actions">
+      <button (click)="fetchData()" [disabled]="isLoading()" class="hh-btn" title="Refresh">
+        <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="categories-container">
+    <!-- ── Add Category Card ── -->
+    <section class="card add-category-card">
+      <h3 class="card-title">Add New Category</h3>
+      <p class="card-desc">
+        Categories are synced to your database and immediately available across all your devices.
+      </p>
+
+      <div class="add-cat-inputs">
+        <div class="input-field flex-2">
+          <input
+            type="text"
+            [formControl]="newCategoryControl"
+            placeholder="Category name (e.g. Groceries, Fuel, Rent)"
+            class="premium-input"
+            (keyup.enter)="addCategory()"
+          />
+        </div>
+
+        <div class="input-field flex-1">
+          <input
+            type="text"
+            [formControl]="newCategoryShortControl"
+            placeholder="Short (opt)"
+            maxlength="8"
+            class="premium-input"
+            (keyup.enter)="addCategory()"
+          />
+        </div>
+
+        <button
+          type="button"
+          class="btn-add-cat"
+          (click)="addCategory()"
+          [disabled]="newCategoryControl.invalid || isSaving()"
+        >
+          <span class="material-symbols-outlined">add</span>
+          <span>Add</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Notice ── -->
+    <div class="pop-note">
+      <span class="material-symbols-outlined">info</span>
+      <p>
+        Deleting a category will automatically move its associated transactions to <strong>{{ fallbackCategory }}</strong> so you never lose any expense records.
+      </p>
+    </div>
+
+    <!-- ── Categories List ── -->
+    <section class="card categories-list-card">
+      <div class="card-header-row">
+        <h3 class="card-title">Your Categories</h3>
+        <span class="count-badge">{{ categories().length }} total</span>
+      </div>
+
+      @if (isLoading() && categories().length === 0) {
+        <div class="pop-empty">
+          <span class="material-symbols-outlined spin" style="font-size: 28px; color: var(--lm-color-primary);">sync</span>
+          <p class="pop-empty-title">Loading categories...</p>
+        </div>
+      } @else {
+        <div class="cat-list">
+          @for (cat of categories(); track cat.name) {
+            <div class="cat-row-wrap">
+              <!-- View Row -->
+              @if (editingCategoryName() !== cat.name) {
+                <div class="cat-row">
+                  <div class="cat-left">
+                    <span class="cat-bullet"></span>
+                    <span class="cat-name">{{ cat.name }}</span>
+                    @if (cat.shortName) {
+                      <span class="cat-short-badge">{{ cat.shortName }}</span>
+                    }
+                  </div>
+
+                  <div class="cat-right">
+                    <span class="cat-usage" [title]="categoryUsage(cat.name) + ' transactions logged in this category'">
+                      {{ categoryUsage(cat.name) }} txns
+                    </span>
+
+                    @if (!isProtectedCategory(cat.name)) {
+                      <button class="cat-btn" (click)="startEditCategory(cat)" title="Edit">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="cat-btn cat-btn--del" (click)="promptDeleteCategory(cat.name)" title="Delete">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    } @else {
+                      <span class="cat-protected-badge" title="Default fallback category">Default</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <!-- Inline Edit Row -->
+                <div class="cat-edit-row fade-in-bottom">
+                  <input
+                    type="text"
+                    [formControl]="editCategoryControl"
+                    class="cat-edit-input"
+                    placeholder="Category Name"
+                    (keyup.enter)="applyEditCategory()"
+                  />
+                  <input
+                    type="text"
+                    [formControl]="editCategoryShortControl"
+                    class="cat-edit-input cat-edit-short"
+                    placeholder="Short"
+                    maxlength="8"
+                    (keyup.enter)="applyEditCategory()"
+                  />
+                  <button class="cat-edit-btn cat-edit-btn--save" (click)="applyEditCategory()" [disabled]="editCategoryControl.invalid || isSaving()">
+                    <span class="material-symbols-outlined">check</span>
+                  </button>
+                  <button class="cat-edit-btn cat-edit-btn--cancel" (click)="cancelEditCategory()">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              }
+
+              <!-- Delete Confirmation Box -->
+              @if (categoryPendingDelete() === cat.name) {
+                <div class="cat-delete-confirm fade-in-bottom">
+                  <div class="cat-delete-text">
+                    <span class="material-symbols-outlined warn-icon">warning</span>
+                    <span>
+                      Delete "<strong>{{ cat.name }}</strong>"?
+                      @if (categoryUsage(cat.name) > 0) {
+                        Its {{ categoryUsage(cat.name) }} transaction(s) will be moved to "{{ fallbackCategory }}".
+                      }
+                    </span>
+                  </div>
+                  <div class="cat-delete-actions">
+                    <button class="btn-cancel" (click)="cancelDeleteCategory()" [disabled]="isReassigning()">Cancel</button>
+                    <button class="btn-delete" (click)="confirmDeleteCategory(cat.name)" [disabled]="isReassigning()">
+                      {{ isReassigning() ? 'Moving...' : 'Confirm Delete' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </main>
+
+  <app-bottom-nav></app-bottom-nav>
+</div>

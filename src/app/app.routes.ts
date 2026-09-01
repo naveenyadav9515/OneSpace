@@ -28,6 +28,19 @@ export const routes: Routes = [
     ]
   },
   { path: 'upcoming-features', loadComponent: () => import('./features/feature-log/feature-log.component').then(m => m.FeatureLogComponent), title: 'OneSpace — Features Log' },
-  { path: 'expenses', loadComponent: () => import('./features/expense-tracker/expense-tracker.component').then(m => m.ExpenseTrackerComponent), canActivate: [authGuard], title: 'Expense Tracker' },
+  {
+    path: 'expenses',
+    canActivate: [authGuard],
+    children: [
+      { path: '', loadComponent: () => import('./features/expense-tracker/expense-tracker.component').then(m => m.ExpenseTrackerComponent), title: 'OneSpace — Expenses' },
+      { path: 'history', loadComponent: () => import('./features/expense-tracker/pages/expense-history/expense-history.component').then(m => m.ExpenseHistoryComponent), title: 'OneSpace — Transaction History' },
+      { path: 'pending', loadComponent: () => import('./features/expense-tracker/pages/expense-pending/expense-pending.component').then(m => m.ExpensePendingComponent), title: 'OneSpace — Pending Review' },
+      { path: 'pending/:id/review', loadComponent: () => import('./features/expense-tracker/pages/expense-form/expense-form.component').then(m => m.ExpenseFormComponent), title: 'OneSpace — Review Pending' },
+      { path: 'add', loadComponent: () => import('./features/expense-tracker/pages/expense-form/expense-form.component').then(m => m.ExpenseFormComponent), title: 'OneSpace — Log Expense' },
+      { path: 'edit/:id', loadComponent: () => import('./features/expense-tracker/pages/expense-form/expense-form.component').then(m => m.ExpenseFormComponent), title: 'OneSpace — Edit Expense' },
+      { path: 'categories', loadComponent: () => import('./features/expense-tracker/pages/expense-categories/expense-categories.component').then(m => m.ExpenseCategoriesComponent), title: 'OneSpace — Manage Categories' },
+      { path: 'automation', loadComponent: () => import('./features/expense-tracker/pages/expense-automation/expense-automation.component').then(m => m.ExpenseAutomationComponent), title: 'OneSpace — Automation Settings' },
+    ]
+  },
   { path: '**', redirectTo: '' },
 ];

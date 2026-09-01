@@ -1,0 +1,185 @@
+<div class="app-shell fade-in-bottom">
+  <!-- ── Page Header ── -->
+  <header class="dashboard-header">
+    <a routerLink="/expenses" class="hh-back-btn" aria-label="Back to Expenses">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="hh-title-wrap">
+      <h1 class="hh-title">Transaction History</h1>
+      <p class="hh-subtitle">
+        {{ filteredExpenses().length }} of {{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}
+      </p>
+    </div>
+
+    <div class="hh-actions">
+      <button (click)="fetchExpenses()" [disabled]="isLoading()" class="hh-btn" title="Refresh">
+        <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span>
+      </button>
+      <a routerLink="/expenses/add" class="hh-btn hh-btn--primary" title="Add Expense">
+        <span class="material-symbols-outlined">add</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ── Search & Filter Toolbar ── -->
+  <section class="history-toolbar-section">
+    <!-- Search Input -->
+    <div class="search-input-wrap">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        [formControl]="searchControl"
+        class="search-input"
+        placeholder="Search merchant, title, notes, or tags..."
+      />
+      @if (searchControl.value) {
+        <button class="search-clear-btn" (click)="searchControl.setValue('')">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+    </div>
+
+    <!-- Category Filter Chips -->
+    <div class="category-chips-scroll">
+      <button
+        class="cat-chip"
+        [class.cat-chip--active]="selectedCategory() === 'all'"
+        (click)="setCategoryFilter('all')"
+      >
+        All ({{ expenses().length }})
+      </button>
+
+      @for (cat of categories(); track cat.name) {
+        <button
+          class="cat-chip"
+          [class.cat-chip--active]="selectedCategory().toLowerCase() === cat.name.toLowerCase()"
+          (click)="setCategoryFilter(cat.name)"
+        >
+          {{ cat.shortName || cat.name }}
+        </button>
+      }
+    </div>
+
+    <!-- Summary Banner -->
+    <div class="history-summary-banner">
+      <div class="summary-stat">
+        <span class="summary-label">Filtered Spend</span>
+        <span class="summary-value">₹{{ totalAmount() | number:'1.2-2' }}</span>
+      </div>
+      <div class="summary-stat-right">
+        <span class="summary-badge">{{ filteredExpenses().length }} entries</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Transactions List ── -->
+  <main class="history-list-section">
+    @if (isLoading() && expenses().length === 0) {
+      <div class="pop-empty">
+        <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
+        <p class="pop-empty-title">Loading history...</p>
+      </div>
+    } @else if (filteredExpenses().length === 0) {
+      <div class="pop-empty">
+        <div class="pop-empty-icon">
+          <span class="material-symbols-outlined">search_off</span>
+        </div>
+        <p class="pop-empty-title">No transactions found</p>
+        <p class="pop-empty-sub">
+          @if (searchQuery() || selectedCategory() !== 'all') {
+            Try adjusting your search or category filters.
+          } @else {
+            You haven't recorded any expenses yet.
+          }
+        </p>
+      </div>
+    } @else {
+      <div class="txn-card-list">
+        @for (exp of filteredExpenses(); track exp._id) {
+          <div class="txn-card">
+            <!-- Top Line: Category Icon, Title, Date/Method, Amount -->
+            <div class="txn-card-top">
+              <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                <span class="material-symbols-outlined">
+                  {{ exp.category === 'Food' || exp.category === 'Food & Dining' ? 'restaurant' :
+                     exp.category === 'Transport' ? 'directions_car' :
+                     exp.category === 'Shopping' ? 'local_mall' :
+                     exp.category === 'Utilities' ? 'bolt' :
+                     exp.category === 'Entertainment' ? 'movie' :
+                     exp.category === 'Health' ? 'medical_services' : 'home' }}
+                </span>
+              </div>
+
+              <div class="txn-info-main">
+                <h4 class="txn-merchant">{{ exp.title || exp.notes || exp.merchant }}</h4>
+                <div class="txn-meta-row">
+                  <span>{{ exp.date | date:'MMM d, y' }}</span>
+                  <span class="txn-meta-sep">•</span>
+                  <span>{{ exp.date | date:'shortTime' }}</span>
+                  <span class="txn-meta-sep">•</span>
+                  <span>{{ exp.paymentMethod }}</span>
+                </div>
+              </div>
+
+              <div class="txn-amount-block">
+                <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <!-- Bottom Line: Tags, Merchant/Notes Stack, Actions -->
+            <div class="txn-card-bottom">
+              <div class="txn-tags-row">
+                <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
+                  {{ exp.category || 'Other' }}
+                </span>
+                @if (exp.tags && exp.tags.length) {
+                  @for (tag of exp.tags; track tag) {
+                    <span class="txn-tag txn-tag--custom">{{ tag }}</span>
+                  }
+                }
+              </div>
+
+              <div class="txn-details-stack">
+                @if (exp.merchant && exp.merchant !== exp.title) {
+                  <div class="txn-notes-row">
+                    <span class="material-symbols-outlined txn-notes-icon">storefront</span>
+                    <span class="txn-notes-text">{{ exp.merchant }}</span>
+                  </div>
+                }
+                @if (exp.notes) {
+                  <div class="txn-notes-row">
+                    <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
+                    <span class="txn-notes-text">{{ exp.notes }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="txn-actions-bottom">
+                <button class="txn-action-btn" title="Edit" (click)="editExpense(exp._id)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="promptDelete(exp._id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Delete Confirmation -->
+            @if (deleteConfirmId() === exp._id) {
+              <div class="txn-delete-confirm-box fade-in-bottom">
+                <span>Delete this transaction?</span>
+                <div class="delete-actions">
+                  <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+                  <button class="btn-delete" (click)="confirmDelete(exp._id)">Delete</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <app-bottom-nav></app-bottom-nav>
+</div>

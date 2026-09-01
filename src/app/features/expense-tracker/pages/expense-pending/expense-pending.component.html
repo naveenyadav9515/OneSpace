@@ -1,0 +1,144 @@
+<div class="app-shell fade-in-bottom">
+  <!-- ── Page Header ── -->
+  <header class="dashboard-header">
+    <a routerLink="/expenses" class="hh-back-btn" aria-label="Back to Expenses">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="hh-title-wrap">
+      <h1 class="hh-title">Pending Review</h1>
+      <p class="hh-subtitle">
+        {{ pendingTransactions().length }} transaction{{ pendingTransactions().length === 1 ? '' : 's' }} awaiting approval
+      </p>
+    </div>
+
+    <div class="hh-actions">
+      <button
+        class="sync-btn"
+        [class.sync-btn--cooldown]="syncCooldownSeconds() > 0"
+        (click)="syncGmailManually()"
+        [disabled]="isSyncDisabled()"
+        [title]="syncCooldownSeconds() > 0 ? 'Rate limit cooldown' : 'Check Gmail for new transactions'"
+      >
+        <span class="material-symbols-outlined" [class.spin]="isSyncing()">sync</span>
+        <span>
+          @if (isSyncing()) {
+            Syncing…
+          } @else if (syncCooldownSeconds() > 0) {
+            {{ syncCooldownSeconds() }}s
+          } @else {
+            Sync Gmail
+          }
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Notice Banner ── -->
+  <section class="pending-notice-section">
+    <div class="pop-note">
+      <span class="material-symbols-outlined">mark_email_unread</span>
+      <p>
+        These transactions were detected from your bank email notifications in Gmail. Approve them to add to your expense records, or click Review to edit details first.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Pending List ── -->
+  <main class="pending-list-section">
+    @if (isLoading() && pendingTransactions().length === 0) {
+      <div class="pop-empty">
+        <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
+        <p class="pop-empty-title">Checking pending transactions...</p>
+      </div>
+    } @else if (pendingTransactions().length === 0) {
+      <div class="pop-empty">
+        <div class="pop-empty-icon">
+          <span class="material-symbols-outlined">task_alt</span>
+        </div>
+        <p class="pop-empty-title">All caught up!</p>
+        <p class="pop-empty-sub">
+          No pending transactions to review. When bank alerts arrive in your Gmail, they will appear here automatically.
+        </p>
+        <a routerLink="/expenses/history" class="btn-goto-history">
+          <span class="material-symbols-outlined">receipt_long</span> View History
+        </a>
+      </div>
+    } @else {
+      <div class="pending-cards-list">
+        @for (ptx of pendingTransactions(); track ptx._id) {
+          <div class="pending-card" [class.is-processing]="processingIds().has(ptx._id)">
+            <!-- Top Line: Bank/Gmail indicator, Merchant, Amount -->
+            <div class="pending-card-top">
+              <div class="pending-badge-icon">
+                <span class="material-symbols-outlined">schedule</span>
+              </div>
+
+              <div class="pending-info-main">
+                <h4 class="pending-merchant">{{ ptx.title || ptx.notes || ptx.merchant }}</h4>
+                <div class="pending-meta-row">
+                  @if (ptx.merchant && ptx.merchant !== ptx.title) {
+                    <span class="pending-merchant-sub">{{ ptx.merchant }}</span>
+                    <span class="meta-sep">•</span>
+                  }
+                  <span>{{ ptx.date | date:'MMM d, y' }}</span>
+                  <span class="meta-sep">•</span>
+                  <span>{{ ptx.date | date:'shortTime' }}</span>
+                  <span class="meta-sep">•</span>
+                  <span>{{ ptx.paymentMethod }}</span>
+                </div>
+              </div>
+
+              <div class="pending-amount-block">
+                <span class="pending-amount">₹{{ ptx.amount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <!-- Suggested Category & Bank Source -->
+            <div class="pending-card-mid">
+              <span class="tag-pill tag-pill--cat">
+                <span class="material-symbols-outlined icon-small">category</span>
+                {{ ptx.category || 'Other' }}
+              </span>
+              @if (ptx.source) {
+                <span class="tag-pill tag-pill--source">
+                  <span class="material-symbols-outlined icon-small">mail</span>
+                  {{ ptx.source === 'gmail_auto' ? 'Gmail Auto' : ptx.source }}
+                </span>
+              }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pending-card-actions">
+              <button
+                class="btn-action btn-action--ignore"
+                (click)="ignoreTransaction(ptx._id)"
+                [disabled]="processingIds().has(ptx._id)"
+              >
+                <span class="material-symbols-outlined">close</span> Ignore
+              </button>
+
+              <button
+                class="btn-action btn-action--review"
+                (click)="reviewInForm(ptx._id)"
+                [disabled]="processingIds().has(ptx._id)"
+              >
+                <span class="material-symbols-outlined">edit_note</span> Review & Edit
+              </button>
+
+              <button
+                class="btn-action btn-action--approve"
+                (click)="quickApprove(ptx)"
+                [disabled]="processingIds().has(ptx._id)"
+              >
+                <span class="material-symbols-outlined">check</span> 1-Click Approve
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <app-bottom-nav></app-bottom-nav>
+</div>

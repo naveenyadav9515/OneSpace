@@ -19,13 +19,11 @@
     <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
       
       <!-- Quick Add -->
-      <button (click)="openLogForm()" title="Quick Add" class="hh-btn">
+      <a routerLink="/expenses/add" title="Quick Add" class="hh-btn hh-btn--primary">
         <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
-      </button>
+      </a>
 
-      <!-- History and Pending now live in the shortcut cards below the header. -->
-
-      <!-- Settings -->
+      <!-- Settings Dropdown -->
       <div style="position: relative;">
         <button (click)="isSettingsDropdownOpen.set(!isSettingsDropdownOpen())" title="Settings" class="hh-btn">
           <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
@@ -33,14 +31,14 @@
         
         @if (isSettingsDropdownOpen()) {
           <div class="hh-dropdown-menu">
-            <button class="hh-dropdown-item" (click)="isSettingsOpen.set(true); isSettingsDropdownOpen.set(false)">
+            <a class="hh-dropdown-item" routerLink="/expenses/automation" (click)="isSettingsDropdownOpen.set(false)">
               <span class="material-symbols-outlined">smart_toy</span>
               Automation Settings
-            </button>
-            <button class="hh-dropdown-item" (click)="isCategorySettingsOpen.set(true); isSettingsDropdownOpen.set(false)">
+            </a>
+            <a class="hh-dropdown-item" routerLink="/expenses/categories" (click)="isSettingsDropdownOpen.set(false)">
               <span class="material-symbols-outlined">category</span>
               Manage Categories
-            </button>
+            </a>
             <button class="hh-dropdown-item" (click)="isSettingsDropdownOpen.set(false)">
               <span class="material-symbols-outlined" style="font-size: 20px; color: var(--lm-color-text-muted);">close</span>
               Cancel
@@ -52,11 +50,9 @@
     </div>
   </header>
 
-  <!-- ── Shortcut cards: History / Pending ──
-       Moved out of the header, where they were two unlabelled glyphs competing
-       with the title for width. As cards they can carry a name and a count. -->
+  <!-- ── Shortcut cards: History / Pending ── -->
   <div class="shortcut-row">
-    <button class="shortcut-card" (click)="isHistoryModalOpen.set(true)">
+    <a class="shortcut-card" routerLink="/expenses/history">
       <span class="shortcut-icon shortcut-icon--history">
         <span class="material-symbols-outlined">receipt_long</span>
       </span>
@@ -65,9 +61,9 @@
         <span class="shortcut-sub">{{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}</span>
       </span>
       <span class="material-symbols-outlined shortcut-chevron">chevron_right</span>
-    </button>
+    </a>
 
-    <button class="shortcut-card" [class.has-pending]="pendingTransactions().length > 0" (click)="isPendingModalOpen.set(true)">
+    <a class="shortcut-card" [class.has-pending]="pendingTransactions().length > 0" routerLink="/expenses/pending">
       <span class="shortcut-icon shortcut-icon--pending">
         <span class="material-symbols-outlined">mark_email_unread</span>
         @if (pendingTransactions().length > 0) {
@@ -85,240 +81,175 @@
         </span>
       </span>
       <span class="material-symbols-outlined shortcut-chevron">chevron_right</span>
-    </button>
+    </a>
   </div>
 
-  <!-- ── Automation Settings Modal ── -->
-  <app-modal [isOpen]="isSettingsOpen()" (onClose)="toggleAutomationSettings()" title="Automation Engine" icon="settings_suggest">
-    <div class="pop-body">
-
-      <!-- Core Toggle -->
-      <div class="pop-card pop-card-row">
-        <div>
-          <h3 class="pop-card-title">Automatic Transaction Detection</h3>
-          <p class="pop-card-desc">
-            Reads supported bank alert emails in your Gmail inbox and suggests expense entries in the background. Nothing is saved until you confirm it.
-          </p>
-        </div>
-
-        <label class="switch">
-          <input type="checkbox" [checked]="automationStatus()?.expenseAutomationEnabled" (change)="handleAutomationToggle(toggle.checked)" #toggle>
-          <span class="slider round"></span>
-        </label>
-      </div>
-
-      <!-- Connection Status Card -->
-      @if (automationStatus()?.expenseAutomationEnabled) {
-        <div class="pop-card pop-card-row fade-in-bottom">
-          <div>
-            <h3 class="pop-card-title">Gmail Connection</h3>
-            <div class="pop-status">
-              <span class="status-indicator" [class.connected]="automationStatus()?.gmailConnected"></span>
-              <span>{{ automationStatus()?.gmailConnected ? 'Connected' : 'Disconnected' }}</span>
-            </div>
-          </div>
-
-          @if (automationStatus()?.gmailConnected) {
-            <button (click)="disconnectGmail()" [disabled]="isSavingSettings()" class="pop-btn pop-btn--danger">
-              <span class="material-symbols-outlined">link_off</span> Disconnect
-            </button>
-          } @else {
-            <button (click)="connectGmail()" class="pop-btn pop-btn--success">
-              <span class="material-symbols-outlined">link</span> Connect
-            </button>
-          }
-        </div>
-
-        <!-- Supported Banks Section -->
-        @if (automationStatus()?.gmailConnected) {
-          <div class="fade-in-bottom">
-            <h4 class="pop-eyebrow">Supported Banks</h4>
-            <div class="pop-list">
-              @for (bank of automationStatus()?.supportedBanks; track bank) {
-                <div class="pop-row">
-                  <span class="pop-row-label">
-                    <span class="material-symbols-outlined">account_balance</span>
-                    {{ bank }} Bank
-                  </span>
-                  <input type="checkbox" class="pop-row-checkbox" [checked]="automationStatus()?.enabledBanks?.includes(bank)" (change)="handleBankToggle(bank, bankCheckbox.checked)" #bankCheckbox>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      }
-
-      <!-- Privacy/Security Notice -->
-      <div class="pop-note">
-        <span class="material-symbols-outlined">security</span>
-        <p>
-          <strong>Least-privilege policy.</strong> Your data and access tokens stay on the backend. Emails are never modified, deleted, archived, sent, or marked as read — we only read debit alerts matching registered bank templates.
-        </p>
-      </div>
-
-    </div>
-  </app-modal>
-
-  <!-- ── Monthly Summary Block ── -->
   @if (expenseService.summary(); as summary) {
+    <!-- ── 1. Hero / Metrics Section (Budget & Projection) ── -->
     <section class="flow-item fade-in-bottom">
-      <div class="expense-summary-bento">
-        
-        <!-- Top Section: Overview -->
-        <div class="es-top-row">
-          <div class="es-spent-block">
-            <span class="es-label">Spent this month</span>
-            <span class="es-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
+      <div class="hero-bento">
+
+        <!-- Header: Month Selector & Spent -->
+        <div class="hero-head">
+          <div>
+            <span class="hero-eyebrow">{{ currentMonthLabel() }}</span>
+            <div class="hero-spent-row">
+              <span class="hero-spent-val">₹{{ summary.spent | number:'1.0-0' }}</span>
+              <span class="hero-spent-label">spent so far</span>
+            </div>
           </div>
-          <div class="es-budget-block">
-            <span class="es-label">Budget</span>
-            @if (isEditingBudget()) {
-              <div class="budget-edit">
-                <span class="budget-edit-prefix">₹</span>
-                <input type="number" inputmode="numeric" class="budget-edit-input"
-                       [formControl]="budgetControl"
-                       (keyup.enter)="saveBudget()"
-                       (keyup.escape)="cancelBudgetEdit()"
-                       aria-label="Monthly budget">
-                <button class="budget-edit-btn budget-edit-btn--save" (click)="saveBudget()"
-                        [disabled]="budgetControl.invalid || isSavingBudget()" title="Save budget">
-                  <span class="material-symbols-outlined">{{ isSavingBudget() ? 'sync' : 'check' }}</span>
+
+          <!-- Target Budget Pill -->
+          <div class="budget-pill" [class.is-editing]="isEditingBudget()">
+            @if (!isEditingBudget()) {
+              <div class="budget-pill-view" (click)="startBudgetEdit(summary.budgetTarget)">
+                <span class="budget-pill-label">Budget</span>
+                <span class="budget-pill-val">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+                <span class="material-symbols-outlined budget-edit-icon">edit</span>
+              </div>
+            } @else {
+              <div class="budget-pill-edit">
+                <span class="budget-pill-currency">₹</span>
+                <input
+                  type="number"
+                  [formControl]="budgetControl"
+                  class="budget-pill-input"
+                  (keyup.enter)="saveBudget()"
+                  (keyup.escape)="cancelBudgetEdit()"
+                  placeholder="Budget"
+                  autofocus
+                >
+                <button (click)="saveBudget()" [disabled]="isSavingBudget()" class="budget-pill-btn budget-pill-btn--save" title="Save">
+                  <span class="material-symbols-outlined">check</span>
                 </button>
-                <button class="budget-edit-btn" (click)="cancelBudgetEdit()" title="Cancel">
+                <button (click)="cancelBudgetEdit()" class="budget-pill-btn budget-pill-btn--cancel" title="Cancel">
                   <span class="material-symbols-outlined">close</span>
                 </button>
               </div>
-            } @else {
-              <button class="budget-display" (click)="openBudgetEditor()" title="Edit monthly budget">
-                <span class="es-amount-small">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
-                <span class="material-symbols-outlined">edit</span>
-              </button>
             }
           </div>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="es-progress-wrap">
-          <div class="es-progress-track">
-            <div class="es-progress-fill" 
-                 [style.width.%]="summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct"
-                 [class.over-budget]="summary.budgetUsedPct > 100">
-            </div>
+        <!-- 3-Pill Stat Strip: Remaining, Daily Limit, Month End Forecast -->
+        <div class="hero-stats-grid">
+          <div class="hstat-card">
+            <span class="hstat-label">Remaining</span>
+            <span class="hstat-val" [class.is-danger]="summary.available <= 0">
+              ₹{{ summary.available | number:'1.0-0' }}
+            </span>
+            <span class="hstat-sub">{{ summary.daysLeft }} days left</span>
           </div>
-          <div class="es-progress-labels">
-            <span>{{ summary.budgetUsedPct }}% used</span>
-            <span>{{ summary.daysLeft }} days left</span>
+
+          <div class="hstat-card">
+            <span class="hstat-label">Daily Limit</span>
+            <span class="hstat-val">₹{{ dailyLimit() | number:'1.0-0' }}</span>
+            <span class="hstat-sub">to stay on budget</span>
+          </div>
+
+          <div class="hstat-card">
+            <span class="hstat-label">Forecast</span>
+            <span class="hstat-val" [class.is-danger]="summary.forecast.estimatedSpend > summary.budgetTarget">
+              ₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}
+            </span>
+            <span class="hstat-sub" [class.is-danger]="summary.forecast.estimatedSpend > summary.budgetTarget">
+              {{ summary.forecast.estimatedSpend > summary.budgetTarget ? 'Over by ₹' + ((summary.forecast.estimatedSpend - summary.budgetTarget) | number:'1.0-0') : 'On track' }}
+            </span>
           </div>
         </div>
 
-        <!-- Bottom Section: Metrics Grid -->
-        <div class="es-metrics-grid">
-          <div class="es-metric-card">
-            <div class="es-metric-icon green">
-              <span class="material-symbols-outlined">account_balance_wallet</span>
-            </div>
-            <div class="es-metric-info">
-              <span class="es-metric-lbl">Available</span>
-              <span class="es-metric-val">₹{{ summary.available | number:'1.0-0' }}</span>
-            </div>
-          </div>
-          
-          <div class="es-metric-card">
-            <div class="es-metric-icon cyan">
-              <span class="material-symbols-outlined">bolt</span>
-            </div>
-            <div class="es-metric-info">
-              <span class="es-metric-lbl">Safe to Spend</span>
-              <span class="es-metric-val">₹{{ dailyLimit() | number:'1.0-0' }} <span style="font-size:10px; opacity: 0.6; font-weight: 500;">/day</span></span>
-            </div>
+        <!-- Month Projection Chart -->
+        <div class="proj-section">
+          <div class="proj-head">
+            <span class="proj-title">Month-End Projection</span>
+            <span class="proj-pace">Pace: ₹{{ dailyPace() | number:'1.0-0' }}/day</span>
           </div>
 
-          @if (summary.forecast && projection(); as proj) {
-            <div class="es-metric-card proj-card" [class.proj-card--over]="proj.isOver">
-              <div class="proj-head">
-                <div class="es-metric-icon orange">
-                  <span class="material-symbols-outlined">monitoring</span>
-                </div>
-                <div class="proj-head-text">
-                  <span class="es-metric-lbl">Projected month end</span>
-                  <span class="proj-value">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
-                </div>
-                @if (proj.isOver) {
-                  <span class="proj-delta">+₹{{ proj.overAmount | number:'1.0-0' }}</span>
-                }
-              </div>
-
-              <!-- Cumulative month: actual → forecast, against the budget line -->
+          @if (projection(); as proj) {
+            <div class="proj-meter-wrap">
+              <!-- Cumulative curve -->
               @if (monthProjection(); as mp) {
-                <div class="mproj">
-                  <div class="mproj-plot">
-                    <svg class="mproj-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                      <defs>
-                        <linearGradient id="mprojWash" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="var(--lm-color-primary)" stop-opacity="0.28" />
-                          <stop offset="100%" stop-color="var(--lm-color-primary)" stop-opacity="0" />
-                        </linearGradient>
-                      </defs>
+                <div class="proj-curve">
+                  <svg class="proj-curve-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <!-- Shaded area under actual spend -->
+                    @if (mp.areaPath) {
+                      <path [attr.d]="mp.areaPath" class="proj-curve-area" />
+                    }
+                    <!-- Budget line across the month -->
+                    <line x1="0" [attr.y1]="100 - mp.budgetYPct"
+                          x2="100" [attr.y2]="100 - mp.budgetYPct"
+                          class="proj-curve-budget-line" />
+                    <!-- Actual spend curve to date -->
+                    @if (mp.actualPath) {
+                      <path [attr.d]="mp.actualPath" class="proj-curve-actual" />
+                    }
+                    <!-- Forecast leg to month end -->
+                    <path [attr.d]="mp.forecastPath"
+                          class="proj-curve-forecast"
+                          [class.is-over]="mp.crossesBudget" />
+                  </svg>
 
-                      <!-- Budget threshold -->
-                      <line x1="0" [attr.y1]="100 - mp.budgetYPct" x2="100" [attr.y2]="100 - mp.budgetYPct"
-                            stroke="var(--lm-color-text-muted)" stroke-width="1" stroke-dasharray="3 3"
-                            vector-effect="non-scaling-stroke" opacity="0.65" />
+                  <!-- Today marker dot -->
+                  <div class="proj-curve-today-dot"
+                       [style.left.%]="mp.todayXPct"
+                       [style.bottom.%]="mp.todayYPct"></div>
 
-                      <path [attr.d]="mp.areaPath" fill="url(#mprojWash)" />
-
-                      <!-- Where spending is heading: dashed, because it hasn't happened -->
-                      <path [attr.d]="mp.forecastPath" fill="none"
-                            [attr.stroke]="mp.crossesBudget ? 'var(--lm-color-error)' : 'var(--lm-color-success)'"
-                            stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"
-                            vector-effect="non-scaling-stroke" />
-
-                      <!-- What has actually been spent: solid -->
-                      <path [attr.d]="mp.actualPath" fill="none" stroke="var(--lm-color-primary)"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            vector-effect="non-scaling-stroke" />
-                    </svg>
-
-                    <!-- Limit and remaining share one tag on the rule: "left"
-                         is precisely the gap between the solid line and this
-                         rule, and two separate tags competed for the same space. -->
-                    <!-- Label positions come from deconflictTags(), which
-                         guarantees the three never collide at any values. -->
-                    <span class="mproj-tag mproj-tag--budget" [style.bottom.%]="mp.budgetTagY">
-                      Budget ₹{{ mp.budget | number:'1.0-0' }}
-                      <span class="mproj-tag-sub">
-                        @if (mp.remaining > 0) {
-                          · ₹{{ mp.remaining | number:'1.0-0' }} left
-                        } @else {
-                          · ₹{{ mp.spentToDate - mp.budget | number:'1.0-0' }} over
-                        }
-                      </span>
-                    </span>
-
-                    <span class="mproj-node mproj-node--today"
-                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.todayYPct"></span>
-                    <span class="mproj-tag mproj-tag--spent"
-                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.spentTagY">
-                      Spent ₹{{ mp.spentToDate | number:'1.0-0' }}
-                    </span>
-
-                    <span class="mproj-node mproj-node--end"
-                          [class.is-over]="mp.crossesBudget"
-                          [style.bottom.%]="mp.endYPct"></span>
-                    <span class="mproj-tag mproj-tag--proj"
-                          [class.is-over]="mp.crossesBudget"
-                          [style.bottom.%]="mp.projTagY">
-                      Projected ₹{{ mp.projected | number:'1.0-0' }}
-                    </span>
+                  <!-- Floating tags on the right edge -->
+                  <div class="proj-curve-tag proj-curve-tag--budget"
+                       [style.bottom.%]="mp.budgetTagY">
+                    Budget ₹{{ mp.budget | number:'1.0-0' }}
                   </div>
-
-                  <div class="mproj-axis">
-                    <span>Day 1</span>
-                    <span class="mproj-axis-today">Day {{ mp.today }} · today</span>
-                    <span>Day {{ mp.daysInMonth }}</span>
+                  <div class="proj-curve-tag proj-curve-tag--spent"
+                       [style.bottom.%]="mp.spentTagY">
+                    Today ₹{{ mp.spentToDate | number:'1.0-0' }}
+                  </div>
+                  <div class="proj-curve-tag proj-curve-tag--forecast"
+                       [class.is-over]="mp.crossesBudget"
+                       [style.bottom.%]="mp.projTagY">
+                    Forecast ₹{{ mp.projected | number:'1.0-0' }}
                   </div>
                 </div>
               }
+
+              <!-- The three-segment budget breakdown track -->
+              <div class="proj-meter-track">
+                <div class="proj-meter-seg proj-meter-seg--spent" [style.width.%]="proj.spentPct"></div>
+                <div class="proj-meter-seg proj-meter-seg--forecast" [style.width.%]="proj.forecastPct"></div>
+                @if (proj.isOver) {
+                  <div class="proj-meter-seg proj-meter-seg--over" [style.width.%]="proj.overPct"></div>
+                }
+                <div class="proj-meter-budget-marker" [style.left.%]="proj.budgetPct" title="Budget Target"></div>
+              </div>
+
+              <!-- Meter Legend -->
+              <div class="proj-legend">
+                <div class="proj-legend-item">
+                  <span class="proj-legend-dot proj-legend-dot--spent"></span>
+                  <span>Spent: ₹{{ summary.spent | number:'1.0-0' }}</span>
+                </div>
+                <div class="proj-legend-item">
+                  <span class="proj-legend-dot proj-legend-dot--forecast"></span>
+                  <span>Expected +₹{{ (summary.forecast.estimatedSpend - summary.spent) | number:'1.0-0' }}</span>
+                </div>
+                @if (proj.isOver) {
+                  <div class="proj-legend-item is-over">
+                    <span class="proj-legend-dot proj-legend-dot--over"></span>
+                    <span>Over by ₹{{ proj.overAmount | number:'1.0-0' }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Progress bar against budget target -->
+              <div class="hero-progress-track">
+                <div class="hero-progress-fill"
+                     [class.is-over]="summary.spent > summary.budgetTarget"
+                     [style.width.%]="summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct">
+                </div>
+              </div>
+
+              <div class="hero-progress-labels">
+                <span>{{ summary.budgetUsedPct | number:'1.0-0' }}% of budget</span>
+                <span>{{ summary.spent > summary.budgetTarget ? 'Over Budget' : '₹' + (summary.available | number:'1.0-0') + ' left' }}</span>
+              </div>
 
               <p class="proj-status">
                 <span class="material-symbols-outlined">{{ proj.isOver ? 'warning' : 'check_circle' }}</span>
@@ -340,33 +271,36 @@
               <h3 class="recent-title">Recent Transactions</h3>
               <p class="recent-sub">Last {{ recentExpenses().length }} of {{ expenses().length }}</p>
             </div>
-            <button class="recent-viewall" (click)="isHistoryModalOpen.set(true)">
+            <a class="recent-viewall" routerLink="/expenses/history">
               View all
               <span class="material-symbols-outlined">chevron_right</span>
-            </button>
+            </a>
           </div>
 
           <div class="recent-list">
             @for (exp of recentExpenses(); track exp._id) {
-              <div class="recent-row">
-                <div class="txn-icon-circle recent-row-icon" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
-                  <span class="material-symbols-outlined">
-                    {{ exp.category === 'Food' ? 'restaurant' :
-                       exp.category === 'Transport' ? 'directions_car' :
-                       exp.category === 'Shopping' ? 'local_mall' :
-                       exp.category === 'Utilities' ? 'bolt' :
-                       exp.category === 'Entertainment' ? 'movie' :
-                       exp.category === 'Health' ? 'medical_services' : 'home' }}
-                  </span>
-                </div>
+              <a [routerLink]="['/expenses/edit', exp._id]" class="recent-row-link">
+                <div class="recent-row">
+                  <div class="txn-icon-circle recent-row-icon" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                    <span class="material-symbols-outlined">
+                      {{ exp.category === 'Food' || exp.category === 'Food & Dining' ? 'restaurant' :
+                         exp.category === 'Transport' ? 'directions_car' :
+                         exp.category === 'Shopping' ? 'local_mall' :
+                         exp.category === 'Utilities' ? 'bolt' :
+                         exp.category === 'Entertainment' ? 'movie' :
+                         exp.category === 'Health' ? 'medical_services' : 'home' }}
+                    </span>
+                  </div>
 
-                <div class="recent-row-info">
-                  <span class="recent-row-merchant">{{ exp.title || exp.notes || exp.merchant }}</span>
-                  <span class="recent-row-meta">{{ exp.date | date:'MMM d' }} · {{ exp.paymentMethod }}</span>
-                </div>
+                  <div class="recent-row-info">
+                    <span class="recent-row-merchant">{{ exp.title || exp.notes || exp.merchant }}</span>
+                    <span class="recent-row-meta">{{ exp.date | date:'MMM d' }} · {{ exp.paymentMethod }}</span>
+                  </div>
 
-                <span class="recent-row-amount">₹{{ exp.amount | number:'1.0-0' }}</span>
-              </div>
+                  <span class="recent-row-amount">₹{{ exp.amount | number:'1.0-0' }}</span>
+                  <span class="material-symbols-outlined row-chevron">chevron_right</span>
+                </div>
+              </a>
             }
           </div>
         </div>
@@ -399,8 +333,6 @@
                   </linearGradient>
                 </defs>
                 <path [attr.d]="trendAreaPath()" fill="url(#lchartWash)" />
-                <!-- non-scaling-stroke keeps the line an even 2px even though the
-                     viewBox is stretched to fill the card. -->
                 <path [attr.d]="trendLinePath()"
                       fill="none"
                       stroke="var(--lm-color-primary)"
@@ -429,8 +361,6 @@
                      (blur)="hoveredBar.set(null)"
                      [attr.aria-label]="p.label + ' ' + p.dayOfMonth + ' ' + p.month + ': ₹' + (p.amount | number:'1.0-0')">
 
-                  <!-- Tapping swaps the abbreviated chip for the exact figure
-                       and the full date; touch has no hover to rely on. -->
                   @if (isDayDetailOpen(i)) {
                     <span class="lchart-detail" role="tooltip">
                       <span class="lchart-detail-val">₹{{ p.amount | number:'1.0-0' }}</span>
@@ -491,376 +421,7 @@
     }
   }
 
-  <app-modal
-    [isOpen]="isLogModalOpen()"
-    (onClose)="cancelReview()"
-    [title]="activePendingId() ? 'Complete Pending Review' : editingExpenseId() ? 'Edit Transaction' : 'Log New Expense'"
-    [icon]="activePendingId() ? 'rule' : editingExpenseId() ? 'edit' : 'add_circle'">
-      <div style="background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; gap: 16px; padding: 0 16px;">
-
-        <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="expense-form">
-
-          <div class="input-row">
-            <div class="input-group flex-1">
-              <label class="premium-label">Amount</label>
-              <div class="input-wrapper">
-                <span class="input-prefix">₹</span>
-                <input type="number" formControlName="amount" class="premium-input" placeholder="0">
-              </div>
-            </div>
-
-            <div class="input-group flex-2">
-              <label class="premium-label">Merchant / Reason</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-outlined input-icon">storefront</span>
-                <input type="text" formControlName="merchant" class="premium-input" placeholder="e.g. Swiggy">
-              </div>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="premium-label">Title</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">title</span>
-              <input type="text" formControlName="title" class="premium-input" placeholder="e.g. Team Lunch">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group flex-1">
-              <label class="premium-label">Category</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-outlined input-icon">category</span>
-                <select formControlName="category" class="premium-input select-caret">
-                  @for (cat of getAllCategories(); track cat) {
-                    <option [value]="cat">{{ cat === 'Food' ? 'Food & Dining' : cat }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            <div class="input-group flex-1">
-              <label class="premium-label">Method</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-outlined input-icon">payments</span>
-                <select formControlName="paymentMethod" class="premium-input select-caret">
-                  <option value="UPI">UPI</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="Net Banking">Net Banking</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="premium-label">Date & Time</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">event</span>
-              <input type="datetime-local" formControlName="date" class="premium-input">
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="premium-label">Tags (Optional)</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon">sell</span>
-              <input type="text" formControlName="tags" class="premium-input" placeholder="e.g. Weekend, Dinner">
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="premium-label">Notes (Optional)</label>
-            <div class="input-wrapper">
-              <span class="material-symbols-outlined input-icon" style="top: 24px;">description</span>
-              <textarea formControlName="notes" class="premium-input" placeholder="e.g. Shared with roommates" rows="2" style="resize: none;"></textarea>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
-            <button type="submit" class="premium-submit-btn" [disabled]="expenseForm.invalid || isAdding()" [style.background]="activePendingId() ? 'var(--lm-color-success)' : ''">
-              @if (isAdding()) {
-                <span class="material-symbols-outlined spin">sync</span> Saving...
-              } @else {
-                {{ activePendingId() ? 'Approve & Save Transaction' : editingExpenseId() ? 'Update Transaction' : 'Save Transaction' }}
-              }
-            </button>
-          </div>
-        </form>
-    </div>
-  </app-modal>
-
-  <!-- ── 2. History ── -->
-  <app-modal [isOpen]="isHistoryModalOpen()" (onClose)="isHistoryModalOpen.set(false)" title="History" icon="receipt_long">
-    <div class="pop-body history-section-wrap">
-      <div class="pop-toolbar">
-        <button class="pop-btn" (click)="fetchExpenses()" [disabled]="isLoading()">
-          <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span> Refresh
-        </button>
-      </div>
-
-        @if (expenses().length === 0 && !isLoading()) {
-          <div class="pop-empty">
-            <div class="pop-empty-icon">
-              <span class="material-symbols-outlined">receipt_long</span>
-            </div>
-            <p class="pop-empty-title">No transactions yet</p>
-            <p class="pop-empty-sub">Expenses you log — or approve from Gmail — will appear here.</p>
-          </div>
-        } @else {
-          <div class="txn-card-list">
-            @for (exp of expenses(); track exp._id) {
-              <div class="txn-card">
-                <div class="txn-card-top">
-                  <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
-                    <span class="material-symbols-outlined">
-                      {{ exp.category === 'Food' ? 'restaurant' :
-                         exp.category === 'Transport' ? 'directions_car' :
-                         exp.category === 'Shopping' ? 'local_mall' :
-                         exp.category === 'Utilities' ? 'bolt' :
-                         exp.category === 'Entertainment' ? 'movie' :
-                         exp.category === 'Health' ? 'medical_services' : 'home' }}
-                    </span>
-                  </div>
-
-                  <div class="txn-info-main">
-                    <h4 class="txn-merchant">{{ exp.title || exp.notes || exp.merchant }}</h4>
-                    <div class="txn-meta-row">
-                      <span>{{ exp.date | date:'MMM d' }}</span>
-                      <span class="txn-meta-sep">•</span>
-                      <span>{{ exp.date | date:'shortTime' }}</span>
-                      <span class="txn-meta-sep">•</span>
-                      <span>{{ exp.paymentMethod }}</span>
-                    </div>
-                  </div>
-
-                  <div class="txn-amount-block">
-                    <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
-                  </div>
-                </div>
-
-                <div class="txn-card-bottom">
-                  <div class="txn-tags-row">
-                    <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
-                      {{ exp.category === 'Food' ? 'Food & Dining' :
-                         exp.category === 'Transport' ? 'Transport' :
-                         exp.category === 'Shopping' ? 'Shopping' :
-                         exp.category === 'Utilities' ? 'Utilities' :
-                         exp.category === 'Entertainment' ? 'Entertainment' :
-                         exp.category === 'Health' ? 'Healthcare' : exp.category }}
-                    </span>
-                    @if (exp.tags && exp.tags.length) {
-                      @for (tag of exp.tags; track tag) {
-                        <span class="txn-tag txn-tag--custom">{{ tag }}</span>
-                      }
-                    }
-                  </div>
-
-                  <div class="txn-details-stack">
-                    @if (exp.merchant) {
-                      <div class="txn-notes-row">
-                        <span class="material-symbols-outlined txn-notes-icon">storefront</span>
-                        <span class="txn-notes-text">{{ exp.merchant }}</span>
-                      </div>
-                    }
-                    @if (exp.notes) {
-                      <div class="txn-notes-row">
-                        <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
-                        <span class="txn-notes-text">{{ exp.notes }}</span>
-                      </div>
-                    }
-                  </div>
-
-                  <div class="txn-actions-bottom">
-                    <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
-                      <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button class="txn-action-btn txn-action-btn--delete" title="Delete" (click)="deleteExpense(exp._id)">
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-    </div>
-  </app-modal>
-
-  <!-- ── 3. Pending Transactions (Auto Log) ── -->
-  <app-modal [isOpen]="isPendingModalOpen()" (onClose)="isPendingModalOpen.set(false)" title="Pending Review" icon="mark_email_unread">
-    <div class="pop-body">
-      <div class="pop-toolbar">
-        <button
-          type="button"
-          class="pop-btn pop-btn--warning"
-          (click)="syncGmailManually()"
-          [disabled]="isSyncDisabled()"
-          [title]="syncCooldownSeconds() > 0 ? 'Google is rate-limiting this account' : 'Sync Gmail Transactions'"
-        >
-          <span class="material-symbols-outlined" [class.spin]="isSyncing()">sync</span>
-          <span>
-            @if (isSyncing()) {
-              Syncing…
-            } @else if (syncCooldownSeconds() > 0) {
-              Wait {{ syncCooldownSeconds() }}s
-            } @else {
-              Sync now
-            }
-          </span>
-        </button>
-      </div>
-
-      @if (pendingTransactions().length === 0) {
-        <div class="pop-empty">
-          <div class="pop-empty-icon">
-            <span class="material-symbols-outlined">inbox</span>
-          </div>
-          <p class="pop-empty-title">Nothing to review</p>
-          <p class="pop-empty-sub">New bank transactions detected in Gmail will appear here for your approval.</p>
-        </div>
-      } @else {
-        <div class="pending-list">
-          @for (ptx of pendingTransactions(); track ptx._id) {
-            <div class="pending-item">
-              <div class="pending-item-head">
-                <span class="pending-icon">
-                  <span class="material-symbols-outlined">schedule</span>
-                </span>
-                <div class="pending-info">
-                  <h4 class="pending-merchant">{{ ptx.title || ptx.notes || ptx.merchant }}</h4>
-                  <span class="pending-meta">{{ ptx.merchant }} · {{ ptx.date | date:'MMM d' }} · {{ ptx.paymentMethod }}</span>
-                </div>
-                <span class="pending-amount">₹{{ ptx.amount | number:'1.0-0' }}</span>
-              </div>
-
-              <div class="pending-actions">
-                <button class="pop-btn" (click)="processPending(ptx._id, 'ignore')">Ignore</button>
-                <button class="pop-btn pop-btn--solid-warning" (click)="reviewPending(ptx)">Review</button>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </app-modal>
-  
-  <!-- ── Category Settings Modal ── -->
-  <app-modal [isOpen]="isCategorySettingsOpen()" (onClose)="isCategorySettingsOpen.set(false)" title="Manage Categories" icon="category">
-    <div class="pop-body">
-      <p class="pop-card-desc">
-        Rename, remove, or add categories. Deleting one moves its transactions to {{ fallbackCategory }}.
-      </p>
-
-      <div class="cat-add">
-        <div class="cat-add-row">
-          <input type="text" [formControl]="newCategoryControl" placeholder="Category name" class="premium-input cat-add-input" (keyup.enter)="addCategory()">
-          <input type="text" [formControl]="newCategoryShortControl" placeholder="Short" maxlength="8" class="premium-input cat-add-input cat-add-short" (keyup.enter)="addCategory()">
-          <button class="pop-btn cat-add-btn" (click)="addCategory()" [disabled]="!newCategoryControl.value?.trim()">Add</button>
-        </div>
-        <p class="cat-add-hint">Short name is optional — used where the full name won't fit.</p>
-      </div>
-
-      <div>
-        <h4 class="pop-eyebrow">All Categories · {{ customCategories().length }}</h4>
-
-        <div class="pop-list">
-          @for (cat of customCategories(); track cat.name) {
-            @if (editingCategory() === cat.name) {
-              <!-- Inline editor for this row -->
-              <div class="pop-row cat-row-editing">
-                <div class="cat-edit-fields">
-                  <input type="text" [formControl]="editCategoryControl" placeholder="Category name" class="premium-input cat-add-input" (keyup.enter)="saveCategory()">
-                  <input type="text" [formControl]="editCategoryShortControl" placeholder="Short" maxlength="8" class="premium-input cat-add-input cat-add-short" (keyup.enter)="saveCategory()">
-                </div>
-                <div class="cat-edit-actions">
-                  <button class="pop-btn" (click)="cancelEditCategory()">Cancel</button>
-                  <button class="pop-btn cat-add-btn" (click)="saveCategory()"
-                          [disabled]="!editCategoryControl.value?.trim() || isReassigning()">
-                    {{ isReassigning() ? 'Saving…' : 'Save' }}
-                  </button>
-                </div>
-              </div>
-            } @else if (categoryPendingDelete() === cat.name) {
-              <!-- Confirm: says plainly what happens to the transactions -->
-              <div class="pop-row cat-row-confirm">
-                <p class="cat-confirm-text">
-                  Delete <strong>{{ cat.name }}</strong>?
-                  @if (categoryUsage(cat.name) > 0) {
-                    {{ categoryUsage(cat.name) }} transaction{{ categoryUsage(cat.name) === 1 ? '' : 's' }}
-                    will move to {{ fallbackCategory }}.
-                  } @else {
-                    Nothing is filed under it.
-                  }
-                </p>
-                <div class="cat-edit-actions">
-                  <button class="pop-btn" (click)="cancelDeleteCategory()" [disabled]="isReassigning()">Cancel</button>
-                  <button class="pop-btn pop-btn--solid-danger" (click)="confirmDeleteCategory(cat.name)" [disabled]="isReassigning()">
-                    {{ isReassigning() ? 'Moving…' : 'Delete' }}
-                  </button>
-                </div>
-              </div>
-            } @else {
-              <div class="pop-row" [class.is-protected]="isProtectedCategory(cat.name)">
-                <span class="pop-row-label cat-row-name">
-                  <span class="cat-name-line">
-                    {{ cat.name }}
-                    @if (cat.shortName) {
-                      <span class="cat-short-chip" title="Short name">{{ cat.shortName }}</span>
-                    }
-                  </span>
-                  <span class="cat-row-count">
-                    @if (isProtectedCategory(cat.name)) {
-                      Default · where deleted categories go
-                    } @else {
-                      {{ categoryUsage(cat.name) }} transaction{{ categoryUsage(cat.name) === 1 ? '' : 's' }}
-                    }
-                  </span>
-                </span>
-                <span class="cat-row-actions">
-                  <button class="pop-row-icon-btn cat-edit-btn" (click)="startEditCategory(cat)"
-                          [disabled]="isProtectedCategory(cat.name)"
-                          [title]="isProtectedCategory(cat.name) ? fallbackCategory + ' cannot be renamed' : 'Edit ' + cat.name">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="pop-row-icon-btn" (click)="askDeleteCategory(cat.name)"
-                          [disabled]="isProtectedCategory(cat.name)"
-                          [title]="isProtectedCategory(cat.name) ? fallbackCategory + ' cannot be deleted' : 'Delete ' + cat.name">
-                    <span class="material-symbols-outlined">{{ isProtectedCategory(cat.name) ? 'lock' : 'delete' }}</span>
-                  </button>
-                </span>
-              </div>
-            }
-          }
-        </div>
-      </div>
-    </div>
-  </app-modal>
-
   <!-- ── Global Navigation Footer ── -->
   <app-bottom-nav />
 
 </div>
-
-<app-modal
-  [isOpen]="deleteConfirmId() !== null"
-  title="Delete Transaction"
-  icon="warning"
-  (onClose)="cancelDelete()"
->
-  <div class="pop-confirm">
-    <p class="pop-confirm-text">
-      Delete this transaction? This cannot be undone.
-    </p>
-    <div class="pop-confirm-actions">
-      <button type="button" class="pop-btn pop-btn--lg" (click)="cancelDelete()">
-        Cancel
-      </button>
-      <button type="button" class="pop-btn pop-btn--lg pop-btn--solid-danger" (click)="confirmDelete()">
-        Delete
-      </button>
-    </div>
-  </div>
-</app-modal>

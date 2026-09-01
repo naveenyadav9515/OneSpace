@@ -228,6 +228,10 @@ export class ExpenseService {
     );
   }
 
+  public fetchExpenseById(id: string): Observable<{ status: string, data: Expense }> {
+    return this.http.get<{ status: string, data: Expense }>(`${this.apiUrl}/expenses/${id}`);
+  }
+
   public updateExpense(id: string, payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
     return this.http.put<{ status: string, data: Expense }>(`${this.apiUrl}/expenses/${id}`, payload);
   }

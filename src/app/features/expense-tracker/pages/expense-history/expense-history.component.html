@@ -8,7 +8,7 @@
     <div class="hh-title-wrap">
       <h1 class="hh-title">Transaction History</h1>
       <p class="hh-subtitle">
-        {{ filteredExpenses().length }} of {{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}
+        {{ periodFilteredExpenses().length }} of {{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}
       </p>
     </div>
 
@@ -16,14 +16,71 @@
       <button (click)="fetchExpenses()" [disabled]="isLoading()" class="hh-btn" title="Refresh">
         <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span>
       </button>
-      <a routerLink="/expenses/add" class="hh-btn hh-btn--primary" title="Add Expense">
+      <a routerLink="/expenses/add" class="hh-btn" title="Add Expense">
         <span class="material-symbols-outlined">add</span>
       </a>
     </div>
   </header>
 
-  <!-- ── Search & Filter Toolbar ── -->
+  <!-- ── Period Navigation & Filter Toolbar ── -->
   <section class="history-toolbar-section">
+    <!-- Period Granularity Switcher Pills -->
+    <div class="period-granularity-pills">
+      <button type="button"
+              class="period-gran-btn"
+              [class.is-active]="periodGranularity() === 'daily'"
+              (click)="setPeriodGranularity('daily')">
+        Daily
+      </button>
+      <button type="button"
+              class="period-gran-btn"
+              [class.is-active]="periodGranularity() === 'weekly'"
+              (click)="setPeriodGranularity('weekly')">
+        Weekly
+      </button>
+      <button type="button"
+              class="period-gran-btn"
+              [class.is-active]="periodGranularity() === 'monthly'"
+              (click)="setPeriodGranularity('monthly')">
+        Monthly
+      </button>
+      <button type="button"
+              class="period-gran-btn"
+              [class.is-active]="periodGranularity() === 'yearly'"
+              (click)="setPeriodGranularity('yearly')">
+        Yearly
+      </button>
+      <button type="button"
+              class="period-gran-btn"
+              [class.is-active]="periodGranularity() === 'all'"
+              (click)="setPeriodGranularity('all')">
+        All Time
+      </button>
+    </div>
+
+    <!-- Period Navigator (Hidden when in 'all' mode) -->
+    @if (periodGranularity() !== 'all') {
+      <div class="history-period-bar">
+        <button type="button" class="history-nav-btn" (click)="prevPeriod()" title="Previous period">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div class="history-nav-center">
+          <span class="material-symbols-outlined cal-icon">calendar_today</span>
+          <span class="history-nav-label" [class.is-current]="isCurrentPeriod()">
+            {{ periodLabel() }}
+          </span>
+          @if (!isCurrentPeriod()) {
+            <button type="button" class="history-reset-pill" (click)="resetToCurrentPeriod()">
+              Current
+            </button>
+          }
+        </div>
+        <button type="button" class="history-nav-btn" (click)="nextPeriod()" title="Next period">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    }
+
     <!-- Search Input -->
     <div class="search-input-wrap">
       <span class="material-symbols-outlined search-icon">search</span>
@@ -47,7 +104,7 @@
         [class.cat-chip--active]="selectedCategory() === 'all'"
         (click)="setCategoryFilter('all')"
       >
-        All ({{ expenses().length }})
+        All ({{ periodFilteredExpenses().length }})
       </button>
 
       @for (cat of categories(); track cat.name) {
@@ -64,11 +121,11 @@
     <!-- Summary Banner -->
     <div class="history-summary-banner">
       <div class="summary-stat">
-        <span class="summary-label">Filtered Spend</span>
+        <span class="summary-label">{{ periodLabel() }} Spend</span>
         <span class="summary-value">₹{{ totalAmount() | number:'1.2-2' }}</span>
       </div>
       <div class="summary-stat-right">
-        <span class="summary-badge">{{ filteredExpenses().length }} entries</span>
+        <span class="summary-badge">{{ periodFilteredExpenses().length }} entries</span>
       </div>
     </div>
   </section>
@@ -80,7 +137,7 @@
         <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
         <p class="pop-empty-title">Loading history...</p>
       </div>
-    } @else if (filteredExpenses().length === 0) {
+    } @else if (periodFilteredExpenses().length === 0) {
       <div class="pop-empty">
         <div class="pop-empty-icon">
           <span class="material-symbols-outlined">search_off</span>
@@ -90,13 +147,13 @@
           @if (searchQuery() || selectedCategory() !== 'all') {
             Try adjusting your search or category filters.
           } @else {
-            You haven't recorded any expenses yet.
+            No expenses recorded for {{ periodLabel() }}.
           }
         </p>
       </div>
     } @else {
       <div class="txn-card-list">
-        @for (exp of filteredExpenses(); track exp._id) {
+        @for (exp of paginatedExpenses(); track exp._id) {
           <div class="txn-card">
             <!-- Top Line: Category Icon, Title, Date/Method, Amount -->
             <div class="txn-card-top">
@@ -178,6 +235,36 @@
           </div>
         }
       </div>
+
+      <!-- Item-Level Pagination Controls -->
+      @if (totalPages() > 1) {
+        <div class="history-pagination-bar">
+          <button
+            type="button"
+            class="page-nav-btn"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+          >
+            <span class="material-symbols-outlined">chevron_left</span>
+            <span>Prev</span>
+          </button>
+
+          <span class="page-info">
+            Page {{ currentPage() }} of {{ totalPages() }}
+            <span class="page-info-count">({{ (currentPage() - 1) * pageSize() + 1 }}–{{ (currentPage() === totalPages() ? totalCount() : currentPage() * pageSize()) }} of {{ totalCount() }})</span>
+          </span>
+
+          <button
+            type="button"
+            class="page-nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+          >
+            <span>Next</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      }
     }
   </main>
 

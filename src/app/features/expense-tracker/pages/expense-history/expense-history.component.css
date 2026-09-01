@@ -73,35 +73,52 @@
 }
 
 .hh-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--lm-color-text-primary);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-.hh-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-}
-.hh-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none !important;
+  outline: none;
 }
 
-.hh-btn--primary {
-  background: var(--lm-color-primary, #6366F1);
-  border-color: var(--lm-color-primary, #6366F1);
-  color: #fff;
+.hh-btn,
+.hh-btn *,
+.hh-btn:hover,
+.hh-btn:hover * {
+  text-decoration: none !important;
 }
-.hh-btn--primary:hover {
-  filter: brightness(1.1);
-  background: var(--lm-color-primary, #6366F1);
+
+.hh-btn .material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+}
+
+.hh-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hh-btn:active {
+  transform: scale(0.94);
+}
+
+.hh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Toolbar & Filters ── */
@@ -110,6 +127,125 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* ── Period Granularity Switcher ── */
+.period-granularity-pills {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  width: 100%;
+}
+
+.period-gran-btn {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.period-gran-btn:hover {
+  color: var(--lm-color-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.period-gran-btn.is-active {
+  background: rgba(6, 182, 212, 0.18);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: #67e8f9;
+  font-weight: 700;
+  box-shadow: 0 1px 6px rgba(6, 182, 212, 0.2);
+}
+
+/* ── Period Navigator Bar ── */
+.history-period-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+}
+
+.history-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--lm-color-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.history-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.history-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.history-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-icon {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.history-nav-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.history-nav-label.is-current {
+  color: #67e8f9;
+}
+
+.history-reset-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.15);
+  color: #67e8f9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.history-reset-pill:hover {
+  background: rgba(6, 182, 212, 0.28);
+  color: #ffffff;
 }
 
 .search-input-wrap {
@@ -525,6 +661,58 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ── Item Pagination Bar ── */
+.history-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 8px 8px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.page-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lm-color-text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.page-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-nav-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.page-info {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--lm-color-text-muted);
+}
+
+.page-info-count {
+  font-weight: 500;
+  opacity: 0.7;
 }
 
 :host-context(html[data-theme="light"]) {

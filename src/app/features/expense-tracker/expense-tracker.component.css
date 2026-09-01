@@ -1934,25 +1934,32 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   flex-shrink: 0;
-  text-decoration: none;
-  background: var(--pop-fill);
-  border: 1px solid var(--pop-line);
-  color: var(--lm-color-text-primary);
-  transition: all 0.2s ease;
+  text-decoration: none !important;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
 }
 
 .hh-back-btn:hover {
-  background: var(--pop-fill-hover);
-  border-color: var(--pop-line-strong);
-  color: var(--lm-color-primary);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hh-back-btn:active {
+  transform: scale(0.94);
 }
 
 .hh-back-btn .material-symbols-outlined {
   font-size: 20px;
+  line-height: 1;
 }
 
 .hh-title-wrap {
@@ -1992,16 +1999,16 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background: transparent;
-  border: 1px solid var(--pop-line-strong);
-  color: var(--lm-color-text-primary);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   padding: 0;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   text-decoration: none !important;
   outline: none;
@@ -2015,6 +2022,7 @@ input:checked + .slider:before {
 }
 
 .hh-btn .material-symbols-outlined {
+  font-size: 20px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -2023,9 +2031,14 @@ input:checked + .slider:before {
 }
 
 .hh-btn:hover {
-  background: var(--pop-fill-hover);
-  color: var(--lm-color-primary);
-  border-color: var(--pop-line-strong);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hh-btn:active {
+  transform: scale(0.94);
 }
 /* Replaces the bare dot: the count is the useful part, and a plain dot made
    "one waiting" and "twelve waiting" look identical. Sits half outside the

@@ -115,12 +115,12 @@
 
     <!-- Summary Banner -->
     <div class="history-summary-banner">
-      <div class="summary-stat">
+      <div class="summary-left">
         <span class="summary-label">{{ periodLabel() }} Spend</span>
-        <span class="summary-value">₹{{ totalAmount() | number:'1.2-2' }}</span>
+        <span class="summary-badge">{{ periodFilteredExpenses().length }} {{ periodFilteredExpenses().length === 1 ? 'transaction' : 'transactions' }}</span>
       </div>
-      <div class="summary-stat-right">
-        <span class="summary-badge">{{ periodFilteredExpenses().length }} entries</span>
+      <div class="summary-right">
+        <span class="summary-value">₹{{ totalAmount() | number:'1.2-2' }}</span>
       </div>
     </div>
   </section>

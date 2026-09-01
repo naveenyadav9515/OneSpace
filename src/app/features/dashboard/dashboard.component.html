@@ -42,20 +42,12 @@
                   <button type="button" class="month-nav-btn" (click)="prevMonth()" title="Previous month">
                     <span class="material-symbols-outlined">chevron_left</span>
                   </button>
-                  <span class="month-nav-label" [class.is-past]="!isCurrentMonth()">
+                  <span class="month-nav-label">
                     {{ selectedMonthLabel() }}
                   </span>
                   <button type="button" class="month-nav-btn" [disabled]="isCurrentMonth()" (click)="nextMonth()" title="Next month">
                     <span class="material-symbols-outlined">chevron_right</span>
                   </button>
-                  @if (isCurrentMonth()) {
-                    <span class="month-current-tag">This Month</span>
-                  } @else {
-                    <button type="button" class="month-reset-btn" (click)="resetCurrentMonth()" title="Return to current month (September)">
-                      <span class="material-symbols-outlined reset-icon">restart_alt</span>
-                      <span>This Month</span>
-                    </button>
-                  }
                 </div>
 
                 <div class="snapshot-actions">

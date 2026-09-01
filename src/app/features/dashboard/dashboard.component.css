@@ -1817,8 +1817,10 @@
   color: #fff;
 }
 
-.month-nav-btn .material-symbols-outlined {
-  font-size: 16px;
+.month-nav-btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .month-nav-label {
@@ -1834,23 +1836,44 @@
   color: #a78bfa;
 }
 
-.month-reset-btn {
-  font-size: 10px;
+.month-current-tag {
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 2px 7px;
-  border-radius: 10px;
-  border: none;
-  background: var(--lm-color-primary, #6366F1);
-  color: #fff;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  white-space: nowrap;
+}
+
+.month-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
   cursor: pointer;
-  transition: filter 0.15s ease;
-  margin-left: 2px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .month-reset-btn:hover {
-  filter: brightness(1.15);
+  background: rgba(99, 102, 241, 0.28);
+  color: #fff;
+  border-color: #818cf8;
+}
+
+.month-reset-btn .reset-icon {
+  font-size: 13px;
 }
 
 @media (max-width: 480px) {

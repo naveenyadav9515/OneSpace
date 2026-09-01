@@ -1786,6 +1786,85 @@
   letter-spacing: -0.3px;
 }
 
+/* ── Month Navigator in Snapshot ── */
+.snapshot-month-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.month-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-text-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.month-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.month-nav-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.month-nav-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lm-color-text-primary);
+  padding: 0 4px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.month-nav-label.is-past {
+  color: #a78bfa;
+}
+
+.month-reset-btn {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: none;
+  background: var(--lm-color-primary, #6366F1);
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  margin-left: 2px;
+}
+
+.month-reset-btn:hover {
+  filter: brightness(1.15);
+}
+
+@media (max-width: 480px) {
+  .snapshot-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .snapshot-month-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .snapshot-actions {
   display: flex;
   align-items: center;

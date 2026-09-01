@@ -36,8 +36,27 @@
                   </div>
                   <span class="snapshot-title">Expense Snapshot</span>
                 </div>
+
+                <!-- Month Navigator -->
+                <div class="snapshot-month-nav">
+                  <button type="button" class="month-nav-btn" (click)="prevMonth()" title="Previous month">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                  </button>
+                  <span class="month-nav-label" [class.is-past]="!isCurrentMonth()">
+                    {{ selectedMonthLabel() }}
+                  </span>
+                  <button type="button" class="month-nav-btn" (click)="nextMonth()" title="Next month">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                  @if (!isCurrentMonth()) {
+                    <button type="button" class="month-reset-btn" (click)="resetCurrentMonth()" title="Jump to current month">
+                      Current
+                    </button>
+                  }
+                </div>
+
                 <div class="snapshot-actions">
-                   <a class="snapshot-add-btn" routerLink="/expenses" [queryParams]="{ action: 'add' }" (click)="$event.stopPropagation()" title="Quick add expense">
+                   <a class="snapshot-add-btn" routerLink="/expenses/add" (click)="$event.stopPropagation()" title="Quick add expense">
                      <span class="material-symbols-outlined">add</span>
                    </a>
                    <a class="snapshot-launch-btn" routerLink="/expenses" title="Open Expenses">
@@ -74,7 +93,7 @@
 
                 <!-- Spend Info (Right Column) -->
                 <div class="snapshot-spend-details">
-                  <span class="snapshot-spend-lbl">Spent this month</span>
+                  <span class="snapshot-spend-lbl">{{ isCurrentMonth() ? 'Spent this month' : 'Spent in ' + (summary.monthName || selectedMonthLabel()) }}</span>
                   <div class="snapshot-spend-amount-row">
                     <span class="snapshot-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
                   </div>

@@ -80,6 +80,24 @@ export class ExpenseTrackerComponent implements OnInit {
   protected readonly hoveredBar = signal<number | null>(null);
   protected readonly selectedDay = signal<number | null>(null);
 
+  // Month navigation
+  protected readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
+  protected readonly selectedYear = signal<number>(new Date().getFullYear());
+
+  protected readonly isCurrentMonth = computed(() => {
+    const now = new Date();
+    return this.selectedMonth() === (now.getMonth() + 1) && this.selectedYear() === now.getFullYear();
+  });
+
+  protected readonly selectedMonthLabel = computed(() => {
+    const s = this.expenseService.summary();
+    if (s?.monthName && s?.year) {
+      return `${s.monthName} ${s.year}`;
+    }
+    const d = new Date(this.selectedYear(), this.selectedMonth() - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  });
+
   // Budget editing state
   protected readonly isEditingBudget = signal(false);
   protected readonly isSavingBudget = signal(false);
@@ -91,7 +109,44 @@ export class ExpenseTrackerComponent implements OnInit {
   ngOnInit() {
     this.fetchExpenses();
     this.fetchPendingTransactions();
-    this.expenseService.fetchSummary().subscribe();
+    this.fetchSummary();
+  }
+
+  protected fetchSummary() {
+    this.expenseService.fetchSummary(this.selectedMonth(), this.selectedYear()).subscribe();
+  }
+
+  protected prevMonth(): void {
+    let m = this.selectedMonth() - 1;
+    let y = this.selectedYear();
+    if (m < 1) {
+      m = 12;
+      y -= 1;
+    }
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.fetchSummary();
+  }
+
+  protected nextMonth(): void {
+    let m = this.selectedMonth() + 1;
+    let y = this.selectedYear();
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.fetchSummary();
+  }
+
+  protected resetCurrentMonth(): void {
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    const y = now.getFullYear();
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.fetchSummary();
   }
 
   protected fetchExpenses() {
@@ -138,7 +193,7 @@ export class ExpenseTrackerComponent implements OnInit {
       next: () => {
         this.isSavingBudget.set(false);
         this.cancelBudgetEdit();
-        this.expenseService.fetchSummary().subscribe();
+        this.fetchSummary();
         this.notificationService.success('Monthly budget updated.', 'Saved');
       },
       error: (err) => {
@@ -159,11 +214,18 @@ export class ExpenseTrackerComponent implements OnInit {
     return this.selectedDay() === index || this.hoveredBar() === index;
   }
 
-  protected readonly recentExpenses = computed(() =>
-    [...this.expenses()]
+  protected readonly recentExpenses = computed(() => {
+    const m = this.selectedMonth() - 1;
+    const y = this.selectedYear();
+    const monthTxns = this.expenses().filter(e => {
+      const d = new Date(e.date);
+      return d.getMonth() === m && d.getFullYear() === y;
+    });
+
+    return [...(monthTxns.length ? monthTxns : this.expenses())]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
-  );
+      .slice(0, 5);
+  });
 
   protected readonly dailyLimit = computed(() => {
     const sum = this.expenseService.summary();

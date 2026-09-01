@@ -53,6 +53,57 @@ export class DashboardComponent {
   protected readonly dbStatus = signal<DbConnectionStatus>('connecting');
   protected readonly features = signal<Feature[]>([]);
 
+  // Month navigation for Expense Snapshot
+  protected readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
+  protected readonly selectedYear = signal<number>(new Date().getFullYear());
+
+  protected readonly isCurrentMonth = computed(() => {
+    const now = new Date();
+    return this.selectedMonth() === (now.getMonth() + 1) && this.selectedYear() === now.getFullYear();
+  });
+
+  protected readonly selectedMonthLabel = computed(() => {
+    const s = this.expenseService.summary();
+    if (s?.monthName && s?.year) {
+      return `${s.monthName} ${s.year}`;
+    }
+    const d = new Date(this.selectedYear(), this.selectedMonth() - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  });
+
+  protected prevMonth(): void {
+    let m = this.selectedMonth() - 1;
+    let y = this.selectedYear();
+    if (m < 1) {
+      m = 12;
+      y -= 1;
+    }
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.expenseService.fetchSummary(m, y).subscribe();
+  }
+
+  protected nextMonth(): void {
+    let m = this.selectedMonth() + 1;
+    let y = this.selectedYear();
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.expenseService.fetchSummary(m, y).subscribe();
+  }
+
+  protected resetCurrentMonth(): void {
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    const y = now.getFullYear();
+    this.selectedMonth.set(m);
+    this.selectedYear.set(y);
+    this.expenseService.fetchSummary(m, y).subscribe();
+  }
+
   /** Daily spend limit = available budget / remaining days in month */
   protected readonly dailyLimit = computed(() => {
     const s = this.expenseService.summary();

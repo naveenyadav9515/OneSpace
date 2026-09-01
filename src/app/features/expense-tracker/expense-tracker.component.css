@@ -1409,6 +1409,74 @@ input:checked + .slider:before {
   pointer-events: none;
 }
 
+/* ── Month Switcher Bar ── */
+.es-month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 6px 10px;
+  z-index: 1;
+}
+
+.month-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.month-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.month-nav-label {
+  font-family: var(--lm-font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--lm-color-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.month-nav-label.is-past {
+  color: #a78bfa;
+}
+
+.month-reset-btn {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: none;
+  background: var(--lm-color-primary, #6366F1);
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.month-reset-btn:hover {
+  filter: brightness(1.15);
+}
+
 .es-top-row {
   display: flex;
   justify-content: space-between;

@@ -89,10 +89,30 @@
     <section class="flow-item fade-in-bottom">
       <div class="expense-summary-bento">
 
+        <!-- Month Switcher Bar -->
+        <div class="es-month-bar">
+          <button type="button" class="month-nav-btn" (click)="prevMonth()" title="Previous month">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <div class="month-nav-center">
+            <span class="month-nav-label" [class.is-past]="!isCurrentMonth()">
+              {{ selectedMonthLabel() }}
+            </span>
+            @if (!isCurrentMonth()) {
+              <button type="button" class="month-reset-btn" (click)="resetCurrentMonth()" title="Return to current month">
+                Current
+              </button>
+            }
+          </div>
+          <button type="button" class="month-nav-btn" (click)="nextMonth()" title="Next month">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+
         <!-- Top Row: Spent & Editable Monthly Budget -->
         <div class="es-top-row">
           <div class="es-spent-block">
-            <span class="es-label">Spent this month</span>
+            <span class="es-label">{{ isCurrentMonth() ? 'Spent this month' : 'Spent in ' + (summary.monthName || selectedMonthLabel()) }}</span>
             <span class="es-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
           </div>
 

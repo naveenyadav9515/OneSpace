@@ -120,6 +120,12 @@ export interface ExpensePayload {
 }
 
 export interface ExpenseSummary {
+  month?: number;
+  year?: number;
+  monthName?: string;
+  isCurrentMonth?: boolean;
+  isPastMonth?: boolean;
+  isFutureMonth?: boolean;
   monthlySpend: number;
   budgetTarget: number;
   budgetUsedPct: number;
@@ -182,10 +188,14 @@ export class ExpenseService {
     return this.apiService.apiUrl;
   }
 
-  /** Fetches summary stats for the dashboard widget */
-  public fetchSummary(): Observable<{ status: string, data: ExpenseSummary }> {
+  /** Fetches summary stats for the dashboard widget, optionally for a specific month and year */
+  public fetchSummary(month?: number, year?: number): Observable<{ status: string, data: ExpenseSummary }> {
     this.isLoading.set(true);
-    return this.http.get<{ status: string, data: ExpenseSummary }>(`${this.apiUrl}/expenses/summary`).pipe(
+    let params: { [param: string]: string | number } = {};
+    if (month != null) params['month'] = month;
+    if (year != null) params['year'] = year;
+
+    return this.http.get<{ status: string, data: ExpenseSummary }>(`${this.apiUrl}/expenses/summary`, { params }).pipe(
       retry({
         count: 8,
         delay: (error) => {
@@ -195,12 +205,12 @@ export class ExpenseService {
       }),
       tap({
         next: (res) => {
-          this.summary.set(res.data);
+          if (res?.data) {
+            this.summary.set(res.data);
+          }
           this.isLoading.set(false);
         },
-        error: () => {
-          this.isLoading.set(false);
-        }
+        error: () => this.isLoading.set(false)
       })
     );
   }

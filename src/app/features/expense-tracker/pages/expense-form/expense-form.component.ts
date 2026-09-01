@@ -43,11 +43,11 @@ export class ExpenseFormComponent implements OnInit {
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     title: ['', [Validators.required, Validators.maxLength(100)]],
-    merchant: ['', Validators.required],
     category: ['Food & Dining', Validators.required],
-    paymentMethod: ['UPI', Validators.required],
+    notes: [''],
     date: [this.getCurrentDateTimeLocal(), Validators.required],
-    notes: ['']
+    merchant: [''],
+    paymentMethod: ['UPI', Validators.required],
   });
 
   protected readonly pageTitle = computed(() => {
@@ -162,11 +162,11 @@ export class ExpenseFormComponent implements OnInit {
           this.expenseForm.patchValue({
             amount: exp.amount,
             title: exp.title || exp.merchant || '',
-            merchant: exp.merchant || '',
             category: exp.category || 'Other',
-            paymentMethod: exp.paymentMethod || 'UPI',
-            date: dateStr,
             notes: exp.notes || '',
+            date: dateStr,
+            merchant: exp.merchant || '',
+            paymentMethod: exp.paymentMethod || 'UPI',
           });
           this.tagsList.set(exp.tags || []);
         }
@@ -190,11 +190,11 @@ export class ExpenseFormComponent implements OnInit {
           this.expenseForm.patchValue({
             amount: ptx.amount,
             title: ptx.title || ptx.merchant || '',
-            merchant: ptx.merchant || '',
             category: ptx.category || 'Other',
-            paymentMethod: ptx.paymentMethod || 'UPI',
-            date: dateStr,
             notes: ptx.notes || '',
+            date: dateStr,
+            merchant: ptx.merchant || '',
+            paymentMethod: ptx.paymentMethod || 'UPI',
           });
           this.tagsList.set(ptx.tags || []);
         }
@@ -220,10 +220,13 @@ export class ExpenseFormComponent implements OnInit {
     }
 
     const raw = this.expenseForm.getRawValue();
+    const titleVal = raw.title.trim();
+    const merchantVal = (raw.merchant || '').trim() || titleVal;
+
     const payload: ExpensePayload = {
       amount: Number(raw.amount),
-      title: raw.title.trim(),
-      merchant: raw.merchant.trim(),
+      title: titleVal,
+      merchant: merchantVal,
       category: raw.category.trim(),
       paymentMethod: raw.paymentMethod,
       date: new Date(raw.date).toISOString(),

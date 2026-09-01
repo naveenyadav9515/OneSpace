@@ -2171,36 +2171,36 @@
 .snapshot-cat-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .cat-item-top {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
+  gap: 6px;
+  width: 100%;
 }
 
 .cat-item-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: rgba(6, 182, 212, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #06B6D4;
+  flex-shrink: 0;
 }
 
 .cat-item-icon .material-symbols-outlined {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .cat-item-name {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -2210,20 +2210,21 @@
   background: rgba(255, 255, 255, 0.1);
   padding: 1px 5px;
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cat-item-bottom {
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding-left: 28px;
 }
 
 .cat-item-amount {
-  font-size: 13.5px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
   letter-spacing: -0.2px;

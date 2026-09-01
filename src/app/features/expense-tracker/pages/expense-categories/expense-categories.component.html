@@ -109,22 +109,21 @@
                   <div class="cat-card-footer">
                     <div class="cat-tx-chip">
                       <span class="material-symbols-outlined tx-icon">receipt_long</span>
-                      <span class="tx-count">
-                        {{ categoryUsage(cat.name) === 0 ? '0 transactions logged' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction logged' : ' transactions logged') }}
-                      </span>
+                      <span class="tx-count">{{ categoryUsage(cat.name) }} trans</span>
                     </div>
 
                     <div class="cat-actions-wrap">
+                      <button
+                        type="button"
+                        class="cat-act-btn edit-act-btn"
+                        (click)="startEditCategory(cat)"
+                        title="Edit category"
+                      >
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>Edit</span>
+                      </button>
+
                       @if (!isProtectedCategory(cat.name)) {
-                        <button
-                          type="button"
-                          class="cat-act-btn edit-act-btn"
-                          (click)="startEditCategory(cat)"
-                          title="Edit category"
-                        >
-                          <span class="material-symbols-outlined">edit</span>
-                          <span>Edit</span>
-                        </button>
                         <button
                           type="button"
                           class="cat-act-btn delete-act-btn"
@@ -133,11 +132,6 @@
                         >
                           <span class="material-symbols-outlined">delete</span>
                         </button>
-                      } @else {
-                        <span class="default-shield-tag" title="Default fallback category for deleted expenses">
-                          <span class="material-symbols-outlined">verified</span>
-                          <span>Default Fallback</span>
-                        </span>
                       }
                     </div>
                   </div>

@@ -48,12 +48,33 @@ export class ExpenseCategoriesComponent implements OnInit {
     this.fetchData();
   }
 
+  private sortCategories(cats: CustomCategory[]): CustomCategory[] {
+    const regular: CustomCategory[] = [];
+    let otherCat: CustomCategory | null = null;
+
+    for (const c of cats) {
+      if (c.name.trim().toLowerCase() === FALLBACK_CATEGORY.toLowerCase()) {
+        otherCat = c;
+      } else {
+        regular.push(c);
+      }
+    }
+
+    if (otherCat) {
+      regular.push(otherCat);
+    } else {
+      regular.push({ name: FALLBACK_CATEGORY, shortName: '' });
+    }
+
+    return regular;
+  }
+
   protected fetchData() {
     this.isLoading.set(true);
     this.expenseService.fetchCategories().subscribe({
       next: (res) => {
         if (res.data && Array.isArray(res.data)) {
-          this.categories.set(res.data);
+          this.categories.set(this.sortCategories(res.data));
         }
         this.isLoading.set(false);
       },
@@ -95,16 +116,16 @@ export class ExpenseCategoriesComponent implements OnInit {
     }
 
     const short = this.newCategoryShortControl.value?.trim();
-    const nextList: CustomCategory[] = [
+    const nextList: CustomCategory[] = this.sortCategories([
       ...this.categories(),
       { name: rawName, shortName: short || undefined },
-    ];
+    ]);
 
     this.isSaving.set(true);
     this.expenseService.updateCategories(nextList).subscribe({
       next: (res) => {
         this.isSaving.set(false);
-        this.categories.set(res.data || nextList);
+        this.categories.set(this.sortCategories(res.data || nextList));
         this.newCategoryControl.reset();
         this.newCategoryShortControl.reset();
         this.notificationService.success(`Category "${rawName}" added.`, 'Added');
@@ -203,7 +224,7 @@ export class ExpenseCategoriesComponent implements OnInit {
           this.expenseService.updateCategories(updatedList).subscribe({
             next: (res) => {
               this.isSaving.set(false);
-              this.categories.set(res.data || updatedList);
+              this.categories.set(this.sortCategories(res.data || updatedList));
               this.editingCategoryName.set(null);
               // Update local expenses signal
               this.expenses.update((list) =>
@@ -242,7 +263,7 @@ export class ExpenseCategoriesComponent implements OnInit {
       this.expenseService.updateCategories(updatedList).subscribe({
         next: (res) => {
           this.isSaving.set(false);
-          this.categories.set(res.data || updatedList);
+          this.categories.set(this.sortCategories(res.data || updatedList));
           this.editingCategoryName.set(null);
           this.notificationService.success('Category details updated.', 'Saved');
         },
@@ -276,9 +297,9 @@ export class ExpenseCategoriesComponent implements OnInit {
       next: (res) => {
         const movedCount = res.data?.expensesUpdated || 0;
         this.expenseService.updateCategories(updatedList).subscribe({
-          next: () => {
+          next: (catRes) => {
             this.isReassigning.set(false);
-            this.categories.set(updatedList);
+            this.categories.set(this.sortCategories(catRes?.data || updatedList));
             this.categoryPendingDelete.set(null);
             // Update local expenses signal
             this.expenses.update((list) =>

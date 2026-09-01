@@ -131,21 +131,14 @@
                   <div class="snapshot-categories-grid">
                     @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
                       <div class="snapshot-cat-card">
-                        <!-- Row 1: Icon -->
-                        <div class="cat-card-icon-row">
-                          <div class="cat-item-icon">
+                        <div class="cat-card-top">
+                          <div class="cat-item-icon" [style.color]="getCategoryColor(cat.name)" [style.background]="getCategoryColor(cat.name) + '22'">
                             <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
                           </div>
-                        </div>
-
-                        <!-- Row 2: Category with Percentage -->
-                        <div class="cat-card-label-row">
-                          <span class="cat-item-name" [title]="getCategoryDisplayName(cat.name)">{{ getCategoryDisplayName(cat.name) }}</span>
                           <span class="cat-item-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
                         </div>
-
-                        <!-- Row 3: Amount -->
-                        <div class="cat-card-amount-row">
+                        <div class="cat-card-body">
+                          <span class="cat-item-name" [title]="cat.name">{{ getCategoryDisplayName(cat.name) }}</span>
                           <span class="cat-card-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
                         </div>
                       </div>

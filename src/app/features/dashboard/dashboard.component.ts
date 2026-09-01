@@ -156,6 +156,27 @@ export class DashboardComponent {
     return this.categoryIconMap[category.toLowerCase().trim()] ?? 'category';
   }
 
+  /** Dynamic color themes for categories */
+  private readonly categoryColorMap: Record<string, string> = {
+    shopping: '#EC4899',
+    food: '#F59E0B',
+    'food & dining': '#F59E0B',
+    dining: '#F59E0B',
+    groceries: '#10B981',
+    utilities: '#8B5CF6',
+    bills: '#8B5CF6',
+    rent: '#6366F1',
+    housing: '#6366F1',
+    entertainment: '#A855F7',
+    travel: '#3B82F6',
+    transport: '#0EA5E9',
+    other: '#06B6D4',
+  };
+
+  protected getCategoryColor(category: string): string {
+    return this.categoryColorMap[category.toLowerCase().trim()] ?? '#06B6D4';
+  }
+
   /** Short display names for categories that are too long for compact chips. */
   private readonly categoryShortNameMap: Record<string, string> = {
     groceries: 'Groc.',

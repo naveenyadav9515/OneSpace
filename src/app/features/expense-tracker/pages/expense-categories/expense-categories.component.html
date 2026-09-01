@@ -87,7 +87,11 @@
               @if (editingCategoryName() !== cat.name) {
                 <div class="cat-row">
                   <div class="cat-left">
-                    <span class="cat-bullet"></span>
+                    <div class="cat-icon-circle">
+                      <span class="material-symbols-outlined cat-row-icon">
+                        {{ getCategoryIcon(cat.name) }}
+                      </span>
+                    </div>
                     <span class="cat-name">{{ cat.name }}</span>
                     @if (cat.shortName) {
                       <span class="cat-short-badge">{{ cat.shortName }}</span>

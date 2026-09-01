@@ -131,6 +131,21 @@ export class ExpenseCategoriesComponent implements OnInit {
     this.editCategoryShortControl.reset();
   }
 
+  protected getCategoryIcon(category: string): string {
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('food') || cat.includes('dining')) return 'restaurant';
+    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car') || cat.includes('bike')) return 'directions_car';
+    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart')) return 'local_mall';
+    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric')) return 'bolt';
+    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema')) return 'movie';
+    if (cat.includes('health') || cat.includes('med') || cat.includes('doc')) return 'medical_services';
+    if (cat.includes('rent') || cat.includes('home') || cat.includes('house')) return 'home';
+    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold')) return 'trending_up';
+    if (cat.includes('grocer') || cat.includes('supermarket')) return 'shopping_basket';
+    if (cat.includes('edu') || cat.includes('course') || cat.includes('book')) return 'school';
+    return 'category';
+  }
+
   protected applyEditCategory() {
     const originalName = this.editingCategoryName();
     if (!originalName) return;
@@ -139,6 +154,19 @@ export class ExpenseCategoriesComponent implements OnInit {
     if (!newName) return;
 
     const newShort = this.editCategoryShortControl.value?.trim();
+    const nameChanged = originalName.toLowerCase() !== newName.toLowerCase();
+
+    // Check for duplicate category name
+    if (nameChanged) {
+      const isDuplicate = this.categories().some(
+        (c) => c.name.toLowerCase() === newName.toLowerCase()
+      );
+      if (isDuplicate) {
+        this.notificationService.warning('A category with this name already exists.', 'Duplicate');
+        return;
+      }
+    }
+
     const updatedList = this.categories().map((c) => {
       if (c.name.toLowerCase() === originalName.toLowerCase()) {
         return { name: newName, shortName: newShort || undefined };
@@ -147,21 +175,67 @@ export class ExpenseCategoriesComponent implements OnInit {
     });
 
     this.isSaving.set(true);
-    this.expenseService.updateCategories(updatedList).subscribe({
-      next: (res) => {
-        this.isSaving.set(false);
-        this.categories.set(res.data || updatedList);
-        this.editingCategoryName.set(null);
-        this.notificationService.success('Category updated.', 'Saved');
-      },
-      error: (err) => {
-        this.isSaving.set(false);
-        this.notificationService.error(
-          err?.error?.message || 'Failed to update category',
-          'Error'
-        );
-      },
-    });
+
+    if (nameChanged) {
+      // Reassign all past transactions from old name to new name so data is never lost or orphaned
+      this.expenseService.reassignCategory(originalName, newName).subscribe({
+        next: (reassignRes) => {
+          const movedCount = reassignRes.data?.expensesUpdated || 0;
+          this.expenseService.updateCategories(updatedList).subscribe({
+            next: (res) => {
+              this.isSaving.set(false);
+              this.categories.set(res.data || updatedList);
+              this.editingCategoryName.set(null);
+              // Update local expenses signal
+              this.expenses.update((list) =>
+                list.map((e) =>
+                  (e.category || '').toLowerCase() === originalName.toLowerCase()
+                    ? { ...e, category: newName }
+                    : e
+                )
+              );
+              this.notificationService.success(
+                movedCount > 0
+                  ? `Category renamed to "${newName}". ${movedCount} transaction(s) updated.`
+                  : `Category renamed to "${newName}".`,
+                'Category Updated'
+              );
+            },
+            error: (err) => {
+              this.isSaving.set(false);
+              this.notificationService.error(
+                err?.error?.message || 'Failed to update category list',
+                'Error'
+              );
+            },
+          });
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          this.notificationService.error(
+            err?.error?.message || 'Failed to rename category transactions',
+            'Error'
+          );
+        },
+      });
+    } else {
+      // Only shortName changed
+      this.expenseService.updateCategories(updatedList).subscribe({
+        next: (res) => {
+          this.isSaving.set(false);
+          this.categories.set(res.data || updatedList);
+          this.editingCategoryName.set(null);
+          this.notificationService.success('Category details updated.', 'Saved');
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          this.notificationService.error(
+            err?.error?.message || 'Failed to update category',
+            'Error'
+          );
+        },
+      });
+    }
   }
 
   protected promptDeleteCategory(name: string) {
@@ -187,6 +261,14 @@ export class ExpenseCategoriesComponent implements OnInit {
             this.isReassigning.set(false);
             this.categories.set(updatedList);
             this.categoryPendingDelete.set(null);
+            // Update local expenses signal
+            this.expenses.update((list) =>
+              list.map((e) =>
+                (e.category || '').toLowerCase() === name.toLowerCase()
+                  ? { ...e, category: FALLBACK_CATEGORY }
+                  : e
+              )
+            );
             this.notificationService.success(
               movedCount > 0
                 ? `"${name}" removed. ${movedCount} transaction(s) moved to "${FALLBACK_CATEGORY}".`

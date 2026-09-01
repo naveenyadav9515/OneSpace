@@ -114,6 +114,11 @@ export class ExpenseTrackerComponent implements OnInit {
     });
   }
 
+  protected openBudgetEditor() {
+    const target = this.expenseService.summary()?.budgetTarget ?? 30000;
+    this.startBudgetEdit(target);
+  }
+
   protected startBudgetEdit(currentBudget: number) {
     this.budgetControl.setValue(currentBudget);
     this.isEditingBudget.set(true);

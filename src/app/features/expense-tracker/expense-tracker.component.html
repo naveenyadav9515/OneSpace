@@ -85,171 +85,164 @@
   </div>
 
   @if (expenseService.summary(); as summary) {
-    <!-- ── 1. Hero / Metrics Section (Budget & Projection) ── -->
+    <!-- ── 1. Monthly Summary Bento ── -->
     <section class="flow-item fade-in-bottom">
-      <div class="hero-bento">
+      <div class="expense-summary-bento">
 
-        <!-- Header: Month Selector & Spent -->
-        <div class="hero-head">
-          <div>
-            <span class="hero-eyebrow">{{ currentMonthLabel() }}</span>
-            <div class="hero-spent-row">
-              <span class="hero-spent-val">₹{{ summary.spent | number:'1.0-0' }}</span>
-              <span class="hero-spent-label">spent so far</span>
-            </div>
+        <!-- Top Row: Spent & Editable Monthly Budget -->
+        <div class="es-top-row">
+          <div class="es-spent-block">
+            <span class="es-label">Spent this month</span>
+            <span class="es-amount">₹{{ summary.spent | number:'1.0-0' }}</span>
           </div>
 
-          <!-- Target Budget Pill -->
-          <div class="budget-pill" [class.is-editing]="isEditingBudget()">
-            @if (!isEditingBudget()) {
-              <div class="budget-pill-view" (click)="startBudgetEdit(summary.budgetTarget)">
-                <span class="budget-pill-label">Budget</span>
-                <span class="budget-pill-val">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
-                <span class="material-symbols-outlined budget-edit-icon">edit</span>
-              </div>
-            } @else {
-              <div class="budget-pill-edit">
-                <span class="budget-pill-currency">₹</span>
+          <div class="es-budget-block">
+            <span class="es-label">Monthly Budget</span>
+            @if (isEditingBudget()) {
+              <div class="budget-edit">
+                <span class="budget-edit-prefix">₹</span>
                 <input
                   type="number"
                   [formControl]="budgetControl"
-                  class="budget-pill-input"
+                  class="budget-edit-input"
                   (keyup.enter)="saveBudget()"
                   (keyup.escape)="cancelBudgetEdit()"
                   placeholder="Budget"
                   autofocus
                 >
-                <button (click)="saveBudget()" [disabled]="isSavingBudget()" class="budget-pill-btn budget-pill-btn--save" title="Save">
+                <button class="budget-edit-btn budget-edit-btn--save" (click)="saveBudget()" [disabled]="isSavingBudget()" title="Save">
                   <span class="material-symbols-outlined">check</span>
                 </button>
-                <button (click)="cancelBudgetEdit()" class="budget-pill-btn budget-pill-btn--cancel" title="Cancel">
+                <button class="budget-edit-btn" (click)="cancelBudgetEdit()" title="Cancel">
                   <span class="material-symbols-outlined">close</span>
                 </button>
               </div>
+            } @else {
+              <button class="budget-display" (click)="openBudgetEditor()" title="Edit monthly budget">
+                <span class="es-amount-small">₹{{ summary.budgetTarget | number:'1.0-0' }}</span>
+                <span class="material-symbols-outlined">edit</span>
+              </button>
             }
           </div>
         </div>
 
-        <!-- 3-Pill Stat Strip: Remaining, Daily Limit, Month End Forecast -->
-        <div class="hero-stats-grid">
-          <div class="hstat-card">
-            <span class="hstat-label">Remaining</span>
-            <span class="hstat-val" [class.is-danger]="summary.available <= 0">
-              ₹{{ summary.available | number:'1.0-0' }}
-            </span>
-            <span class="hstat-sub">{{ summary.daysLeft }} days left</span>
+        <!-- Progress Bar -->
+        <div class="es-progress-wrap">
+          <div class="es-progress-track">
+            <div class="es-progress-fill" 
+                 [style.width.%]="summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct"
+                 [class.over-budget]="summary.budgetUsedPct > 100">
+            </div>
           </div>
-
-          <div class="hstat-card">
-            <span class="hstat-label">Daily Limit</span>
-            <span class="hstat-val">₹{{ dailyLimit() | number:'1.0-0' }}</span>
-            <span class="hstat-sub">to stay on budget</span>
-          </div>
-
-          <div class="hstat-card">
-            <span class="hstat-label">Forecast</span>
-            <span class="hstat-val" [class.is-danger]="summary.forecast.estimatedSpend > summary.budgetTarget">
-              ₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}
-            </span>
-            <span class="hstat-sub" [class.is-danger]="summary.forecast.estimatedSpend > summary.budgetTarget">
-              {{ summary.forecast.estimatedSpend > summary.budgetTarget ? 'Over by ₹' + ((summary.forecast.estimatedSpend - summary.budgetTarget) | number:'1.0-0') : 'On track' }}
-            </span>
+          <div class="es-progress-labels">
+            <span>{{ summary.budgetUsedPct }}% used</span>
+            <span>{{ summary.daysLeft }} days left</span>
           </div>
         </div>
 
-        <!-- Month Projection Chart -->
-        <div class="proj-section">
-          <div class="proj-head">
-            <span class="proj-title">Month-End Projection</span>
-            <span class="proj-pace">Pace: ₹{{ dailyPace() | number:'1.0-0' }}/day</span>
+        <!-- Bottom Section: Metrics Grid -->
+        <div class="es-metrics-grid">
+          <div class="es-metric-card">
+            <div class="es-metric-icon green">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </div>
+            <div class="es-metric-info">
+              <span class="es-metric-lbl">Available</span>
+              <span class="es-metric-val">₹{{ summary.available | number:'1.0-0' }}</span>
+            </div>
+          </div>
+          
+          <div class="es-metric-card">
+            <div class="es-metric-icon cyan">
+              <span class="material-symbols-outlined">bolt</span>
+            </div>
+            <div class="es-metric-info">
+              <span class="es-metric-lbl">Safe to Spend</span>
+              <span class="es-metric-val">₹{{ dailyLimit() | number:'1.0-0' }} <span style="font-size:10px; opacity: 0.6; font-weight: 500;">/day</span></span>
+            </div>
           </div>
 
-          @if (projection(); as proj) {
-            <div class="proj-meter-wrap">
-              <!-- Cumulative curve -->
+          @if (summary.forecast && projection(); as proj) {
+            <div class="es-metric-card proj-card" [class.proj-card--over]="proj.isOver">
+              <div class="proj-head">
+                <div class="es-metric-icon orange">
+                  <span class="material-symbols-outlined">monitoring</span>
+                </div>
+                <div class="proj-head-text">
+                  <span class="es-metric-lbl">Projected month end</span>
+                  <span class="proj-value">₹{{ summary.forecast.estimatedSpend | number:'1.0-0' }}</span>
+                </div>
+                @if (proj.isOver) {
+                  <span class="proj-delta">+₹{{ proj.overAmount | number:'1.0-0' }}</span>
+                }
+              </div>
+
+              <!-- Cumulative month: actual → forecast, against the budget line -->
               @if (monthProjection(); as mp) {
-                <div class="proj-curve">
-                  <svg class="proj-curve-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                    <!-- Shaded area under actual spend -->
-                    @if (mp.areaPath) {
-                      <path [attr.d]="mp.areaPath" class="proj-curve-area" />
-                    }
-                    <!-- Budget line across the month -->
-                    <line x1="0" [attr.y1]="100 - mp.budgetYPct"
-                          x2="100" [attr.y2]="100 - mp.budgetYPct"
-                          class="proj-curve-budget-line" />
-                    <!-- Actual spend curve to date -->
-                    @if (mp.actualPath) {
-                      <path [attr.d]="mp.actualPath" class="proj-curve-actual" />
-                    }
-                    <!-- Forecast leg to month end -->
-                    <path [attr.d]="mp.forecastPath"
-                          class="proj-curve-forecast"
-                          [class.is-over]="mp.crossesBudget" />
-                  </svg>
+                <div class="mproj">
+                  <div class="mproj-plot">
+                    <svg class="mproj-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="mprojWash" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="var(--lm-color-primary)" stop-opacity="0.28" />
+                          <stop offset="100%" stop-color="var(--lm-color-primary)" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
 
-                  <!-- Today marker dot -->
-                  <div class="proj-curve-today-dot"
-                       [style.left.%]="mp.todayXPct"
-                       [style.bottom.%]="mp.todayYPct"></div>
+                      <!-- Budget threshold -->
+                      <line x1="0" [attr.y1]="100 - mp.budgetYPct" x2="100" [attr.y2]="100 - mp.budgetYPct"
+                            stroke="var(--lm-color-text-muted)" stroke-width="1" stroke-dasharray="3 3"
+                            vector-effect="non-scaling-stroke" opacity="0.65" />
 
-                  <!-- Floating tags on the right edge -->
-                  <div class="proj-curve-tag proj-curve-tag--budget"
-                       [style.bottom.%]="mp.budgetTagY">
-                    Budget ₹{{ mp.budget | number:'1.0-0' }}
+                      <path [attr.d]="mp.areaPath" fill="url(#mprojWash)" />
+
+                      <!-- Where spending is heading: dashed, because it hasn't happened -->
+                      <path [attr.d]="mp.forecastPath" fill="none"
+                            [attr.stroke]="mp.crossesBudget ? 'var(--lm-color-error)' : 'var(--lm-color-success)'"
+                            stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"
+                            vector-effect="non-scaling-stroke" />
+
+                      <!-- What has actually been spent: solid -->
+                      <path [attr.d]="mp.actualPath" fill="none" stroke="var(--lm-color-primary)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            vector-effect="non-scaling-stroke" />
+                    </svg>
+
+                    <span class="mproj-tag mproj-tag--budget" [style.bottom.%]="mp.budgetTagY">
+                      Budget ₹{{ mp.budget | number:'1.0-0' }}
+                      <span class="mproj-tag-sub">
+                        @if (mp.remaining > 0) {
+                          · ₹{{ mp.remaining | number:'1.0-0' }} left
+                        } @else {
+                          · ₹{{ mp.spentToDate - mp.budget | number:'1.0-0' }} over
+                        }
+                      </span>
+                    </span>
+
+                    <span class="mproj-node mproj-node--today"
+                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.todayYPct"></span>
+                    <span class="mproj-tag mproj-tag--spent"
+                          [style.left.%]="mp.todayXPct" [style.bottom.%]="mp.spentTagY">
+                      Spent ₹{{ mp.spentToDate | number:'1.0-0' }}
+                    </span>
+
+                    <span class="mproj-node mproj-node--end"
+                          [class.is-over]="mp.crossesBudget"
+                          [style.bottom.%]="mp.endYPct"></span>
+                    <span class="mproj-tag mproj-tag--proj"
+                          [class.is-over]="mp.crossesBudget"
+                          [style.bottom.%]="mp.projTagY">
+                      Projected ₹{{ mp.projected | number:'1.0-0' }}
+                    </span>
                   </div>
-                  <div class="proj-curve-tag proj-curve-tag--spent"
-                       [style.bottom.%]="mp.spentTagY">
-                    Today ₹{{ mp.spentToDate | number:'1.0-0' }}
-                  </div>
-                  <div class="proj-curve-tag proj-curve-tag--forecast"
-                       [class.is-over]="mp.crossesBudget"
-                       [style.bottom.%]="mp.projTagY">
-                    Forecast ₹{{ mp.projected | number:'1.0-0' }}
+
+                  <div class="mproj-axis">
+                    <span>Day 1</span>
+                    <span class="mproj-axis-today">Day {{ mp.today }} · today</span>
+                    <span>Day {{ mp.daysInMonth }}</span>
                   </div>
                 </div>
               }
-
-              <!-- The three-segment budget breakdown track -->
-              <div class="proj-meter-track">
-                <div class="proj-meter-seg proj-meter-seg--spent" [style.width.%]="proj.spentPct"></div>
-                <div class="proj-meter-seg proj-meter-seg--forecast" [style.width.%]="proj.forecastPct"></div>
-                @if (proj.isOver) {
-                  <div class="proj-meter-seg proj-meter-seg--over" [style.width.%]="proj.overPct"></div>
-                }
-                <div class="proj-meter-budget-marker" [style.left.%]="proj.budgetPct" title="Budget Target"></div>
-              </div>
-
-              <!-- Meter Legend -->
-              <div class="proj-legend">
-                <div class="proj-legend-item">
-                  <span class="proj-legend-dot proj-legend-dot--spent"></span>
-                  <span>Spent: ₹{{ summary.spent | number:'1.0-0' }}</span>
-                </div>
-                <div class="proj-legend-item">
-                  <span class="proj-legend-dot proj-legend-dot--forecast"></span>
-                  <span>Expected +₹{{ (summary.forecast.estimatedSpend - summary.spent) | number:'1.0-0' }}</span>
-                </div>
-                @if (proj.isOver) {
-                  <div class="proj-legend-item is-over">
-                    <span class="proj-legend-dot proj-legend-dot--over"></span>
-                    <span>Over by ₹{{ proj.overAmount | number:'1.0-0' }}</span>
-                  </div>
-                }
-              </div>
-
-              <!-- Progress bar against budget target -->
-              <div class="hero-progress-track">
-                <div class="hero-progress-fill"
-                     [class.is-over]="summary.spent > summary.budgetTarget"
-                     [style.width.%]="summary.budgetUsedPct > 100 ? 100 : summary.budgetUsedPct">
-                </div>
-              </div>
-
-              <div class="hero-progress-labels">
-                <span>{{ summary.budgetUsedPct | number:'1.0-0' }}% of budget</span>
-                <span>{{ summary.spent > summary.budgetTarget ? 'Over Budget' : '₹' + (summary.available | number:'1.0-0') + ' left' }}</span>
-              </div>
 
               <p class="proj-status">
                 <span class="material-symbols-outlined">{{ proj.isOver ? 'warning' : 'check_circle' }}</span>

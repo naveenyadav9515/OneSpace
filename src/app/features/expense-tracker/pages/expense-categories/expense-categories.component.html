@@ -86,55 +86,60 @@
               <!-- View State -->
               @if (editingCategoryName() !== cat.name) {
                 <div class="cat-card-main">
-                  <div class="cat-card-left">
+                  <!-- ── Top Tier: Icon, Title & Short Code ── -->
+                  <div class="cat-card-header">
                     <div class="cat-icon-squircle" [ngClass]="getCategoryToneClass(cat.name)">
                       <span class="material-symbols-outlined cat-icon">
                         {{ getCategoryIcon(cat.name) }}
                       </span>
                     </div>
 
-                    <div class="cat-details">
-                      <div class="cat-name-label" [title]="cat.name">{{ cat.name }}</div>
-
-                      <div class="cat-meta-row">
-                        @if (cat.shortName) {
-                          <span class="cat-short-pill">{{ cat.shortName }}</span>
-                          <span class="cat-meta-dot">•</span>
-                        }
-                        <span class="meta-count">
-                          {{ categoryUsage(cat.name) === 0 ? '0 transactions' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction' : ' transactions') }}
-                        </span>
-                      </div>
+                    <div class="cat-identity">
+                      <div class="cat-name-heading" [title]="cat.name">{{ cat.name }}</div>
+                      @if (cat.shortName) {
+                        <span class="cat-short-tag">{{ cat.shortName }}</span>
+                      }
                     </div>
                   </div>
 
-                  <div class="cat-card-actions">
-                    @if (!isProtectedCategory(cat.name)) {
-                      <div class="cat-action-pill">
+                  <!-- ── Divider ── -->
+                  <div class="cat-card-divider"></div>
+
+                  <!-- ── Bottom Tier: Metadata & Actions ── -->
+                  <div class="cat-card-footer">
+                    <div class="cat-tx-chip">
+                      <span class="material-symbols-outlined tx-icon">receipt_long</span>
+                      <span class="tx-count">
+                        {{ categoryUsage(cat.name) === 0 ? '0 transactions logged' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction logged' : ' transactions logged') }}
+                      </span>
+                    </div>
+
+                    <div class="cat-actions-wrap">
+                      @if (!isProtectedCategory(cat.name)) {
                         <button
                           type="button"
-                          class="cat-action-btn edit-btn"
+                          class="cat-act-btn edit-act-btn"
                           (click)="startEditCategory(cat)"
                           title="Edit category"
                         >
                           <span class="material-symbols-outlined">edit</span>
+                          <span>Edit</span>
                         </button>
-                        <span class="cat-action-divider"></span>
                         <button
                           type="button"
-                          class="cat-action-btn delete-btn"
+                          class="cat-act-btn delete-act-btn"
                           (click)="promptDeleteCategory(cat.name)"
                           title="Delete category"
                         >
                           <span class="material-symbols-outlined">delete</span>
                         </button>
-                      </div>
-                    } @else {
-                      <span class="default-protected-tag" title="Default fallback category for deleted expenses">
-                        <span class="material-symbols-outlined">verified</span>
-                        <span>Default</span>
-                      </span>
-                    }
+                      } @else {
+                        <span class="default-shield-tag" title="Default fallback category for deleted expenses">
+                          <span class="material-symbols-outlined">verified</span>
+                          <span>Default Fallback</span>
+                        </span>
+                      }
+                    </div>
                   </div>
                 </div>
               } @else {

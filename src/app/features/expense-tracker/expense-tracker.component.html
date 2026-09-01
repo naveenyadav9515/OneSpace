@@ -331,24 +331,32 @@
                   <button type="button"
                           class="granularity-btn"
                           [class.is-active]="trendGranularity() === 'daily'"
-                          (click)="trendGranularity.set('daily')">
+                          (click)="setGranularity('daily')">
                     Daily
                   </button>
                   <button type="button"
                           class="granularity-btn"
                           [class.is-active]="trendGranularity() === 'weekly'"
-                          (click)="trendGranularity.set('weekly')">
+                          (click)="setGranularity('weekly')">
                     Weekly
                   </button>
                   <button type="button"
                           class="granularity-btn"
                           [class.is-active]="trendGranularity() === 'monthly'"
-                          (click)="trendGranularity.set('monthly')">
+                          (click)="setGranularity('monthly')">
                     Monthly
                   </button>
                 </div>
               </div>
-              <p class="trend-subtitle">{{ trendRangeLabel() }}</p>
+              <div class="trend-nav-row">
+                <button type="button" class="trend-arrow-btn" (click)="prevTrendRange()" title="Previous period">
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <span class="trend-subtitle">{{ trendRangeLabel() }}</span>
+                <button type="button" class="trend-arrow-btn" (click)="nextTrendRange()" title="Next period">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
             </div>
             <div class="trend-stat-block">
               <span class="trend-stat-amount">₹{{ trendStatAmount() | number:'1.0-0' }}</span>

@@ -418,6 +418,15 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='20' viewBox='0 -960 960 960' width='20' fill='%2394A3B8'%3E%3Cpath d='M480-360 280-560h400L480-360Z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+  color-scheme: dark;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.select-caret option {
+  background-color: #18181b;
+  color: #f4f4f5;
+  font-size: 14px;
+  padding: 10px 12px;
 }
 
 .form-submit-row {

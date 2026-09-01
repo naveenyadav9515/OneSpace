@@ -23,6 +23,7 @@
 }
 
 :root {
+  color-scheme: dark;
   /* --- Typography --- */
   --lm-font-display: 'Outfit', 'Inter', -apple-system, sans-serif;
   --lm-font-body: 'Geist', 'Inter', -apple-system, sans-serif;
@@ -193,6 +194,7 @@
    ========================================================================== */
 
 html[data-theme="light"] {
+  color-scheme: light;
   /* --- Color Palette — Snow Glass Light Theme --- */
   --lm-color-bg: #F4F3F8;
   --lm-color-surface: #FFFFFF;
@@ -663,4 +665,19 @@ html.fonts-loaded .material-symbols-outlined {
 
 .fade-in-bottom {
   animation: fade-in-bottom 0.35s ease-out;
+}
+
+/* ==========================================================================
+   Global Native Form Select & Option Styling
+   ========================================================================== */
+select option {
+  background-color: #18181b;
+  color: #f4f4f5;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+html[data-theme="light"] select option {
+  background-color: #ffffff;
+  color: #0f172a;
 }

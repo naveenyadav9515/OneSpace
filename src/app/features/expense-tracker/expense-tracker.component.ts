@@ -411,6 +411,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+    title: ['', [Validators.required, Validators.maxLength(100)]],
     merchant: ['', Validators.required],
     category: ['Food', Validators.required],
     paymentMethod: ['UPI', Validators.required],
@@ -792,9 +793,10 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
 
     this.activePendingId.set(ptx._id);
     this.editingExpenseId.set(null);
-    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.expenseForm.reset({ title: '', merchant: '', category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
     this.expenseForm.patchValue({
       amount: ptx.amount,
+      title: ptx.title || '',
       merchant: ptx.merchant,
       paymentMethod: ptx.paymentMethod,
       category: ptx.category || 'Food',
@@ -802,7 +804,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
       // Reset above, then patch: without it a previous edit's tags and notes
       // stayed in the form and were written onto this transaction.
       tags: ptx.tags?.join(', ') || '',
-      notes: ptx.notes || ''
+      notes: ''
     });
     this.isLogModalOpen.set(true);
   }
@@ -841,6 +843,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     this.editingExpenseId.set(exp._id);
     this.expenseForm.patchValue({
       amount: exp.amount,
+      title: exp.title || '',
       merchant: exp.merchant,
       paymentMethod: exp.paymentMethod,
       category: exp.category || 'Food',
@@ -1133,7 +1136,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected openLogForm() {
     this.activePendingId.set(null);
     this.editingExpenseId.set(null);
-    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.expenseForm.reset({ title: '', merchant: '', category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal(), tags: '', notes: '' });
     this.isLogModalOpen.set(true);
   }
 
@@ -1141,7 +1144,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   private closeLogForm() {
     this.activePendingId.set(null);
     this.editingExpenseId.set(null);
-    this.expenseForm.reset({ category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal() });
+    this.expenseForm.reset({ title: '', merchant: '', category: 'Food', paymentMethod: 'UPI', date: this.getCurrentDateTimeLocal(), tags: '', notes: '' });
     this.isLogModalOpen.set(false);
   }
 

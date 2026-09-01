@@ -361,7 +361,7 @@
                 </div>
 
                 <div class="recent-row-info">
-                  <span class="recent-row-merchant">{{ exp.merchant }}</span>
+                  <span class="recent-row-merchant">{{ exp.title || exp.notes || exp.merchant }}</span>
                   <span class="recent-row-meta">{{ exp.date | date:'MMM d' }} · {{ exp.paymentMethod }}</span>
                 </div>
 
@@ -518,6 +518,14 @@
             </div>
           </div>
 
+          <div class="input-group">
+            <label class="premium-label">Title</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">title</span>
+              <input type="text" formControlName="title" class="premium-input" placeholder="e.g. Team Lunch">
+            </div>
+          </div>
+
           <div class="input-row">
             <div class="input-group flex-1">
               <label class="premium-label">Category</label>
@@ -618,7 +626,7 @@
                   </div>
 
                   <div class="txn-info-main">
-                    <h4 class="txn-merchant">{{ exp.merchant }}</h4>
+                    <h4 class="txn-merchant">{{ exp.title || exp.notes || exp.merchant }}</h4>
                     <div class="txn-meta-row">
                       <span>{{ exp.date | date:'MMM d' }}</span>
                       <span class="txn-meta-sep">•</span>
@@ -650,12 +658,20 @@
                     }
                   </div>
 
-                  @if (exp.notes) {
-                    <div class="txn-notes-row">
-                      <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
-                      <span class="txn-notes-text">{{ exp.notes }}</span>
-                    </div>
-                  }
+                  <div class="txn-details-stack">
+                    @if (exp.merchant) {
+                      <div class="txn-notes-row">
+                        <span class="material-symbols-outlined txn-notes-icon">storefront</span>
+                        <span class="txn-notes-text">{{ exp.merchant }}</span>
+                      </div>
+                    }
+                    @if (exp.notes) {
+                      <div class="txn-notes-row">
+                        <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
+                        <span class="txn-notes-text">{{ exp.notes }}</span>
+                      </div>
+                    }
+                  </div>
 
                   <div class="txn-actions-bottom">
                     <button class="txn-action-btn" title="Edit" (click)="editExpense(exp)">
@@ -714,8 +730,8 @@
                   <span class="material-symbols-outlined">schedule</span>
                 </span>
                 <div class="pending-info">
-                  <h4 class="pending-merchant">{{ ptx.merchant }}</h4>
-                  <span class="pending-meta">{{ ptx.date | date:'MMM d' }} · {{ ptx.paymentMethod }}</span>
+                  <h4 class="pending-merchant">{{ ptx.title || ptx.notes || ptx.merchant }}</h4>
+                  <span class="pending-meta">{{ ptx.merchant }} · {{ ptx.date | date:'MMM d' }} · {{ ptx.paymentMethod }}</span>
                 </div>
                 <span class="pending-amount">₹{{ ptx.amount | number:'1.0-0' }}</span>
               </div>

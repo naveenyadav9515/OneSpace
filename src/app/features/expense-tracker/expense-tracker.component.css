@@ -1044,12 +1044,21 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* ── Details Stack (Line 1: Merchant, Line 2: Notes) ── */
+.txn-details-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
 /* ── Notes Row ── */
 .txn-notes-row {
   display: flex;
   align-items: center;
   gap: 5px;
-  flex: 1;
   min-width: 0;
 }
 

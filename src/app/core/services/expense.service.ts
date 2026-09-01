@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 
 export interface Expense {
   _id: string;
+  title?: string;
   amount: number;
   category: string;
   merchant: string;
@@ -103,6 +104,7 @@ export interface AutomationStatus {
 }
 
 export interface ExpensePayload {
+  title: string;
   amount: number;
   merchant: string;
   category: string;

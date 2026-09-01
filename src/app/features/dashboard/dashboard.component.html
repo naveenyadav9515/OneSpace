@@ -125,21 +125,35 @@
                 </div>
               </div>
 
-              <!-- Top Categories (Grid View) -->
+              <!-- Category Breakdown (Proportion Bar + Micro-Rows) -->
               @if (summary.topCategories?.length) {
-                <div class="snapshot-categories-wrap">
-                  <div class="snapshot-categories-grid">
+                <div class="snapshot-breakdown-wrap">
+                  <!-- Segmented Proportion Bar -->
+                  <div class="breakdown-bar-container" title="Spending distribution by category">
+                    <div class="breakdown-bar">
+                      @for (cat of summary.topCategories; track cat.name) {
+                        <div class="breakdown-segment"
+                             [style.width.%]="cat.percentage"
+                             [style.background-color]="getCategoryColor(cat.name)"
+                             [title]="cat.name + ': ' + (cat.percentage | number:'1.0-0') + '% (₹' + (cat.amount | number:'1.0-0') + ')'">
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Category List Rows -->
+                  <div class="breakdown-list">
                     @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
-                      <div class="snapshot-cat-card">
-                        <div class="cat-card-top">
-                          <div class="cat-item-icon" [style.color]="getCategoryColor(cat.name)" [style.background]="getCategoryColor(cat.name) + '22'">
+                      <div class="breakdown-row">
+                        <div class="breakdown-row-left">
+                          <div class="breakdown-cat-icon" [style.color]="getCategoryColor(cat.name)" [style.background]="getCategoryColor(cat.name) + '20'">
                             <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
                           </div>
-                          <span class="cat-item-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
+                          <span class="breakdown-cat-name">{{ cat.name }}</span>
+                          <span class="breakdown-cat-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
                         </div>
-                        <div class="cat-card-body">
-                          <span class="cat-item-name" [title]="cat.name">{{ getCategoryDisplayName(cat.name) }}</span>
-                          <span class="cat-card-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
+                        <div class="breakdown-row-right">
+                          <span class="breakdown-cat-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
                         </div>
                       </div>
                     }

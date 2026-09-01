@@ -73,17 +73,33 @@
 }
 
 .hh-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--lm-color-text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none !important;
+  outline: none;
+}
+.hh-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.hh-btn:active {
+  transform: scale(0.94);
+}
+.hh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .hh-btn--delete {
   background: rgba(244, 63, 94, 0.1);
@@ -92,6 +108,8 @@
 }
 .hh-btn--delete:hover {
   background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.35);
+  color: #fb7185;
 }
 
 /* ── Delete Banner ── */

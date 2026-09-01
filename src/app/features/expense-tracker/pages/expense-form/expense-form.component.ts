@@ -36,6 +36,11 @@ export class ExpenseFormComponent implements OnInit {
   protected readonly isDeleting = signal<boolean>(false);
   protected readonly showDeleteConfirm = signal<boolean>(false);
 
+  // ── Custom Dropdowns State ──
+  protected readonly isCategoryDropdownOpen = signal<boolean>(false);
+  protected readonly isPaymentMethodDropdownOpen = signal<boolean>(false);
+  protected readonly paymentMethods = ['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Cash', 'Other'];
+
   // ── Interactive Tag Chips State ──
   protected readonly tagsList = signal<string[]>([]);
   protected readonly tagInput = signal<string>('');
@@ -49,6 +54,58 @@ export class ExpenseFormComponent implements OnInit {
     merchant: [''],
     paymentMethod: ['UPI', Validators.required],
   });
+
+  // ── Custom Dropdown Methods ──
+  protected toggleCategoryDropdown() {
+    this.isCategoryDropdownOpen.update((v) => !v);
+    this.isPaymentMethodDropdownOpen.set(false);
+  }
+
+  protected selectCategory(catName: string) {
+    this.expenseForm.patchValue({ category: catName });
+    this.isCategoryDropdownOpen.set(false);
+  }
+
+  protected togglePaymentMethodDropdown() {
+    this.isPaymentMethodDropdownOpen.update((v) => !v);
+    this.isCategoryDropdownOpen.set(false);
+  }
+
+  protected selectPaymentMethod(method: string) {
+    this.expenseForm.patchValue({ paymentMethod: method });
+    this.isPaymentMethodDropdownOpen.set(false);
+  }
+
+  protected closeAllDropdowns() {
+    this.isCategoryDropdownOpen.set(false);
+    this.isPaymentMethodDropdownOpen.set(false);
+  }
+
+  protected getCategoryIcon(category: string): string {
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('food') || cat.includes('dining')) return 'restaurant';
+    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car')) return 'directions_car';
+    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart')) return 'local_mall';
+    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric')) return 'bolt';
+    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema')) return 'movie';
+    if (cat.includes('health') || cat.includes('med') || cat.includes('doc')) return 'medical_services';
+    if (cat.includes('rent') || cat.includes('home') || cat.includes('house')) return 'home';
+    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold')) return 'trending_up';
+    if (cat.includes('grocer') || cat.includes('supermarket')) return 'shopping_basket';
+    if (cat.includes('edu') || cat.includes('course') || cat.includes('book')) return 'school';
+    return 'category';
+  }
+
+  protected getPaymentMethodIcon(method: string): string {
+    switch (method) {
+      case 'UPI': return 'qr_code_2';
+      case 'Credit Card':
+      case 'Debit Card': return 'credit_card';
+      case 'Net Banking': return 'account_balance';
+      case 'Cash': return 'payments';
+      default: return 'wallet';
+    }
+  }
 
   protected readonly pageTitle = computed(() => {
     switch (this.mode()) {

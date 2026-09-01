@@ -81,18 +81,54 @@
           </div>
 
           <!-- Category -->
-          <div class="field-group">
+          <div class="field-group custom-select-group">
             <div class="label-with-link">
               <label class="field-label">Category</label>
               <a routerLink="/expenses/categories" class="field-hint-link">Manage</a>
             </div>
-            <div class="field-input-wrap">
-              <span class="material-symbols-outlined field-icon">category</span>
-              <select formControlName="category" class="field-input select-caret">
-                @for (cat of categories(); track cat.name) {
-                  <option [value]="cat.name">{{ cat.name }}</option>
-                }
-              </select>
+            <div class="custom-select-wrapper">
+              <button
+                type="button"
+                class="custom-select-trigger"
+                [class.is-open]="isCategoryDropdownOpen()"
+                (click)="toggleCategoryDropdown(); $event.stopPropagation()"
+              >
+                <div class="trigger-left">
+                  <span class="material-symbols-outlined field-icon-inner">
+                    {{ getCategoryIcon(expenseForm.get('category')?.value || '') }}
+                  </span>
+                  <span class="trigger-value">
+                    {{ expenseForm.get('category')?.value || 'Select Category' }}
+                  </span>
+                </div>
+                <span class="material-symbols-outlined chevron-icon" [class.rotated]="isCategoryDropdownOpen()">
+                  keyboard_arrow_down
+                </span>
+              </button>
+
+              @if (isCategoryDropdownOpen()) {
+                <div class="custom-dropdown-overlay" (click)="closeAllDropdowns()"></div>
+                <div class="custom-dropdown-menu fade-in-scale">
+                  @for (cat of categories(); track cat.name) {
+                    <button
+                      type="button"
+                      class="custom-dropdown-option"
+                      [class.is-selected]="expenseForm.get('category')?.value === cat.name"
+                      (click)="selectCategory(cat.name); $event.stopPropagation()"
+                    >
+                      <div class="option-left">
+                        <span class="material-symbols-outlined option-icon">
+                          {{ getCategoryIcon(cat.name) }}
+                        </span>
+                        <span class="option-name">{{ cat.name }}</span>
+                      </div>
+                      @if (expenseForm.get('category')?.value === cat.name) {
+                        <span class="material-symbols-outlined check-icon">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -169,18 +205,51 @@
               </div>
             </div>
 
-            <div class="field-group">
+            <div class="field-group custom-select-group">
               <label class="field-label">Payment Method</label>
-              <div class="field-input-wrap">
-                <span class="material-symbols-outlined field-icon">payments</span>
-                <select formControlName="paymentMethod" class="field-input select-caret">
-                  <option value="UPI">UPI</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="Net Banking">Net Banking</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Other">Other</option>
-                </select>
+              <div class="custom-select-wrapper">
+                <button
+                  type="button"
+                  class="custom-select-trigger"
+                  [class.is-open]="isPaymentMethodDropdownOpen()"
+                  (click)="togglePaymentMethodDropdown(); $event.stopPropagation()"
+                >
+                  <div class="trigger-left">
+                    <span class="material-symbols-outlined field-icon-inner">
+                      {{ getPaymentMethodIcon(expenseForm.get('paymentMethod')?.value || '') }}
+                    </span>
+                    <span class="trigger-value">
+                      {{ expenseForm.get('paymentMethod')?.value || 'UPI' }}
+                    </span>
+                  </div>
+                  <span class="material-symbols-outlined chevron-icon" [class.rotated]="isPaymentMethodDropdownOpen()">
+                    keyboard_arrow_down
+                  </span>
+                </button>
+
+                @if (isPaymentMethodDropdownOpen()) {
+                  <div class="custom-dropdown-overlay" (click)="closeAllDropdowns()"></div>
+                  <div class="custom-dropdown-menu fade-in-scale">
+                    @for (method of paymentMethods; track method) {
+                      <button
+                        type="button"
+                        class="custom-dropdown-option"
+                        [class.is-selected]="expenseForm.get('paymentMethod')?.value === method"
+                        (click)="selectPaymentMethod(method); $event.stopPropagation()"
+                      >
+                        <div class="option-left">
+                          <span class="material-symbols-outlined option-icon">
+                            {{ getPaymentMethodIcon(method) }}
+                          </span>
+                          <span class="option-name">{{ method }}</span>
+                        </div>
+                        @if (expenseForm.get('paymentMethod')?.value === method) {
+                          <span class="material-symbols-outlined check-icon">check</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
               </div>
             </div>
           </div>

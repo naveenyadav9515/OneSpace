@@ -2160,12 +2160,18 @@
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 18px;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .snapshot-categories-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
+  width: 100%;
+  justify-items: center;
+  align-items: center;
 }
 
 .snapshot-cat-item {
@@ -2174,14 +2180,17 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: 100%;
   gap: 5px;
 }
 
 .cat-item-top {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .cat-item-icon {
@@ -2205,6 +2214,8 @@
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cat-item-pct {
@@ -2232,4 +2243,5 @@
   font-weight: 700;
   letter-spacing: -0.2px;
   text-align: center;
+  width: 100%;
 }

@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { ModalComponent } from '@shared/components/modal/modal.component';
@@ -16,10 +16,8 @@ import {
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
 
-const CATEGORY_STORAGE_KEY = 'onespace_custom_categories';
-
-/** Seeded on first run; from then on the stored list is the source of truth. */
-const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'Other'];
+/** Seeded on first run while loading from DB; MongoDB is the single source of truth. */
+const DEFAULT_CATEGORIES = ['Food & Dining', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'Other'];
 
 /**
  * The fallback every deleted category's transactions are moved to, which is
@@ -105,6 +103,7 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly expenses = signal<Expense[]>([]);
   protected readonly pendingTransactions = signal<PendingTransaction[]>([]);
@@ -390,7 +389,9 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   protected isSettingsDropdownOpen = signal(false);
   protected isCategorySettingsOpen = signal(false);
 
-  protected customCategories = signal<CustomCategory[]>([]);
+  protected customCategories = signal<CustomCategory[]>(
+    DEFAULT_CATEGORIES.map(name => ({ name }))
+  );
 
   protected newCategoryControl = new FormControl('', Validators.required);
   /** Optional. Used wherever a category name is too long for the space. */
@@ -436,78 +437,34 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Categories used to be stored as a bare string[]. Anyone with saved
-   * categories still has that shape on disk, so entries are read leniently and
-   * lifted to the object form rather than being dropped.
+   * Loads categories strictly from MongoDB backend so mobile, laptop, and desktop
+   * all access the exact same database records with zero device-local storage.
    */
   private loadCategories() {
-    let stored: CustomCategory[] = [];
-
-    const saved = localStorage.getItem(CATEGORY_STORAGE_KEY);
-    if (saved) {
+    // Failsafe: purge any legacy device-local categories from browser storage
+    if (isPlatformBrowser(this.platformId)) {
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          // Categories were once a bare string[], then a custom-only list.
-          // Both shapes are read leniently rather than discarded.
-          stored = parsed
-            .map((entry: unknown) => {
-              if (typeof entry === 'string') return { name: entry };
-              if (entry && typeof entry === 'object' && typeof (entry as CustomCategory).name === 'string') {
-                const { name, shortName } = entry as CustomCategory;
-                return { name, shortName: shortName || undefined };
-              }
-              return null;
-            })
-            .filter((c): c is CustomCategory => c !== null && c.name.trim().length > 0);
-        }
+        localStorage.removeItem('onespace_custom_categories');
       } catch {
-        // A corrupt entry shouldn't take the screen down.
+        /* SSR safety */
       }
     }
 
-    // The manager now lists every category, not just the custom ones, so the
-    // built-ins are seeded in. A default the user has since deleted stays
-    // deleted: it is only added when the stored list has never been written.
-    const seeded: CustomCategory[] = saved
-      ? stored
-      : DEFAULT_CATEGORIES.map(name => ({ name }));
-
-    // Whatever happens, the fallback has to exist — every delete moves its
-    // transactions there.
-    const hasFallback = seeded.some(c => this.isProtectedCategory(c.name));
-    this.customCategories.set(hasFallback ? seeded : [...seeded, { name: FALLBACK_CATEGORY }]);
-
-    // Synchronize categories with backend MongoDB so all devices (mobile, laptop) see the same categories
     this.fetchCategoriesFromBackend();
   }
 
   /**
-   * Fetches the user's category list from the backend database and merges with local categories.
+   * Fetches the user's category list from the database.
    */
   private fetchCategoriesFromBackend() {
     this.expenseService.fetchCategories().subscribe({
       next: (res) => {
         if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          const serverCats: CustomCategory[] = res.data;
-          const serverNames = new Set(serverCats.map(c => c.name.toLowerCase()));
-          
-          // Merge any categories created locally in browser that server doesn't have yet
-          const localOnly = this.customCategories().filter(c => !serverNames.has(c.name.toLowerCase()));
-          const merged = [...serverCats, ...localOnly];
-          const hasFallback = merged.some(c => this.isProtectedCategory(c.name));
-          const finalCats = hasFallback ? merged : [...merged, { name: FALLBACK_CATEGORY }];
-
-          this.customCategories.set(finalCats);
-          localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(finalCats));
-
-          if (localOnly.length > 0) {
-            // Upload local additions to server so other devices get them immediately
-            this.expenseService.updateCategories(finalCats).subscribe();
-          }
+          const hasFallback = res.data.some(c => this.isProtectedCategory(c.name));
+          this.customCategories.set(hasFallback ? res.data : [...res.data, { name: FALLBACK_CATEGORY }]);
         }
       },
-      error: (err) => console.error('Error syncing categories from server', err)
+      error: (err) => console.error('Error fetching categories from database', err)
     });
   }
 
@@ -886,12 +843,11 @@ export class ExpenseTrackerComponent implements OnInit, OnDestroy {
     return this.expenseForm.invalid;
   }
 
-  /** Writes through to the signal, localStorage, and backend database so all devices stay in sync. */
+  /** Writes through to the signal and directly persists to MongoDB database. */
   private persistCategories(next: CustomCategory[]) {
     this.customCategories.set(next);
-    localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(next));
     this.expenseService.updateCategories(next).subscribe({
-      error: (err) => console.error('Failed to sync categories with server', err)
+      error: (err) => console.error('Failed to save categories to database', err)
     });
   }
 

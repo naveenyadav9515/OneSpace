@@ -1989,11 +1989,9 @@ input:checked + .slider:before {
 }
 
 .hh-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 36px over 38px: four of these plus the back button were squeezing the title
-     column hard enough to clip the subtitle mid-word. */
   width: 36px;
   height: 36px;
   flex-shrink: 0;
@@ -2005,7 +2003,25 @@ input:checked + .slider:before {
   padding: 0;
   transition: all 0.2s ease;
   position: relative;
+  text-decoration: none !important;
+  outline: none;
 }
+
+.hh-btn,
+.hh-btn *,
+.hh-btn:hover,
+.hh-btn:hover * {
+  text-decoration: none !important;
+}
+
+.hh-btn .material-symbols-outlined {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+}
+
 .hh-btn:hover {
   background: var(--pop-fill-hover);
   color: var(--lm-color-primary);
@@ -2823,12 +2839,17 @@ input:checked + .slider:before {
 
 /* ── Primary Action & Dropdown ── */
 .hh-btn--primary {
-  background: var(--lm-color-primary, #6366F1) !important;
-  border-color: var(--lm-color-primary, #6366F1) !important;
+  background: var(--lm-color-primary, #06b6d4) !important;
+  border-color: var(--lm-color-primary, #06b6d4) !important;
   color: #fff !important;
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
 }
 .hh-btn--primary:hover {
   filter: brightness(1.1);
+  color: #fff !important;
+  text-decoration: none !important;
+  transform: translateY(-1px);
 }
 
 .hh-dropdown-item {

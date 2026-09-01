@@ -289,9 +289,126 @@
 .field-textarea {
   height: auto;
   padding: 12px 14px 12px 42px;
-  resize: none;
+  resize: vertical;
   font-family: inherit;
   line-height: 1.5;
+}
+
+/* ── Interactive Tags Input ── */
+.tags-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: all 0.2s ease;
+  cursor: text;
+}
+
+.tags-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+.tags-lead-icon {
+  position: static;
+  font-size: 18px;
+  color: var(--lm-color-text-muted);
+  flex-shrink: 0;
+}
+
+.tags-chip-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: #67e8f9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 8px;
+  animation: tag-pop-in 0.15s ease-out;
+}
+
+@keyframes tag-pop-in {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.tag-chip-text {
+  line-height: 1.2;
+}
+
+.tag-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #67e8f9;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.tag-chip-remove:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.tag-chip-remove .material-symbols-outlined {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tags-inline-input {
+  flex: 1;
+  min-width: 140px;
+  border: none;
+  background: transparent;
+  color: var(--lm-color-text-primary);
+  font-size: 13.5px;
+  outline: none;
+  padding: 4px 0;
+}
+
+.tags-inline-input::placeholder {
+  color: var(--lm-color-text-muted);
+  font-size: 12.5px;
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--lm-color-text-muted);
+  margin: 4px 0 0 2px;
+}
+
+.field-hint kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
 }
 
 .select-caret {

@@ -140,15 +140,30 @@
         <div class="form-card">
           <div class="field-group">
             <label class="field-label">Tags (Optional)</label>
-            <div class="field-input-wrap">
-              <span class="material-symbols-outlined field-icon">sell</span>
-              <input
-                type="text"
-                formControlName="tags"
-                class="field-input"
-                placeholder="e.g. Weekend, Travel, Shared (comma separated)"
-              />
+            <div class="tags-input-container" (click)="tagInputField.focus()">
+              <span class="material-symbols-outlined field-icon tags-lead-icon">sell</span>
+              <div class="tags-chip-list">
+                @for (tag of tagsList(); track tag; let i = $index) {
+                  <span class="tag-chip">
+                    <span class="tag-chip-text">#{{ tag }}</span>
+                    <button type="button" class="tag-chip-remove" (click)="removeTag(i); $event.stopPropagation()" aria-label="Remove tag">
+                      <span class="material-symbols-outlined">close</span>
+                    </button>
+                  </span>
+                }
+                <input
+                  #tagInputField
+                  type="text"
+                  class="tags-inline-input"
+                  [value]="tagInput()"
+                  (input)="tagInput.set($any($event.target).value)"
+                  (keydown)="onTagKeydown($event)"
+                  (blur)="addTag()"
+                  placeholder="{{ tagsList().length === 0 ? 'Type tag and press Enter, Space, or Comma...' : '+ Add tag' }}"
+                />
+              </div>
             </div>
+            <p class="field-hint">Type keywords and press <kbd>Enter</kbd>, <kbd>Space</kbd>, or <kbd>,</kbd> to create multiple tags</p>
           </div>
 
           <div class="field-group">

@@ -36,6 +36,10 @@ export class ExpenseFormComponent implements OnInit {
   protected readonly isDeleting = signal<boolean>(false);
   protected readonly showDeleteConfirm = signal<boolean>(false);
 
+  // ── Interactive Tag Chips State ──
+  protected readonly tagsList = signal<string[]>([]);
+  protected readonly tagInput = signal<string>('');
+
   protected readonly expenseForm = this.fb.nonNullable.group({
     amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     title: ['', [Validators.required, Validators.maxLength(100)]],
@@ -43,7 +47,6 @@ export class ExpenseFormComponent implements OnInit {
     category: ['Food & Dining', Validators.required],
     paymentMethod: ['UPI', Validators.required],
     date: [this.getCurrentDateTimeLocal(), Validators.required],
-    tags: [''],
     notes: ['']
   });
 
@@ -89,8 +92,42 @@ export class ExpenseFormComponent implements OnInit {
       } else {
         this.mode.set('add');
         this.targetId.set(null);
+        this.tagsList.set([]);
       }
     });
+  }
+
+  // ── Tag Chip Management ──
+  protected addTag(value?: string) {
+    const rawVal = (value !== undefined ? value : this.tagInput()).trim();
+    if (!rawVal) return;
+
+    // Split by comma or whitespace to allow fast multi-entry
+    const parts = rawVal.split(/[,\s]+/).map((t) => t.trim().replace(/^#/, '')).filter(Boolean);
+    const current = this.tagsList();
+    const updated = [...current];
+
+    for (const p of parts) {
+      if (!updated.some((existing) => existing.toLowerCase() === p.toLowerCase())) {
+        updated.push(p);
+      }
+    }
+
+    this.tagsList.set(updated);
+    this.tagInput.set('');
+  }
+
+  protected removeTag(index: number) {
+    this.tagsList.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  protected onTagKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ',' || event.key === ' ') {
+      event.preventDefault();
+      this.addTag();
+    } else if (event.key === 'Backspace' && !this.tagInput() && this.tagsList().length > 0) {
+      this.removeTag(this.tagsList().length - 1);
+    }
   }
 
   private getCurrentDateTimeLocal(): string {
@@ -129,9 +166,9 @@ export class ExpenseFormComponent implements OnInit {
             category: exp.category || 'Other',
             paymentMethod: exp.paymentMethod || 'UPI',
             date: dateStr,
-            tags: (exp.tags || []).join(', '),
             notes: exp.notes || '',
           });
+          this.tagsList.set(exp.tags || []);
         }
       },
       error: (err) => {
@@ -157,9 +194,9 @@ export class ExpenseFormComponent implements OnInit {
             category: ptx.category || 'Other',
             paymentMethod: ptx.paymentMethod || 'UPI',
             date: dateStr,
-            tags: (ptx.tags || []).join(', '),
             notes: ptx.notes || '',
           });
+          this.tagsList.set(ptx.tags || []);
         }
       },
       error: (err) => {
@@ -177,6 +214,11 @@ export class ExpenseFormComponent implements OnInit {
   protected submitForm() {
     if (this.expenseForm.invalid) return;
 
+    // Flush any pending tag in input
+    if (this.tagInput().trim()) {
+      this.addTag();
+    }
+
     const raw = this.expenseForm.getRawValue();
     const payload: ExpensePayload = {
       amount: Number(raw.amount),
@@ -185,7 +227,7 @@ export class ExpenseFormComponent implements OnInit {
       category: raw.category.trim(),
       paymentMethod: raw.paymentMethod,
       date: new Date(raw.date).toISOString(),
-      tags: raw.tags ? raw.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      tags: this.tagsList(),
       notes: raw.notes ? raw.notes.trim() : '',
     };
 

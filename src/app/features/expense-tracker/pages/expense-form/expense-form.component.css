@@ -393,24 +393,6 @@
   font-size: 12.5px;
 }
 
-.field-hint {
-  font-size: 11.5px;
-  color: var(--lm-color-text-muted);
-  margin: 4px 0 0 2px;
-}
-
-.field-hint kbd {
-  display: inline-block;
-  padding: 1px 5px;
-  font-size: 10px;
-  font-family: inherit;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-}
-
 .select-caret {
   cursor: pointer;
   appearance: none;

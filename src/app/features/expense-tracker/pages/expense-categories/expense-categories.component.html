@@ -82,84 +82,154 @@
       } @else {
         <div class="cat-list">
           @for (cat of categories(); track cat.name) {
-            <div class="cat-row-wrap">
-              <!-- View Row -->
+            <div class="cat-card-item">
+              <!-- View State -->
               @if (editingCategoryName() !== cat.name) {
-                <div class="cat-row">
-                  <div class="cat-left">
-                    <div class="cat-icon-circle">
-                      <span class="material-symbols-outlined cat-row-icon">
+                <div class="cat-card-main">
+                  <div class="cat-card-left">
+                    <div class="cat-icon-squircle" [ngClass]="getCategoryToneClass(cat.name)">
+                      <span class="material-symbols-outlined cat-icon">
                         {{ getCategoryIcon(cat.name) }}
                       </span>
                     </div>
-                    <div class="cat-text-wrap">
-                      <span class="cat-name">{{ cat.name }}</span>
-                      @if (cat.shortName) {
-                        <span class="cat-short-badge">{{ cat.shortName }}</span>
-                      }
+
+                    <div class="cat-details">
+                      <div class="cat-headline">
+                        <span class="cat-name-label">{{ cat.name }}</span>
+                        @if (cat.shortName) {
+                          <span class="cat-short-pill">{{ cat.shortName }}</span>
+                        }
+                      </div>
+
+                      <div class="cat-meta-row">
+                        <span class="material-symbols-outlined meta-icon">receipt_long</span>
+                        <span class="meta-count">
+                          {{ categoryUsage(cat.name) === 0 ? 'No transactions' : categoryUsage(cat.name) + (categoryUsage(cat.name) === 1 ? ' transaction' : ' transactions') }}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="cat-right">
-                    <span class="cat-usage" [title]="categoryUsage(cat.name) + ' transactions logged in this category'">
-                      {{ categoryUsage(cat.name) }} txns
-                    </span>
-
+                  <div class="cat-card-actions">
                     @if (!isProtectedCategory(cat.name)) {
-                      <button class="cat-btn" (click)="startEditCategory(cat)" title="Edit">
+                      <button
+                        type="button"
+                        class="cat-icon-action-btn cat-action-edit"
+                        (click)="startEditCategory(cat)"
+                        title="Edit category"
+                      >
                         <span class="material-symbols-outlined">edit</span>
                       </button>
-                      <button class="cat-btn cat-btn--del" (click)="promptDeleteCategory(cat.name)" title="Delete">
+                      <button
+                        type="button"
+                        class="cat-icon-action-btn cat-action-del"
+                        (click)="promptDeleteCategory(cat.name)"
+                        title="Delete category"
+                      >
                         <span class="material-symbols-outlined">delete</span>
                       </button>
                     } @else {
-                      <span class="cat-protected-badge" title="Default fallback category">Default</span>
+                      <span class="default-protected-tag" title="Default fallback category for deleted expenses">
+                        <span class="material-symbols-outlined">verified</span>
+                        <span>Default</span>
+                      </span>
                     }
                   </div>
                 </div>
               } @else {
-                <!-- Inline Edit Row -->
-                <div class="cat-edit-row fade-in-bottom">
-                  <input
-                    type="text"
-                    [formControl]="editCategoryControl"
-                    class="cat-edit-input"
-                    placeholder="Category Name"
-                    (keyup.enter)="applyEditCategory()"
-                  />
-                  <input
-                    type="text"
-                    [formControl]="editCategoryShortControl"
-                    class="cat-edit-input cat-edit-short"
-                    placeholder="Short"
-                    maxlength="8"
-                    (keyup.enter)="applyEditCategory()"
-                  />
-                  <button class="cat-edit-btn cat-edit-btn--save" (click)="applyEditCategory()" [disabled]="editCategoryControl.invalid || isSaving()">
-                    <span class="material-symbols-outlined">check</span>
-                  </button>
-                  <button class="cat-edit-btn cat-edit-btn--cancel" (click)="cancelEditCategory()">
-                    <span class="material-symbols-outlined">close</span>
-                  </button>
+                <!-- Inline Edit Card -->
+                <div class="cat-inline-edit-card fade-in-bottom">
+                  <div class="edit-inputs-grid">
+                    <div class="edit-field-col flex-2">
+                      <label class="edit-mini-label">Category Name</label>
+                      <input
+                        type="text"
+                        [formControl]="editCategoryControl"
+                        class="edit-input-box"
+                        placeholder="Category Name"
+                        (keyup.enter)="applyEditCategory()"
+                      />
+                    </div>
+                    <div class="edit-field-col flex-1">
+                      <label class="edit-mini-label">Short Code (opt)</label>
+                      <input
+                        type="text"
+                        [formControl]="editCategoryShortControl"
+                        class="edit-input-box"
+                        placeholder="e.g. FOOD"
+                        maxlength="8"
+                        (keyup.enter)="applyEditCategory()"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="edit-btn-actions">
+                    <button
+                      type="button"
+                      class="edit-btn edit-btn-cancel"
+                      (click)="cancelEditCategory()"
+                      title="Cancel edit"
+                    >
+                      <span class="material-symbols-outlined">close</span>
+                      <span>Cancel</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="edit-btn edit-btn-save"
+                      (click)="applyEditCategory()"
+                      [disabled]="editCategoryControl.invalid || isSaving()"
+                      title="Save changes"
+                    >
+                      @if (isSaving()) {
+                        <span class="material-symbols-outlined spin">sync</span>
+                        <span>Saving...</span>
+                      } @else {
+                        <span class="material-symbols-outlined">check</span>
+                        <span>Save</span>
+                      }
+                    </button>
+                  </div>
                 </div>
               }
 
-              <!-- Delete Confirmation Box -->
+              <!-- Delete Confirmation Alert -->
               @if (categoryPendingDelete() === cat.name) {
-                <div class="cat-delete-confirm fade-in-bottom">
-                  <div class="cat-delete-text">
-                    <span class="material-symbols-outlined warn-icon">warning</span>
-                    <span>
-                      Delete "<strong>{{ cat.name }}</strong>"?
-                      @if (categoryUsage(cat.name) > 0) {
-                        Its {{ categoryUsage(cat.name) }} transaction(s) will be moved to "{{ fallbackCategory }}".
-                      }
-                    </span>
+                <div class="cat-delete-dialog fade-in-bottom">
+                  <div class="delete-dialog-top">
+                    <span class="material-symbols-outlined delete-warn-icon">warning</span>
+                    <div class="delete-dialog-msg">
+                      <p class="delete-msg-title">Delete "<strong>{{ cat.name }}</strong>"?</p>
+                      <p class="delete-msg-desc">
+                        @if (categoryUsage(cat.name) > 0) {
+                          All <strong>{{ categoryUsage(cat.name) }}</strong> transaction(s) will be automatically moved to <strong>"{{ fallbackCategory }}"</strong> so your data stays safe.
+                        } @else {
+                          This category has no transactions and can be safely removed.
+                        }
+                      </p>
+                    </div>
                   </div>
-                  <div class="cat-delete-actions">
-                    <button class="btn-cancel" (click)="cancelDeleteCategory()" [disabled]="isReassigning()">Cancel</button>
-                    <button class="btn-delete" (click)="confirmDeleteCategory(cat.name)" [disabled]="isReassigning()">
-                      {{ isReassigning() ? 'Moving...' : 'Confirm Delete' }}
+                  <div class="delete-dialog-btns">
+                    <button
+                      type="button"
+                      class="dialog-btn dialog-btn-cancel"
+                      (click)="cancelDeleteCategory()"
+                      [disabled]="isReassigning()"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      class="dialog-btn dialog-btn-delete"
+                      (click)="confirmDeleteCategory(cat.name)"
+                      [disabled]="isReassigning()"
+                    >
+                      @if (isReassigning()) {
+                        <span class="material-symbols-outlined spin">sync</span>
+                        <span>Reassigning...</span>
+                      } @else {
+                        <span class="material-symbols-outlined">delete_forever</span>
+                        <span>Confirm Delete</span>
+                      }
                     </button>
                   </div>
                 </div>

@@ -133,17 +133,36 @@ export class ExpenseCategoriesComponent implements OnInit {
 
   protected getCategoryIcon(category: string): string {
     const cat = (category || '').toLowerCase();
-    if (cat.includes('food') || cat.includes('dining')) return 'restaurant';
-    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car') || cat.includes('bike')) return 'directions_car';
-    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart')) return 'local_mall';
-    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric')) return 'bolt';
-    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema')) return 'movie';
-    if (cat.includes('health') || cat.includes('med') || cat.includes('doc')) return 'medical_services';
-    if (cat.includes('rent') || cat.includes('home') || cat.includes('house')) return 'home';
-    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold')) return 'trending_up';
+    if (cat.includes('food') || cat.includes('dining') || cat.includes('cafe') || cat.includes('restaurant')) return 'restaurant';
+    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car') || cat.includes('bike') || cat.includes('fuel')) return 'directions_car';
+    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart') || cat.includes('clothes')) return 'local_mall';
+    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric') || cat.includes('wifi')) return 'bolt';
+    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema') || cat.includes('gaming')) return 'movie';
+    if (cat.includes('health') || cat.includes('med') || cat.includes('doc') || cat.includes('gym') || cat.includes('fitness')) return 'medical_services';
+    if (cat.includes('rent') || cat.includes('home') || cat.includes('house') || cat.includes('housing')) return 'home';
+    if (cat.includes('part') || cat.includes('meetup') || cat.includes('event') || cat.includes('drink') || cat.includes('party')) return 'celebration';
+    if (cat.includes('relat') || cat.includes('family') || cat.includes('friend') || cat.includes('loan') || cat.includes('gift')) return 'diversity_3';
+    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold') || cat.includes('mutual')) return 'trending_up';
     if (cat.includes('grocer') || cat.includes('supermarket')) return 'shopping_basket';
     if (cat.includes('edu') || cat.includes('course') || cat.includes('book')) return 'school';
     return 'category';
+  }
+
+  protected getCategoryToneClass(category: string): string {
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('food') || cat.includes('dining') || cat.includes('cafe') || cat.includes('restaurant')) return 'tone-orange';
+    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car') || cat.includes('bike') || cat.includes('fuel')) return 'tone-cyan';
+    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart') || cat.includes('clothes')) return 'tone-pink';
+    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric') || cat.includes('wifi')) return 'tone-amber';
+    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema') || cat.includes('gaming')) return 'tone-purple';
+    if (cat.includes('health') || cat.includes('med') || cat.includes('doc') || cat.includes('gym') || cat.includes('fitness')) return 'tone-green';
+    if (cat.includes('rent') || cat.includes('home') || cat.includes('house') || cat.includes('housing')) return 'tone-indigo';
+    if (cat.includes('part') || cat.includes('meetup') || cat.includes('event') || cat.includes('drink') || cat.includes('party')) return 'tone-fuchsia';
+    if (cat.includes('relat') || cat.includes('family') || cat.includes('friend') || cat.includes('loan') || cat.includes('gift')) return 'tone-teal';
+    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold') || cat.includes('mutual')) return 'tone-emerald';
+    if (cat.includes('grocer') || cat.includes('supermarket')) return 'tone-orange';
+    if (cat.includes('edu') || cat.includes('course') || cat.includes('book')) return 'tone-indigo';
+    return 'tone-slate';
   }
 
   protected applyEditCategory() {

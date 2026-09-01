@@ -115,11 +115,11 @@
                 </div>
                 <div class="snapshot-metric-card">
                   <div class="metric-icon-box cyan">
-                    <span class="material-symbols-outlined">bolt</span>
+                    <span class="material-symbols-outlined">{{ isCurrentMonth() ? 'bolt' : 'bar_chart' }}</span>
                   </div>
                   <div class="metric-data">
-                    <span class="metric-lbl">Daily Limit</span>
-                    <span class="metric-val">₹{{ dailyLimit() | number:'1.0-0' }}</span>
+                    <span class="metric-lbl">{{ isCurrentMonth() ? 'Daily Limit' : 'Daily Avg' }}</span>
+                    <span class="metric-val">₹{{ (isCurrentMonth() ? dailyLimit() : avgDailySpend()) | number:'1.0-0' }}</span>
                   </div>
                 </div>
               </div>

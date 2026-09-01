@@ -111,6 +111,13 @@ export class DashboardComponent {
     return Math.round(s.available / s.daysLeft);
   });
 
+  /** Daily average spend across the full month */
+  protected readonly avgDailySpend = computed(() => {
+    const s = this.expenseService.summary();
+    if (!s || !s.daysInMonth || s.daysInMonth <= 0) return 0;
+    return Math.round(s.spent / s.daysInMonth);
+  });
+
   /** Maps common expense category names to Material Symbols icon names. */
   private readonly categoryIconMap: Record<string, string> = {
     groceries: 'local_grocery_store',

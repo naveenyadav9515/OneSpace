@@ -92,10 +92,12 @@
                         {{ getCategoryIcon(cat.name) }}
                       </span>
                     </div>
-                    <span class="cat-name">{{ cat.name }}</span>
-                    @if (cat.shortName) {
-                      <span class="cat-short-badge">{{ cat.shortName }}</span>
-                    }
+                    <div class="cat-text-wrap">
+                      <span class="cat-name">{{ cat.name }}</span>
+                      @if (cat.shortName) {
+                        <span class="cat-short-badge">{{ cat.shortName }}</span>
+                      }
+                    </div>
                   </div>
 
                   <div class="cat-right">

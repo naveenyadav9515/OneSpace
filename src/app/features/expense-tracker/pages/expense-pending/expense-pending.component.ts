@@ -27,6 +27,37 @@ export class ExpensePendingComponent implements OnInit, OnDestroy {
   protected readonly syncCooldownSeconds = signal<number>(0);
   protected readonly processingIds = signal<Set<string>>(new Set());
 
+  // ── Merge State ──
+  protected readonly isMergeMode = signal<boolean>(false);
+  protected readonly primaryMergeId = signal<string | null>(null);
+  protected readonly secondaryMergeIds = signal<Set<string>>(new Set());
+  protected readonly isMerging = signal<boolean>(false);
+  protected readonly showMergeConfirmModal = signal<boolean>(false);
+
+  // Computeds for Merge
+  protected readonly primaryTransaction = computed(() => {
+    const pId = this.primaryMergeId();
+    if (!pId) return null;
+    return this.pendingTransactions().find(p => p._id === pId) || null;
+  });
+
+  protected readonly secondaryTransactions = computed(() => {
+    const sIds = this.secondaryMergeIds();
+    return this.pendingTransactions().filter(p => sIds.has(p._id));
+  });
+
+  protected readonly totalMergedAmount = computed(() => {
+    const primary = this.primaryTransaction();
+    const secondaries = this.secondaryTransactions();
+    const primaryAmt = primary ? Number(primary.amount) || 0 : 0;
+    const secondaryAmt = secondaries.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    return Math.round((primaryAmt + secondaryAmt) * 100) / 100;
+  });
+
+  protected readonly canExecuteMerge = computed(() => {
+    return this.primaryMergeId() !== null && this.secondaryMergeIds().size > 0;
+  });
+
   private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 
   protected readonly isSyncDisabled = computed(
@@ -163,6 +194,89 @@ export class ExpensePendingComponent implements OnInit, OnDestroy {
           'Error'
         );
       },
+    });
+  }
+
+  // ── Merge Handlers ──
+  protected toggleMergeMode(): void {
+    const next = !this.isMergeMode();
+    this.isMergeMode.set(next);
+    if (!next) {
+      this.cancelMerge();
+    }
+  }
+
+  protected cancelMerge(): void {
+    this.primaryMergeId.set(null);
+    this.secondaryMergeIds.set(new Set());
+    this.showMergeConfirmModal.set(false);
+  }
+
+  protected selectPrimary(id: string): void {
+    if (this.primaryMergeId() === id) {
+      this.primaryMergeId.set(null);
+      return;
+    }
+    this.primaryMergeId.set(id);
+    // If it was checked in secondary merge set, uncheck it
+    this.secondaryMergeIds.update((set) => {
+      if (set.has(id)) {
+        const next = new Set(set);
+        next.delete(id);
+        return next;
+      }
+      return set;
+    });
+  }
+
+  protected toggleSecondary(id: string): void {
+    if (this.primaryMergeId() === id) return;
+
+    this.secondaryMergeIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  protected openMergeConfirm(): void {
+    if (!this.canExecuteMerge()) return;
+    this.showMergeConfirmModal.set(true);
+  }
+
+  protected closeMergeConfirm(): void {
+    this.showMergeConfirmModal.set(false);
+  }
+
+  protected executeMerge(): void {
+    const primaryId = this.primaryMergeId();
+    const mergeIds = Array.from(this.secondaryMergeIds());
+    if (!primaryId || mergeIds.length === 0) return;
+
+    this.isMerging.set(true);
+    this.expenseService.mergePendingTransactions(primaryId, mergeIds).subscribe({
+      next: (res) => {
+        this.isMerging.set(false);
+        this.showMergeConfirmModal.set(false);
+        this.cancelMerge();
+        this.isMergeMode.set(false);
+        this.fetchPendingTransactions();
+        this.notificationService.success(
+          res.message || `Successfully merged ${mergeIds.length} transactions into primary.`,
+          'Merged'
+        );
+      },
+      error: (err) => {
+        this.isMerging.set(false);
+        this.notificationService.error(
+          err?.error?.message || 'Failed to merge transactions',
+          'Merge Failed'
+        );
+      }
     });
   }
 }

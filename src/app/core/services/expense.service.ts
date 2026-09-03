@@ -253,6 +253,26 @@ export class ExpenseService {
     return this.http.delete<{ status: string, message: string }>(`${this.apiUrl}/expenses/${id}`);
   }
 
+  public mergeExpenses(
+    primaryId: string,
+    mergeIds: string[]
+  ): Observable<{ status: string, message: string, data: Expense, mergedCount: number }> {
+    return this.http.post<{ status: string, message: string, data: Expense, mergedCount: number }>(
+      `${this.apiUrl}/expenses/merge`,
+      { primaryId, mergeIds }
+    );
+  }
+
+  public mergePendingTransactions(
+    primaryId: string,
+    mergeIds: string[]
+  ): Observable<{ status: string, message: string, data: PendingTransaction, mergedCount: number }> {
+    return this.http.post<{ status: string, message: string, data: PendingTransaction, mergedCount: number }>(
+      `${this.apiUrl}/expenses/pending/merge`,
+      { primaryId, mergeIds }
+    );
+  }
+
   public fetchPendingTransactions(): Observable<{ status: string, data: PendingTransaction[] }> {
     return this.http.get<{ status: string, data: PendingTransaction[] }>(`${this.apiUrl}/expenses/pending`);
   }

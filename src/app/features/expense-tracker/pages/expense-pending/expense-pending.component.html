@@ -13,39 +13,54 @@
     </div>
 
     <div class="hh-actions">
+      @if (pendingTransactions().length >= 2) {
+        <button
+          type="button"
+          class="hh-btn"
+          [class.is-active]="isMergeMode()"
+          (click)="toggleMergeMode()"
+          [title]="isMergeMode() ? 'Exit Merge Mode' : 'Merge Transactions'"
+        >
+          <span class="material-symbols-outlined">call_merge</span>
+        </button>
+      }
+
       <button
-        class="sync-btn"
-        [class.sync-btn--cooldown]="syncCooldownSeconds() > 0"
+        type="button"
+        class="hh-btn"
         (click)="syncGmailManually()"
         [disabled]="isSyncDisabled()"
-        [title]="syncCooldownSeconds() > 0 ? 'Rate limit cooldown' : 'Check Gmail for new transactions'"
+        [title]="syncCooldownSeconds() > 0 ? 'Rate limit cooldown (' + syncCooldownSeconds() + 's)' : isSyncing() ? 'Syncing Gmail...' : 'Sync Gmail'"
       >
         <span class="material-symbols-outlined" [class.spin]="isSyncing()">sync</span>
-        <span>
-          @if (isSyncing()) {
-            Syncing…
-          } @else if (syncCooldownSeconds() > 0) {
-            {{ syncCooldownSeconds() }}s
-          } @else {
-            Sync Gmail
-          }
-        </span>
+        @if (syncCooldownSeconds() > 0) {
+          <span class="btn-badge">{{ syncCooldownSeconds() }}</span>
+        }
       </button>
     </div>
   </header>
 
   <!-- ── Notice Banner ── -->
   <section class="pending-notice-section">
-    <div class="pop-note">
-      <span class="material-symbols-outlined">mark_email_unread</span>
-      <p>
-        These transactions were detected from your bank email notifications in Gmail. Approve them to add to your expense records, or click Review to edit details first.
-      </p>
-    </div>
+    @if (isMergeMode()) {
+      <div class="pop-note pop-note--merge">
+        <span class="material-symbols-outlined note-icon">call_merge</span>
+        <p>
+          <strong>Merge Mode Active:</strong> Choose <strong>1 Primary card</strong> (master info to keep) and <strong>Merge card(s)</strong>. Their amounts will combine into the primary card.
+        </p>
+      </div>
+    } @else {
+      <div class="pop-note">
+        <span class="material-symbols-outlined">mark_email_unread</span>
+        <p>
+          These transactions were detected from your bank email notifications in Gmail. Approve them to add to your expense records, or click Review to edit details first.
+        </p>
+      </div>
+    }
   </section>
 
   <!-- ── Pending List ── -->
-  <main class="pending-list-section">
+  <main class="pending-list-section" [class.has-merge-bar]="isMergeMode()">
     @if (isLoading() && pendingTransactions().length === 0) {
       <div class="pop-empty">
         <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
@@ -67,7 +82,68 @@
     } @else {
       <div class="pending-cards-list">
         @for (ptx of pendingTransactions(); track ptx._id) {
-          <div class="pending-card" [class.is-processing]="processingIds().has(ptx._id)">
+          <div
+            class="pending-card"
+            [class.is-processing]="processingIds().has(ptx._id)"
+            [class.is-merge-primary]="isMergeMode() && primaryMergeId() === ptx._id"
+            [class.is-merge-secondary]="isMergeMode() && secondaryMergeIds().has(ptx._id)"
+          >
+            <!-- Merge Role Badges -->
+            @if (isMergeMode() && primaryMergeId() === ptx._id) {
+              <div class="merge-role-badge merge-role-badge--primary">
+                <span class="material-symbols-outlined">star</span> Primary Transaction (Master Info)
+              </div>
+            } @else if (isMergeMode() && secondaryMergeIds().has(ptx._id)) {
+              <div class="merge-role-badge merge-role-badge--secondary">
+                <span class="material-symbols-outlined">add_circle</span> Will Merge into Primary (+₹{{ ptx.amount | number:'1.0-2' }})
+              </div>
+            }
+
+            <!-- 2 Checkboxes for Merge Mode -->
+            @if (isMergeMode()) {
+              <div class="card-merge-selector-bar">
+                <!-- Checkbox 1: Primary Selection -->
+                <label
+                  class="merge-option-label merge-option-primary"
+                  [class.is-selected]="primaryMergeId() === ptx._id"
+                >
+                  <input
+                    type="checkbox"
+                    class="merge-checkbox-input"
+                    [checked]="primaryMergeId() === ptx._id"
+                    (change)="selectPrimary(ptx._id)"
+                  />
+                  <span class="merge-checkbox-custom merge-checkbox-custom--circle">
+                    <span class="material-symbols-outlined">star</span>
+                  </span>
+                  <span class="merge-label-text">
+                    <strong>Primary</strong> (Master Info)
+                  </span>
+                </label>
+
+                <!-- Checkbox 2: Merge Card Selection -->
+                <label
+                  class="merge-option-label merge-option-secondary"
+                  [class.is-selected]="secondaryMergeIds().has(ptx._id)"
+                  [class.is-disabled]="primaryMergeId() === ptx._id"
+                >
+                  <input
+                    type="checkbox"
+                    class="merge-checkbox-input"
+                    [checked]="secondaryMergeIds().has(ptx._id)"
+                    [disabled]="primaryMergeId() === ptx._id"
+                    (change)="toggleSecondary(ptx._id)"
+                  />
+                  <span class="merge-checkbox-custom merge-checkbox-custom--square">
+                    <span class="material-symbols-outlined">check</span>
+                  </span>
+                  <span class="merge-label-text">
+                    <strong>Merge</strong> this card
+                  </span>
+                </label>
+              </div>
+            }
+
             <!-- Top Line: Bank/Gmail indicator, Merchant, Amount -->
             <div class="pending-card-top">
               <div class="pending-badge-icon">
@@ -90,7 +166,7 @@
               </div>
 
               <div class="pending-amount-block">
-                <span class="pending-amount">₹{{ ptx.amount | number:'1.2-2' }}</span>
+                <span class="pending-amount">₹{{ ptx.amount | number:'1.0-2' }}</span>
               </div>
             </div>
 
@@ -108,37 +184,143 @@
               }
             </div>
 
-            <!-- Action Buttons -->
-            <div class="pending-card-actions">
-              <button
-                class="btn-action btn-action--ignore"
-                (click)="ignoreTransaction(ptx._id)"
-                [disabled]="processingIds().has(ptx._id)"
-              >
-                <span class="material-symbols-outlined">close</span> Ignore
-              </button>
+            <!-- Action Buttons (Hidden when in merge mode) -->
+            @if (!isMergeMode()) {
+              <div class="pending-card-actions">
+                <button
+                  class="btn-action btn-action--ignore"
+                  (click)="ignoreTransaction(ptx._id)"
+                  [disabled]="processingIds().has(ptx._id)"
+                >
+                  <span class="material-symbols-outlined">close</span> Ignore
+                </button>
 
-              <button
-                class="btn-action btn-action--review"
-                (click)="reviewInForm(ptx._id)"
-                [disabled]="processingIds().has(ptx._id)"
-              >
-                <span class="material-symbols-outlined">edit_note</span> Review & Edit
-              </button>
+                <button
+                  class="btn-action btn-action--review"
+                  (click)="reviewInForm(ptx._id)"
+                  [disabled]="processingIds().has(ptx._id)"
+                >
+                  <span class="material-symbols-outlined">edit_note</span> Review & Edit
+                </button>
 
-              <button
-                class="btn-action btn-action--approve"
-                (click)="quickApprove(ptx)"
-                [disabled]="processingIds().has(ptx._id)"
-              >
-                <span class="material-symbols-outlined">check</span> 1-Click Approve
-              </button>
-            </div>
+                <button
+                  class="btn-action btn-action--approve"
+                  (click)="quickApprove(ptx)"
+                  [disabled]="processingIds().has(ptx._id)"
+                >
+                  <span class="material-symbols-outlined">check</span> 1-Click Approve
+                </button>
+              </div>
+            }
           </div>
         }
       </div>
     }
   </main>
+
+  <!-- ── Floating Merge Status Bar ── -->
+  @if (isMergeMode()) {
+    <aside class="merge-floating-bar fade-in-bottom">
+      <div class="merge-bar-content">
+        <div class="merge-bar-info">
+          <div class="merge-bar-badge">
+            <span class="material-symbols-outlined">call_merge</span> Merge Mode
+          </div>
+          <div class="merge-bar-summary">
+            @if (!primaryTransaction()) {
+              <span class="merge-hint">Select 1 <strong>Primary</strong> card &amp; at least 1 <strong>Merge</strong> card</span>
+            } @else if (secondaryMergeIds().size === 0) {
+              <span class="merge-hint">Primary: <strong>{{ primaryTransaction()?.title || primaryTransaction()?.merchant }}</strong>. Now check cards to merge.</span>
+            } @else {
+              <span class="merge-math">
+                Merging <strong>{{ secondaryMergeIds().size }}</strong> card(s) into <strong>{{ primaryTransaction()?.title || primaryTransaction()?.merchant }}</strong>
+                <span class="merge-sum-highlight">Combined: ₹{{ totalMergedAmount() | number:'1.0-2' }}</span>
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="merge-bar-actions">
+          <button type="button" class="btn-merge-cancel" (click)="cancelMerge()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-merge-confirm"
+            [disabled]="!canExecuteMerge() || isMerging()"
+            (click)="openMergeConfirm()"
+          >
+            <span class="material-symbols-outlined">call_merge</span>
+            Merge {{ secondaryMergeIds().size > 0 ? '(' + (secondaryMergeIds().size + 1) + ')' : '' }}
+          </button>
+        </div>
+      </div>
+    </aside>
+  }
+
+  <!-- ── Confirmation Modal Sheet ── -->
+  @if (showMergeConfirmModal()) {
+    <div class="merge-modal-backdrop" (click)="closeMergeConfirm()">
+      <div class="merge-modal-sheet fade-in-bottom" (click)="$event.stopPropagation()">
+        <div class="modal-sheet-header">
+          <div class="modal-sheet-title-wrap">
+            <span class="material-symbols-outlined modal-sheet-icon">call_merge</span>
+            <div>
+              <h3 class="modal-sheet-title">Confirm Transaction Merge</h3>
+              <p class="modal-sheet-subtitle">Combine {{ secondaryTransactions().length + 1 }} transactions into 1 single record</p>
+            </div>
+          </div>
+          <button type="button" class="modal-sheet-close" (click)="closeMergeConfirm()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-sheet-body">
+          <!-- Master Card Summary -->
+          <div class="modal-preview-box master-preview">
+            <div class="preview-tag">★ Master Transaction (Keeps Info)</div>
+            <h4 class="preview-title">{{ primaryTransaction()?.title || primaryTransaction()?.merchant }}</h4>
+            <div class="preview-meta">
+              <span>{{ primaryTransaction()?.category || 'Other' }}</span> •
+              <span>{{ primaryTransaction()?.paymentMethod }}</span> •
+              <span>{{ primaryTransaction()?.date | date:'mediumDate' }}</span>
+            </div>
+            <div class="preview-amount">Original: ₹{{ primaryTransaction()?.amount | number:'1.0-2' }}</div>
+          </div>
+
+          <!-- Merged Cards List -->
+          <div class="merged-items-list">
+            <div class="merged-items-label">Adding amounts from {{ secondaryTransactions().length }} card{{ secondaryTransactions().length === 1 ? '' : 's' }}:</div>
+            @for (item of secondaryTransactions(); track item._id) {
+              <div class="merged-item-row">
+                <span class="merged-item-name">+ {{ item.title || item.merchant || 'Pending' }}</span>
+                <span class="merged-item-amt">₹{{ item.amount | number:'1.0-2' }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Total Calculation -->
+          <div class="modal-total-bar">
+            <span>New Total Amount:</span>
+            <span class="total-highlight">₹{{ totalMergedAmount() | number:'1.0-2' }}</span>
+          </div>
+        </div>
+
+        <div class="modal-sheet-footer">
+          <button type="button" class="btn-sheet-cancel" (click)="closeMergeConfirm()" [disabled]="isMerging()">
+            Cancel
+          </button>
+          <button type="button" class="btn-sheet-merge" (click)="executeMerge()" [disabled]="isMerging()">
+            @if (isMerging()) {
+              <span class="material-symbols-outlined spin">sync</span> Merging...
+            } @else {
+              <span class="material-symbols-outlined">call_merge</span> Confirm &amp; Merge
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <app-bottom-nav></app-bottom-nav>
 </div>

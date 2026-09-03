@@ -106,6 +106,37 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
   // ── Delete Prompt State ──
   protected readonly deleteConfirmId = signal<string | null>(null);
 
+  // ── Merge State ──
+  protected readonly isMergeMode = signal<boolean>(false);
+  protected readonly primaryMergeId = signal<string | null>(null);
+  protected readonly secondaryMergeIds = signal<Set<string>>(new Set());
+  protected readonly isMerging = signal<boolean>(false);
+  protected readonly showMergeConfirmModal = signal<boolean>(false);
+
+  // Computeds for Merge
+  protected readonly primaryTransaction = computed(() => {
+    const pId = this.primaryMergeId();
+    if (!pId) return null;
+    return this.expenses().find(e => e._id === pId) || null;
+  });
+
+  protected readonly secondaryTransactions = computed(() => {
+    const sIds = this.secondaryMergeIds();
+    return this.expenses().filter(e => sIds.has(e._id));
+  });
+
+  protected readonly totalMergedAmount = computed(() => {
+    const primary = this.primaryTransaction();
+    const secondaries = this.secondaryTransactions();
+    const primaryAmt = primary ? Number(primary.amount) || 0 : 0;
+    const secondaryAmt = secondaries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    return Math.round((primaryAmt + secondaryAmt) * 100) / 100;
+  });
+
+  protected readonly canExecuteMerge = computed(() => {
+    return this.primaryMergeId() !== null && this.secondaryMergeIds().size > 0;
+  });
+
   // ── Quick Edit Modal State (Continuous In-Place Edits) ──
   protected readonly editingExpense = signal<Expense | null>(null);
   protected readonly isSavingEdit = signal<boolean>(false);
@@ -1256,5 +1287,87 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
     URL.revokeObjectURL(url);
 
     this.notificationService.success(`Exported ${items.length} transactions to CSV`, 'Export Successful');
+  }
+
+  // ── Merge Handlers ──
+  protected toggleMergeMode(): void {
+    const next = !this.isMergeMode();
+    this.isMergeMode.set(next);
+    if (!next) {
+      this.cancelMerge();
+    }
+  }
+
+  protected cancelMerge(): void {
+    this.primaryMergeId.set(null);
+    this.secondaryMergeIds.set(new Set());
+    this.showMergeConfirmModal.set(false);
+  }
+
+  protected selectPrimary(id: string): void {
+    if (this.primaryMergeId() === id) {
+      this.primaryMergeId.set(null);
+      return;
+    }
+    this.primaryMergeId.set(id);
+    this.secondaryMergeIds.update((set) => {
+      if (set.has(id)) {
+        const next = new Set(set);
+        next.delete(id);
+        return next;
+      }
+      return set;
+    });
+  }
+
+  protected toggleSecondary(id: string): void {
+    if (this.primaryMergeId() === id) return;
+
+    this.secondaryMergeIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  protected openMergeConfirm(): void {
+    if (!this.canExecuteMerge()) return;
+    this.showMergeConfirmModal.set(true);
+  }
+
+  protected closeMergeConfirm(): void {
+    this.showMergeConfirmModal.set(false);
+  }
+
+  protected executeMerge(): void {
+    const primaryId = this.primaryMergeId();
+    const mergeIds = Array.from(this.secondaryMergeIds());
+    if (!primaryId || mergeIds.length === 0) return;
+
+    this.isMerging.set(true);
+    this.expenseService.mergeExpenses(primaryId, mergeIds).subscribe({
+      next: (res) => {
+        this.isMerging.set(false);
+        this.showMergeConfirmModal.set(false);
+        this.cancelMerge();
+        this.isMergeMode.set(false);
+        this.fetchData();
+        this.notificationService.success(
+          res.message || `Successfully merged ${mergeIds.length} transactions into primary.`,
+          'Merged'
+        );
+      },
+      error: (err) => {
+        this.isMerging.set(false);
+        this.notificationService.error(
+          err?.error?.message || 'Failed to merge transactions',
+          'Merge Failed'
+        );
+      }
+    });
   }
 }

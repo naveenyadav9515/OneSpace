@@ -954,6 +954,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px;
+  padding-top: calc(48px + env(safe-area-inset-top, 0px));
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
@@ -1451,9 +1452,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(18, 18, 22, 0.98);
   flex-shrink: 0;
 }
 

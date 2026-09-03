@@ -19,6 +19,9 @@ export interface Expense {
   date: string;
   paymentMethod: string;
   gmailMessageId?: string | null;
+  source?: 'gmail_auto' | 'manual' | 'simulated';
+  isManuallyEdited?: boolean;
+  lastEditedAt?: string | null;
 }
 
 export interface PendingTransaction extends Expense {

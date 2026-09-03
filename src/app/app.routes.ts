@@ -40,6 +40,7 @@ export const routes: Routes = [
       { path: 'edit/:id', loadComponent: () => import('./features/expense-tracker/pages/expense-form/expense-form.component').then(m => m.ExpenseFormComponent), title: 'OneSpace — Edit Expense' },
       { path: 'categories', loadComponent: () => import('./features/expense-tracker/pages/expense-categories/expense-categories.component').then(m => m.ExpenseCategoriesComponent), title: 'OneSpace — Manage Categories' },
       { path: 'automation', loadComponent: () => import('./features/expense-tracker/pages/expense-automation/expense-automation.component').then(m => m.ExpenseAutomationComponent), title: 'OneSpace — Automation Settings' },
+      { path: 'filter', loadComponent: () => import('./features/expense-tracker/pages/expense-filter/expense-filter.component').then(m => m.ExpenseFilterComponent), title: 'OneSpace — Filter Transactions' },
     ]
   },
   { path: '**', redirectTo: '' },

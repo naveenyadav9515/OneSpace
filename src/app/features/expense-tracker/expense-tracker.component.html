@@ -18,6 +18,11 @@
     <!-- Actions Area -->
     <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
       
+      <!-- Advanced Filter -->
+      <a routerLink="/expenses/filter" [queryParams]="{ open: '1' }" title="Filter Transactions" class="hh-btn">
+        <span class="material-symbols-outlined" style="font-size: 20px;">filter_list</span>
+      </a>
+
       <!-- Quick Add -->
       <a routerLink="/expenses/add" title="Quick Add" class="hh-btn">
         <span class="material-symbols-outlined" style="font-size: 20px;">add</span>

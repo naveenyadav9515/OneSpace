@@ -1,0 +1,1264 @@
+<div class="app-shell fade-in-bottom">
+  <!-- ── Header ── -->
+  <header class="dashboard-header">
+    <a routerLink="/expenses" class="hh-back-btn" aria-label="Back to Expenses">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="hh-title-wrap">
+      <h1 class="hh-title">All Transactions</h1>
+      <p class="hh-subtitle">
+        @if (isLoading()) {
+          Loading transactions...
+        } @else {
+          {{ totalFilteredCount() }} of {{ expenses().length }} transaction{{ expenses().length === 1 ? '' : 's' }}
+        }
+      </p>
+    </div>
+
+    <div class="hh-actions">
+      <!-- Sidebar Trigger Button -->
+      <button
+        type="button"
+        class="hh-btn"
+        [class.is-active]="isSidebarOpen() || activeFilterCount() > 0"
+        (click)="toggleSidebar()"
+        title="Open filter sidebar"
+      >
+        <span class="material-symbols-outlined">tune</span>
+        @if (activeFilterCount() > 0) {
+          <span class="filter-count-badge">{{ activeFilterCount() }}</span>
+        }
+      </button>
+
+      <!-- CSV Export Button -->
+      <button
+        type="button"
+        class="hh-btn"
+        (click)="exportToCsv()"
+        [disabled]="filteredExpenses().length === 0"
+        title="Export filtered transactions to CSV"
+      >
+        <span class="material-symbols-outlined">download</span>
+      </button>
+
+      <!-- Refresh Data -->
+      <button
+        type="button"
+        class="hh-btn"
+        (click)="fetchData()"
+        [disabled]="isLoading()"
+        title="Refresh transactions"
+      >
+        <span class="material-symbols-outlined" [class.spin]="isLoading()">refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Top Search & Quick Filter Trigger Bar ── -->
+  <section class="top-search-row">
+    <div class="search-input-wrap">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        [formControl]="searchControl"
+        class="search-input"
+        placeholder="Search merchant, title, notes, tags..."
+      />
+      @if (searchControl.value) {
+        <button class="search-clear-btn" (click)="searchControl.setValue('')" aria-label="Clear search">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+    </div>
+
+    <button type="button" class="btn-open-filter-sidebar" (click)="openSidebar()">
+      <span class="material-symbols-outlined">filter_list</span>
+      <span class="btn-filter-text">Filters</span>
+      @if (activeFilterCount() > 0) {
+        <span class="btn-filter-badge">{{ activeFilterCount() }}</span>
+      }
+    </button>
+  </section>
+
+  <!-- ── Active Filter Badges Bar ── -->
+  @if (hasActiveFilters()) {
+    <section class="active-chips-section">
+      <div class="active-chips-header">
+        <span class="active-chips-label">
+          <span class="material-symbols-outlined active-icon">filter_alt</span>
+          Filters Applied ({{ activeFilterCount() }})
+        </span>
+        <button type="button" class="btn-clear-all" (click)="resetAllFilters()">
+          Clear All
+        </button>
+      </div>
+
+      <div class="active-chips-list">
+        @for (chip of activeFilterChips(); track chip.id) {
+          <div class="active-chip">
+            <span class="chip-type-tag">{{ chip.type }}</span>
+            <span class="chip-label">{{ chip.label }}</span>
+            <button type="button" class="chip-close-btn" (click)="removeFilter(chip)" [attr.aria-label]="'Remove ' + chip.label">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ── Summary Analytics Banner ── -->
+  <section class="filter-analytics-card">
+    <div class="analytics-stat-grid">
+      <div class="stat-box stat-box--primary">
+        <span class="stat-label">Filtered Spend</span>
+        <span class="stat-value">₹{{ totalFilteredAmount() | number:'1.2-2' }}</span>
+        <span class="stat-subtext">{{ totalFilteredCount() }} transaction{{ totalFilteredCount() === 1 ? '' : 's' }}</span>
+      </div>
+
+      <div class="stat-box">
+        <span class="stat-label">Average</span>
+        <span class="stat-value">₹{{ avgFilteredAmount() | number:'1.0-0' }}</span>
+        <span class="stat-subtext">per expense</span>
+      </div>
+
+      <div class="stat-box">
+        <span class="stat-label">Largest</span>
+        <span class="stat-value">₹{{ maxFilteredAmount() | number:'1.0-0' }}</span>
+        <span class="stat-subtext">single item</span>
+      </div>
+    </div>
+
+    <!-- Category Distribution Visual Bar -->
+    @if (categorySpendBreakdown().length > 0) {
+      <div class="distribution-wrapper">
+        <div class="distribution-bar">
+          @for (cat of categorySpendBreakdown(); track cat.name) {
+            <div
+              class="distribution-segment"
+              [style.width.%]="cat.percentage"
+              [style.background-color]="cat.color"
+              [title]="cat.name + ': ₹' + cat.amount + ' (' + cat.percentage + '%)'"
+            ></div>
+          }
+        </div>
+
+        <div class="distribution-legend">
+          @for (cat of categorySpendBreakdown().slice(0, 4); track cat.name) {
+            <div class="legend-item">
+              <span class="legend-dot" [style.background-color]="cat.color"></span>
+              <span class="legend-name">{{ cat.name }}</span>
+              <span class="legend-pct">{{ cat.percentage }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- ── Results Section & Transaction Cards ── -->
+  <main class="results-container">
+    @if (isLoading() && expenses().length === 0) {
+      <div class="pop-empty">
+        <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
+        <p class="pop-empty-title">Loading transactions...</p>
+      </div>
+    } @else if (filteredExpenses().length === 0) {
+      <div class="pop-empty">
+        <div class="pop-empty-icon">
+          <span class="material-symbols-outlined">filter_alt_off</span>
+        </div>
+        <p class="pop-empty-title">No matching transactions</p>
+        <p class="pop-empty-sub">
+          We couldn't find any expenses matching your active filters. Try adjusting your timeframe, fields, or category.
+        </p>
+        <div class="empty-actions">
+          @if (hasActiveFilters()) {
+            <button type="button" class="btn-reset-empty" (click)="resetAllFilters()">
+              <span class="material-symbols-outlined">restart_alt</span>
+              Reset All Filters
+            </button>
+          }
+          <button type="button" class="btn-open-empty-sidebar" (click)="openSidebar()">
+            <span class="material-symbols-outlined">tune</span>
+            Modify Filter Options
+          </button>
+        </div>
+      </div>
+    } @else {
+      <!-- Results List Header -->
+      <div class="results-header-row">
+        <span class="results-count-text">
+          Showing <strong>{{ (currentPage() - 1) * pageSize() + 1 }}–{{ (currentPage() === totalPages() ? totalFilteredCount() : currentPage() * pageSize()) }}</strong> of {{ totalFilteredCount() }}
+        </span>
+
+        <div class="page-size-select-wrap">
+          <label for="filter-page-size" class="page-size-label">Per page:</label>
+          <select
+            id="filter-page-size"
+            class="page-size-select"
+            [value]="pageSize()"
+            (change)="onPageSizeChange($event)"
+          >
+            @for (size of availablePageSizes; track size) {
+              <option [value]="size">{{ size }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Transaction Cards -->
+      <div class="txn-card-list">
+        @for (exp of paginatedExpenses(); track exp._id) {
+          <div class="txn-card" [id]="'txn-' + exp._id">
+            <!-- Top Line: Icon, Title & Date, Amount -->
+            <div class="txn-card-top">
+              <div class="txn-icon-circle" [ngClass]="'txn-icon--' + (exp.category || 'Other').toLowerCase()">
+                <span class="material-symbols-outlined">
+                  {{ exp.category === 'Food' || exp.category === 'Food & Dining' ? 'restaurant' :
+                     exp.category === 'Transport' ? 'directions_car' :
+                     exp.category === 'Shopping' ? 'local_mall' :
+                     exp.category === 'Utilities' ? 'bolt' :
+                     exp.category === 'Entertainment' ? 'movie' :
+                     exp.category === 'Health' ? 'medical_services' : 'home' }}
+                </span>
+              </div>
+
+              <div class="txn-info-main">
+                <h4 class="txn-merchant">{{ exp.title || exp.notes || exp.merchant }}</h4>
+                <div class="txn-meta-row">
+                  <span>{{ exp.date | date:'MMM d, y' }}</span>
+                  <span class="txn-meta-sep">•</span>
+                  <span>{{ exp.date | date:'shortTime' }}</span>
+                  <span class="txn-meta-sep">•</span>
+                  <span class="txn-pm-badge">{{ exp.paymentMethod }}</span>
+
+                  <!-- Origin Tracking: Gmail Synced vs Manual -->
+                  @if (exp.source === 'gmail_auto' || exp.gmailMessageId) {
+                    <span class="txn-source-pill txn-source-pill--gmail" title="Synced automatically from bank email">
+                      <span class="material-symbols-outlined sync-mini-icon">mail</span>
+                      Gmail Synced
+                    </span>
+                  } @else {
+                    <span class="txn-source-pill txn-source-pill--manual" title="Manually entered by user">
+                      <span class="material-symbols-outlined sync-mini-icon">edit_square</span>
+                      Manual
+                    </span>
+                  }
+
+                  <!-- Manually Edited Badge -->
+                  @if (exp.isManuallyEdited) {
+                    <span class="txn-source-pill txn-source-pill--edited" title="Updated manually">
+                      <span class="material-symbols-outlined sync-mini-icon">edit</span>
+                      Edited
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <div class="txn-amount-block">
+                <span class="txn-amount">₹{{ exp.amount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <!-- Bottom Line: Category Tag, Tags, Merchant/Notes, Actions -->
+            <div class="txn-card-bottom">
+              <div class="txn-tags-row">
+                <span class="txn-tag txn-tag--category" [ngClass]="'txn-tag--' + (exp.category || 'Other').toLowerCase()">
+                  {{ exp.category || 'Other' }}
+                </span>
+                @if (exp.tags && exp.tags.length) {
+                  @for (tag of exp.tags; track tag) {
+                    <span class="txn-tag txn-tag--custom">#{{ tag }}</span>
+                  }
+                }
+              </div>
+
+              <div class="txn-details-stack">
+                @if (exp.merchant && exp.merchant !== exp.title) {
+                  <div class="txn-notes-row">
+                    <span class="material-symbols-outlined txn-notes-icon">storefront</span>
+                    <span class="txn-notes-text">{{ exp.merchant }}</span>
+                  </div>
+                }
+                @if (exp.notes) {
+                  <div class="txn-notes-row">
+                    <span class="material-symbols-outlined txn-notes-icon">chat_bubble_outline</span>
+                    <span class="txn-notes-text">{{ exp.notes }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="txn-actions-bottom">
+                <button
+                  type="button"
+                  class="txn-action-btn"
+                  title="Quick edit transaction"
+                  (click)="openQuickEdit(exp)"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button
+                  type="button"
+                  class="txn-action-btn txn-action-btn--delete"
+                  title="Delete transaction"
+                  (click)="promptDelete(exp._id)"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Delete Confirmation -->
+            @if (deleteConfirmId() === exp._id) {
+              <div class="txn-delete-confirm-box fade-in-bottom">
+                <span>Delete this transaction?</span>
+                <div class="delete-actions">
+                  <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+                  <button type="button" class="btn-delete" (click)="confirmDelete(exp._id)">Delete</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Pagination Controls Bar -->
+      @if (totalPages() > 1) {
+        <div class="history-pagination-bar">
+          <button
+            type="button"
+            class="page-nav-btn"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+          >
+            <span class="material-symbols-outlined">chevron_left</span>
+            <span>Prev</span>
+          </button>
+
+          <span class="page-info">
+            Page {{ currentPage() }} of {{ totalPages() }}
+          </span>
+
+          <button
+            type="button"
+            class="page-nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+          >
+            <span>Next</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      }
+    }
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ── Filter Sidebar Drawer Window (Ordered Hierarchy) ──── -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div
+    class="sidebar-backdrop"
+    [class.is-open]="isSidebarOpen()"
+    (click)="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+
+  <aside class="filter-sidebar-drawer" [class.is-open]="isSidebarOpen()">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="sidebar-header-left">
+        <span class="material-symbols-outlined sidebar-icon">tune</span>
+        <div>
+          <h3 class="sidebar-title">Filters</h3>
+          <p class="sidebar-sub">Refine your transaction list</p>
+        </div>
+      </div>
+
+      <div class="sidebar-header-right">
+        @if (activeFilterCount() > 0) {
+          <span class="sidebar-active-badge">{{ activeFilterCount() }} active</span>
+        }
+        <button
+          type="button"
+          class="sidebar-close-btn"
+          (click)="closeSidebar()"
+          aria-label="Close filter sidebar"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar Scrollable Body -->
+    <div class="sidebar-body">
+
+      <!-- ── 1. TIMEFRAME ── -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">calendar_today</span>
+          <span class="group-title">Timeframe</span>
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'all'"
+            (click)="setDatePreset('all')"
+          >
+            All Time
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'today'"
+            (click)="setDatePreset('today')"
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'yesterday'"
+            (click)="setDatePreset('yesterday')"
+          >
+            Yesterday
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'last_7_days'"
+            (click)="setDatePreset('last_7_days')"
+          >
+            Last 7 Days
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'this_week'"
+            (click)="setDatePreset('this_week')"
+          >
+            This Week
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'this_month'"
+            (click)="setDatePreset('this_month')"
+          >
+            This Month
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'last_month'"
+            (click)="setDatePreset('last_month')"
+          >
+            Last Month
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'last_30_days'"
+            (click)="setDatePreset('last_30_days')"
+          >
+            Last 30 Days
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'this_quarter'"
+            (click)="setDatePreset('this_quarter')"
+          >
+            This Quarter
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'this_year'"
+            (click)="setDatePreset('this_year')"
+          >
+            This Year
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="datePreset() === 'custom'"
+            (click)="setDatePreset('custom')"
+          >
+            Custom Range
+          </button>
+        </div>
+
+        <!-- Custom Date Range Inputs -->
+        @if (datePreset() === 'custom') {
+          <div class="custom-date-grid">
+            <div class="date-field">
+              <label class="date-label">From</label>
+              <input
+                type="date"
+                class="date-picker-input"
+                [value]="customStartDate()"
+                (change)="onCustomStartDateChange($event)"
+              />
+            </div>
+            <div class="date-field">
+              <label class="date-label">To</label>
+              <input
+                type="date"
+                class="date-picker-input"
+                [value]="customEndDate()"
+                (change)="onCustomEndDateChange($event)"
+              />
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- ── 2. CATEGORY ── -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">category</span>
+          <span class="group-title">Category</span>
+          <div class="group-header-actions">
+            <button
+              type="button"
+              class="text-action-btn"
+              (click)="selectAllCategories()"
+            >
+              All
+            </button>
+            <span class="action-divider">•</span>
+            <button
+              type="button"
+              class="text-action-btn"
+              (click)="clearCategoryFilter()"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="chips-wrap-grid">
+          @for (cat of uniqueCategories(); track cat.name) {
+            <button
+              type="button"
+              class="filter-chip"
+              [class.filter-chip--active]="selectedCategories().includes(cat.name)"
+              (click)="toggleCategory(cat.name)"
+            >
+              <span class="material-symbols-outlined chip-icon">
+                {{ cat.name === 'Food' || cat.name === 'Food & Dining' ? 'restaurant' :
+                   cat.name === 'Transport' ? 'directions_car' :
+                   cat.name === 'Shopping' ? 'local_mall' :
+                   cat.name === 'Utilities' ? 'bolt' :
+                   cat.name === 'Entertainment' ? 'movie' :
+                   cat.name === 'Health' ? 'medical_services' : 'home' }}
+              </span>
+              <span class="chip-text">{{ cat.name }}</span>
+              <span class="chip-count">{{ cat.count }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ── 3. TAGS ── -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">label</span>
+          <span class="group-title">Tags</span>
+          @if (selectedTags().length > 0 || includeUntagged()) {
+            <div class="group-header-actions">
+              <button
+                type="button"
+                class="text-action-btn"
+                (click)="clearTagFilter()"
+              >
+                Clear
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="chips-wrap-grid">
+          <!-- Untagged Chip -->
+          <button
+            type="button"
+            class="tag-chip-btn tag-chip-btn--untagged"
+            [class.tag-chip-btn--active]="includeUntagged()"
+            (click)="toggleUntaggedOnly()"
+            title="Show transactions without any tags"
+          >
+            <span class="material-symbols-outlined" style="font-size: 13px;">label_off</span>
+            Untagged Only
+            <span class="tag-chip-count">{{ untaggedCount() }}</span>
+          </button>
+
+          @for (item of uniqueTags(); track item.tag) {
+            <button
+              type="button"
+              class="tag-chip-btn"
+              [class.tag-chip-btn--active]="selectedTags().includes(item.tag)"
+              (click)="toggleTag(item.tag)"
+            >
+              #{{ item.tag }}
+              <span class="tag-chip-count">{{ item.count }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ── 4. SORT ── -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">swap_vert</span>
+          <span class="group-title">Sort Transactions</span>
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'date_desc'"
+            (click)="setSortBy('date_desc')"
+          >
+            Date: Newest First
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'date_asc'"
+            (click)="setSortBy('date_asc')"
+          >
+            Date: Oldest First
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'amount_desc'"
+            (click)="setSortBy('amount_desc')"
+          >
+            Amount: Highest First
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'amount_asc'"
+            (click)="setSortBy('amount_asc')"
+          >
+            Amount: Lowest First
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'title_asc'"
+            (click)="setSortBy('title_asc')"
+          >
+            Merchant: A–Z
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'title_desc'"
+            (click)="setSortBy('title_desc')"
+          >
+            Merchant: Z–A
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sortBy() === 'category_asc'"
+            (click)="setSortBy('category_asc')"
+          >
+            Category: A–Z
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 5. REMAINING FILTERS ── -->
+
+      <!-- 5.1 Amount Range -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">payments</span>
+          <span class="group-title">Amount (₹)</span>
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === 'all'"
+            (click)="setAmountPreset('all')"
+          >
+            Any Amount
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === 'under_500'"
+            (click)="setAmountPreset('under_500')"
+          >
+            &lt; ₹500
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === '500_2000'"
+            (click)="setAmountPreset('500_2000')"
+          >
+            ₹500 – ₹2,000
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === '2000_5000'"
+            (click)="setAmountPreset('2000_5000')"
+          >
+            ₹2,000 – ₹5,000
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === '5000_10000'"
+            (click)="setAmountPreset('5000_10000')"
+          >
+            ₹5,000 – ₹10,000
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="amountPreset() === 'above_10000'"
+            (click)="setAmountPreset('above_10000')"
+          >
+            &gt; ₹10,000
+          </button>
+        </div>
+
+        <!-- Custom Min/Max Amount Inputs -->
+        <div class="amount-inputs-grid">
+          <div class="amount-field">
+            <span class="currency-prefix">₹</span>
+            <input
+              type="number"
+              class="amount-input"
+              placeholder="Min amount"
+              [value]="amountMin() ?? ''"
+              (input)="onAmountMinInput($event)"
+              min="0"
+            />
+          </div>
+          <span class="amount-sep">to</span>
+          <div class="amount-field">
+            <span class="currency-prefix">₹</span>
+            <input
+              type="number"
+              class="amount-input"
+              placeholder="Max amount"
+              [value]="amountMax() ?? ''"
+              (input)="onAmountMaxInput($event)"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 5.2 Input Field Presence & Data Completeness (ALL FIELD TYPES) -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">checklist</span>
+          <span class="group-title">Field Presence (Input Fields)</span>
+          @if (presentFields().length > 0) {
+            <button
+              type="button"
+              class="text-action-btn"
+              (click)="clearFieldPresenceFilter()"
+            >
+              Clear
+            </button>
+          }
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('title')"
+            (click)="togglePresentField('title')"
+            title="Has custom item title"
+          >
+            ✏️ Has Title
+            <span class="field-pill-count">{{ hasTitleCount() }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('merchant')"
+            (click)="togglePresentField('merchant')"
+            title="Has merchant or payee specified"
+          >
+            🏪 Has Merchant
+            <span class="field-pill-count">{{ hasMerchantCount() }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('category')"
+            (click)="togglePresentField('category')"
+            title="Categorized (not default Other)"
+          >
+            📁 Categorized
+            <span class="field-pill-count">{{ hasCategoryCount() }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('tags')"
+            (click)="togglePresentField('tags')"
+            title="Has one or more tags"
+          >
+            🏷️ Has Tags
+            <span class="field-pill-count">{{ hasTagsCount() }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('notes')"
+            (click)="togglePresentField('notes')"
+            title="Has notes, receipt details, or remarks"
+          >
+            📝 Has Notes / Remarks
+            <span class="field-pill-count">{{ hasNotesCount() }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="pill-btn pill-btn--field-presence"
+            [class.pill-btn--active]="presentFields().includes('paymentMethod')"
+            (click)="togglePresentField('paymentMethod')"
+            title="Has payment method set"
+          >
+            💳 Has Payment Method
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction Origin (Gmail Sync vs Manual) -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">sync_alt</span>
+          <span class="group-title">Transaction Origin</span>
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sourceFilter() === 'all'"
+            (click)="setSourceFilter('all')"
+          >
+            All
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sourceFilter() === 'gmail_synced'"
+            (click)="setSourceFilter('gmail_synced')"
+            title="Auto-synced from bank emails"
+          >
+            <span class="material-symbols-outlined" style="font-size: 13px;">mail</span>
+            Gmail Auto-Synced
+            <span class="field-pill-count">{{ gmailCount() }}</span>
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="sourceFilter() === 'manual'"
+            (click)="setSourceFilter('manual')"
+            title="Created manually by user"
+          >
+            <span class="material-symbols-outlined" style="font-size: 13px;">edit_square</span>
+            Manually Added
+            <span class="field-pill-count">{{ manualCount() }}</span>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- 5.5 Time of Day (Spending Window) -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">schedule</span>
+          <span class="group-title">Time of Day</span>
+        </div>
+
+        <div class="pills-wrap-grid">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="timeOfDayFilter() === 'all'"
+            (click)="setTimeOfDayFilter('all')"
+          >
+            Any Time
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="timeOfDayFilter() === 'morning'"
+            (click)="setTimeOfDayFilter('morning')"
+          >
+            🌅 Morning (6AM–12PM)
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="timeOfDayFilter() === 'afternoon'"
+            (click)="setTimeOfDayFilter('afternoon')"
+          >
+            ☀️ Afternoon (12PM–5PM)
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="timeOfDayFilter() === 'evening'"
+            (click)="setTimeOfDayFilter('evening')"
+          >
+            🌆 Evening (5PM–9PM)
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            [class.pill-btn--active]="timeOfDayFilter() === 'night'"
+            (click)="setTimeOfDayFilter('night')"
+          >
+            🌙 Night (9PM–6AM)
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 6. PAYMENT METHODS ── -->
+      <div class="sidebar-group">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon">account_balance_wallet</span>
+          <span class="group-title">Payment Method</span>
+          @if (selectedPaymentMethods().length > 0) {
+            <button
+              type="button"
+              class="text-action-btn"
+              (click)="clearPaymentFilter()"
+            >
+              Clear
+            </button>
+          }
+        </div>
+
+        <div class="chips-wrap-grid">
+          @for (pm of uniquePaymentMethods(); track pm.name) {
+            <button
+              type="button"
+              class="filter-chip"
+              [class.filter-chip--active]="selectedPaymentMethods().includes(pm.name)"
+              (click)="togglePaymentMethod(pm.name)"
+            >
+              <span class="material-symbols-outlined chip-icon">
+                {{ pm.name === 'UPI' ? 'qr_code_scanner' :
+                   pm.name === 'Credit Card' ? 'credit_card' :
+                   pm.name === 'Debit Card' ? 'payment' :
+                   pm.name === 'Net Banking' ? 'account_balance' :
+                   pm.name === 'Cash' ? 'payments' : 'wallet' }}
+              </span>
+              <span class="chip-text">{{ pm.name }}</span>
+              <span class="chip-count">{{ pm.count }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ── 7. CLEAN UP SECTION (LAST FILTER) ── -->
+      <div class="sidebar-group sidebar-group--cleanup">
+        <div class="sidebar-group-header">
+          <span class="material-symbols-outlined group-icon text-amber">cleaning_services</span>
+          <span class="group-title">Clean Up (Data Quality)</span>
+          @if (cleanupFields().length > 0) {
+            <button
+              type="button"
+              class="text-action-btn"
+              (click)="clearCleanupFilter()"
+            >
+              Clear
+            </button>
+          }
+        </div>
+
+        <p class="sidebar-group-sub">Find transactions needing review or data entry</p>
+
+        <!-- Condition Toggle: Missing vs Filled -->
+        <div class="cleanup-mode-bar">
+          <button
+            type="button"
+            class="cleanup-mode-pill"
+            [class.cleanup-mode-pill--active]="cleanupMode() === 'missing'"
+            (click)="setCleanupMode('missing')"
+            title="Find transactions missing the selected fields"
+          >
+            <span class="material-symbols-outlined" style="font-size: 14px;">unpublished</span>
+            Missing Fields (To Clean)
+          </button>
+          <button
+            type="button"
+            class="cleanup-mode-pill"
+            [class.cleanup-mode-pill--active]="cleanupMode() === 'present'"
+            (click)="setCleanupMode('present')"
+            title="Find transactions that have the selected fields filled"
+          >
+            <span class="material-symbols-outlined" style="font-size: 14px;">task_alt</span>
+            Filled / Present
+          </button>
+        </div>
+
+        <!-- Field Selector Chips Grid -->
+        <div class="pills-wrap-grid cleanup-fields-grid">
+          @for (f of cleanupFieldDefinitions; track f.id) {
+            <button
+              type="button"
+              class="pill-btn pill-btn--cleanup"
+              [class.pill-btn--active-missing]="cleanupMode() === 'missing' && cleanupFields().includes(f.id)"
+              [class.pill-btn--active-present]="cleanupMode() === 'present' && cleanupFields().includes(f.id)"
+              (click)="toggleCleanupField(f.id)"
+            >
+              <span class="material-symbols-outlined" style="font-size: 14px;">{{ f.icon }}</span>
+              {{ cleanupMode() === 'missing' ? f.missingLabel : f.presentLabel }}
+              <span class="field-pill-count">{{ getCleanupCount(f.id) }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Match Mode (if multiple selected) -->
+        @if (cleanupFields().length > 1) {
+          <div class="cleanup-match-bar">
+            <span class="match-label">Match:</span>
+            <button
+              type="button"
+              class="match-pill"
+              [class.match-pill--active]="cleanupMatch() === 'any'"
+              (click)="setCleanupMatch('any')"
+              title="Show transactions matching any of the selected fields"
+            >
+              Any Selected (OR)
+            </button>
+            <button
+              type="button"
+              class="match-pill"
+              [class.match-pill--active]="cleanupMatch() === 'all'"
+              (click)="setCleanupMatch('all')"
+              title="Show transactions matching all selected fields"
+            >
+              All Selected (AND)
+            </button>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- Sidebar Sticky Footer Actions -->
+    <div class="sidebar-footer">
+      <button type="button" class="btn-sidebar-reset" (click)="resetAllFilters()">
+        Reset All
+      </button>
+
+      <button type="button" class="btn-sidebar-apply" (click)="closeSidebar()">
+        <span>Show {{ totalFilteredCount() }} Result{{ totalFilteredCount() === 1 ? '' : 's' }}</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ── Continuous In-Place Quick Edit Modal / Sheet ── -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (editingExpense()) {
+    <div class="modal-backdrop fade-in" (click)="closeQuickEdit()">
+      <div class="modal-sheet-dialog fade-in-bottom" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <span class="material-symbols-outlined modal-icon">edit_note</span>
+            <div>
+              <h3 class="modal-title">Edit Transaction</h3>
+              <p class="modal-sub">Updates in-place without losing filters or position</p>
+            </div>
+          </div>
+          <div class="modal-header-right">
+            <button
+              type="button"
+              class="btn-full-edit-link"
+              title="Open full page editor"
+              (click)="openFullEdit(editingExpense()!._id)"
+            >
+              <span class="material-symbols-outlined">open_in_new</span>
+              Full Page
+            </button>
+            <button type="button" class="modal-close-btn" (click)="closeQuickEdit()" aria-label="Close">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body Form -->
+        <div class="modal-body">
+          <!-- Amount -->
+          <div class="edit-field">
+            <label class="edit-label">Amount (₹) *</label>
+            <div class="edit-amount-wrap">
+              <span class="edit-currency">₹</span>
+              <input
+                type="number"
+                class="edit-amount-input"
+                [ngModel]="editAmount()"
+                (ngModelChange)="editAmount.set($event)"
+                placeholder="0.00"
+                min="0.01"
+                step="any"
+              />
+            </div>
+          </div>
+
+          <!-- Merchant & Title Grid -->
+          <div class="edit-grid-2">
+            <div class="edit-field">
+              <label class="edit-label">Title / Item *</label>
+              <input
+                type="text"
+                class="edit-input"
+                [ngModel]="editTitle()"
+                (ngModelChange)="editTitle.set($event)"
+                placeholder="e.g. Grocery Shopping"
+              />
+            </div>
+            <div class="edit-field">
+              <label class="edit-label">Merchant / Payee</label>
+              <input
+                type="text"
+                class="edit-input"
+                [ngModel]="editMerchant()"
+                (ngModelChange)="editMerchant.set($event)"
+                placeholder="e.g. Blinkit, Starbucks"
+              />
+            </div>
+          </div>
+
+          <!-- Category & Payment Method Grid -->
+          <div class="edit-grid-2">
+            <div class="edit-field">
+              <label class="edit-label">Category *</label>
+              <select
+                class="edit-select"
+                [ngModel]="editCategory()"
+                (ngModelChange)="editCategory.set($event)"
+              >
+                @for (cat of uniqueCategories(); track cat.name) {
+                  <option [value]="cat.name">{{ cat.name }}</option>
+                }
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="edit-field">
+              <label class="edit-label">Payment Method *</label>
+              <select
+                class="edit-select"
+                [ngModel]="editPaymentMethod()"
+                (ngModelChange)="editPaymentMethod.set($event)"
+              >
+                @for (pm of defaultPaymentMethods; track pm) {
+                  <option [value]="pm">{{ pm }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Date & Time -->
+          <div class="edit-field">
+            <label class="edit-label">Date & Time *</label>
+            <input
+              type="datetime-local"
+              class="edit-input"
+              [ngModel]="editDate()"
+              (ngModelChange)="editDate.set($event)"
+            />
+          </div>
+
+          <!-- Tags -->
+          <div class="edit-field">
+            <label class="edit-label">Tags</label>
+            <div class="edit-tags-container">
+              @for (tag of editTags(); track tag) {
+                <span class="edit-tag-badge">
+                  #{{ tag }}
+                  <button type="button" class="edit-tag-remove" (click)="removeEditTag(tag)">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </span>
+              }
+              <div class="edit-tag-input-wrap">
+                <input
+                  type="text"
+                  class="edit-tag-input"
+                  placeholder="Add tag + Enter"
+                  [ngModel]="editTagInput()"
+                  (ngModelChange)="editTagInput.set($event)"
+                  (keydown.enter)="$event.preventDefault(); addEditTag()"
+                />
+                <button type="button" class="edit-tag-add-btn" (click)="addEditTag()">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="edit-field">
+            <label class="edit-label">Notes (optional)</label>
+            <textarea
+              class="edit-textarea"
+              rows="2"
+              [ngModel]="editNotes()"
+              (ngModelChange)="editNotes.set($event)"
+              placeholder="Additional remarks or context..."
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" (click)="closeQuickEdit()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-modal-save"
+            (click)="saveQuickEdit()"
+            [disabled]="isSavingEdit()"
+          >
+            @if (isSavingEdit()) {
+              <span class="material-symbols-outlined spin" style="font-size: 16px;">sync</span>
+              <span>Saving...</span>
+            } @else {
+              <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+              <span>Save & Continue</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Persistent Bottom Navigation -->
+  <app-bottom-nav></app-bottom-nav>
+</div>

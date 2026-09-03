@@ -925,7 +925,7 @@
   right: 0;
   bottom: 0;
   width: 440px;
-  max-width: 92vw;
+  max-width: 80vw;
   background: rgba(18, 18, 22, 0.96);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -941,11 +941,11 @@
   transform: translateX(0);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 680px) {
   .filter-sidebar-drawer {
-    width: 100%;
-    max-width: 100vw;
-    border-left: none;
+    width: 80vw;
+    max-width: 80vw;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 

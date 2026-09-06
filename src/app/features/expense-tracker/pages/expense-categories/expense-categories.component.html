@@ -62,7 +62,6 @@
             type="text"
             [formControl]="newCategoryShortControl"
             placeholder="Short (opt)"
-            maxlength="8"
             class="premium-input"
             (keyup.enter)="addCategory()"
           />
@@ -203,7 +202,6 @@
                         [formControl]="editCategoryShortControl"
                         class="edit-input-box"
                         placeholder="e.g. FOOD"
-                        maxlength="8"
                         (keyup.enter)="applyEditCategory()"
                       />
                     </div>

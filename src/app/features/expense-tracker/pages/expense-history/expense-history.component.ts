@@ -1,14 +1,18 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  computed,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.component';
-import {
-  Expense,
-  ExpenseService,
-  CustomCategory
-} from '@core/services/expense.service';
+import { Expense, ExpenseService, CustomCategory } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
+import { CATEGORY_ICON_MAP } from '../expense-categories/expense-categories.component';
 
 @Component({
   selector: 'app-expense-history',
@@ -33,7 +37,9 @@ export class ExpenseHistoryComponent implements OnInit {
   protected readonly searchQuery = signal<string>('');
 
   // ── Period Navigation & Granularity State ──
-  protected readonly periodGranularity = signal<'daily' | 'weekly' | 'monthly' | 'yearly' | 'all'>('monthly');
+  protected readonly periodGranularity = signal<'daily' | 'weekly' | 'monthly' | 'yearly' | 'all'>(
+    'monthly',
+  );
   protected readonly selectedYear = signal<number>(new Date().getFullYear());
   protected readonly selectedMonth = signal<number>(new Date().getMonth()); // 0-indexed
   protected readonly dailyPage = signal<number>(Math.floor((new Date().getDate() - 1) / 7));
@@ -54,12 +60,12 @@ export class ExpenseHistoryComponent implements OnInit {
   protected readonly primaryTransaction = computed(() => {
     const pId = this.primaryMergeId();
     if (!pId) return null;
-    return this.expenses().find(e => e._id === pId) || null;
+    return this.expenses().find((e) => e._id === pId) || null;
   });
 
   protected readonly secondaryTransactions = computed(() => {
     const sIds = this.secondaryMergeIds();
-    return this.expenses().filter(e => sIds.has(e._id));
+    return this.expenses().filter((e) => sIds.has(e._id));
   });
 
   protected readonly totalMergedAmount = computed(() => {
@@ -328,7 +334,9 @@ export class ExpenseHistoryComponent implements OnInit {
         const tagsMatch = (e.tags || []).some((t) => t.toLowerCase().includes(query));
         const categoryMatch = (e.category || '').toLowerCase().includes(query);
         const methodMatch = (e.paymentMethod || '').toLowerCase().includes(query);
-        return titleMatch || merchantMatch || notesMatch || tagsMatch || categoryMatch || methodMatch;
+        return (
+          titleMatch || merchantMatch || notesMatch || tagsMatch || categoryMatch || methodMatch
+        );
       });
     }
 
@@ -396,7 +404,7 @@ export class ExpenseHistoryComponent implements OnInit {
       error: (err) => {
         this.notificationService.error(
           err?.error?.message || 'Failed to delete transaction',
-          'Error'
+          'Error',
         );
       },
     });
@@ -471,16 +479,108 @@ export class ExpenseHistoryComponent implements OnInit {
         this.fetchExpenses();
         this.notificationService.success(
           res.message || `Successfully merged ${mergeIds.length} transactions into primary.`,
-          'Merged'
+          'Merged',
         );
       },
       error: (err) => {
         this.isMerging.set(false);
         this.notificationService.error(
           err?.error?.message || 'Failed to merge transactions',
-          'Merge Failed'
+          'Merge Failed',
         );
-      }
+      },
     });
+  }
+
+  protected getCategoryIcon(category: string): string {
+    const catName = (category || '').trim();
+    const found = this.categories().find((c) => c.name.toLowerCase() === catName.toLowerCase());
+    if (found?.icon) return found.icon;
+
+    const lower = catName.toLowerCase();
+    if (CATEGORY_ICON_MAP[lower]) {
+      return CATEGORY_ICON_MAP[lower];
+    }
+    if (
+      lower.includes('food') ||
+      lower.includes('dining') ||
+      lower.includes('cafe') ||
+      lower.includes('restaurant')
+    )
+      return 'restaurant';
+    if (
+      lower.includes('transport') ||
+      lower.includes('travel') ||
+      lower.includes('cab') ||
+      lower.includes('car') ||
+      lower.includes('bike') ||
+      lower.includes('fuel')
+    )
+      return 'two_wheeler';
+    if (
+      lower.includes('shop') ||
+      lower.includes('mall') ||
+      lower.includes('amazon') ||
+      lower.includes('flipkart') ||
+      lower.includes('clothes')
+    )
+      return 'local_mall';
+    if (
+      lower.includes('util') ||
+      lower.includes('bill') ||
+      lower.includes('recharge') ||
+      lower.includes('electric') ||
+      lower.includes('wifi')
+    )
+      return 'receipt_long';
+    if (
+      lower.includes('entertain') ||
+      lower.includes('movie') ||
+      lower.includes('cinema') ||
+      lower.includes('gaming')
+    )
+      return 'movie';
+    if (
+      lower.includes('health') ||
+      lower.includes('med') ||
+      lower.includes('doc') ||
+      lower.includes('gym') ||
+      lower.includes('fitness')
+    )
+      return 'medical_services';
+    if (
+      lower.includes('rent') ||
+      lower.includes('home') ||
+      lower.includes('house') ||
+      lower.includes('housing')
+    )
+      return 'cottage';
+    if (
+      lower.includes('part') ||
+      lower.includes('meetup') ||
+      lower.includes('event') ||
+      lower.includes('drink') ||
+      lower.includes('party')
+    )
+      return 'celebration';
+    if (
+      lower.includes('relat') ||
+      lower.includes('family') ||
+      lower.includes('friend') ||
+      lower.includes('loan') ||
+      lower.includes('gift')
+    )
+      return 'redeem';
+    if (
+      lower.includes('invest') ||
+      lower.includes('stock') ||
+      lower.includes('gold') ||
+      lower.includes('mutual')
+    )
+      return 'trending_up';
+    if (lower.includes('grocer') || lower.includes('supermarket')) return 'shopping_basket';
+    if (lower.includes('edu') || lower.includes('course') || lower.includes('book'))
+      return 'school';
+    return 'category';
   }
 }

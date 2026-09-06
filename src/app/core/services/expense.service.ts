@@ -6,6 +6,10 @@ import { ApiService } from './api.service';
 export interface CustomCategory {
   name: string;
   shortName?: string;
+  icon?: string;
+  recentCount30d?: number;
+  totalUsageCount?: number;
+  lastUsed?: string | null;
 }
 
 export interface Expense {
@@ -178,7 +182,7 @@ export interface ExpenseSummary {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExpenseService {
   private readonly http = inject(HttpClient);
@@ -192,157 +196,187 @@ export class ExpenseService {
   }
 
   /** Fetches summary stats for the dashboard widget, optionally for a specific month and year */
-  public fetchSummary(month?: number, year?: number): Observable<{ status: string, data: ExpenseSummary }> {
+  public fetchSummary(
+    month?: number,
+    year?: number,
+  ): Observable<{ status: string; data: ExpenseSummary }> {
     this.isLoading.set(true);
     let params: { [param: string]: string | number } = {};
     if (month != null) params['month'] = month;
     if (year != null) params['year'] = year;
 
-    return this.http.get<{ status: string, data: ExpenseSummary }>(`${this.apiUrl}/expenses/summary`, { params }).pipe(
-      retry({
-        count: 8,
-        delay: (error) => {
-          if (error.status >= 400 && error.status < 500) return throwError(() => error);
-          return timer(5000);
-        }
-      }),
-      tap({
-        next: (res) => {
-          if (res?.data) {
-            this.summary.set(res.data);
-          }
-          this.isLoading.set(false);
-        },
-        error: () => this.isLoading.set(false)
-      })
-    );
+    return this.http
+      .get<{ status: string; data: ExpenseSummary }>(`${this.apiUrl}/expenses/summary`, { params })
+      .pipe(
+        retry({
+          count: 8,
+          delay: (error) => {
+            if (error.status >= 400 && error.status < 500) return throwError(() => error);
+            return timer(5000);
+          },
+        }),
+        tap({
+          next: (res) => {
+            if (res?.data) {
+              this.summary.set(res.data);
+            }
+            this.isLoading.set(false);
+          },
+          error: () => this.isLoading.set(false),
+        }),
+      );
   }
 
-  public fetchExpenses(): Observable<{ status: string, data: Expense[] }> {
-    return this.http.get<{ status: string, data: Expense[] }>(`${this.apiUrl}/expenses`);
+  public fetchExpenses(): Observable<{ status: string; data: Expense[] }> {
+    return this.http.get<{ status: string; data: Expense[] }>(`${this.apiUrl}/expenses`);
   }
 
-  public createExpense(payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
-    return this.http.post<{ status: string, data: Expense }>(`${this.apiUrl}/expenses`, payload);
+  public createExpense(payload: ExpensePayload): Observable<{ status: string; data: Expense }> {
+    return this.http.post<{ status: string; data: Expense }>(`${this.apiUrl}/expenses`, payload);
   }
 
   /** Moves every transaction on `from` over to `to`. Backs category rename and delete. */
-  public reassignCategory(from: string, to: string): Observable<{ status: string, data: { expensesUpdated: number, pendingUpdated: number } }> {
-    return this.http.patch<{ status: string, data: { expensesUpdated: number, pendingUpdated: number } }>(
-      `${this.apiUrl}/expenses/categories/reassign`,
-      { from, to }
-    );
+  public reassignCategory(
+    from: string,
+    to: string,
+  ): Observable<{ status: string; data: { expensesUpdated: number; pendingUpdated: number } }> {
+    return this.http.patch<{
+      status: string;
+      data: { expensesUpdated: number; pendingUpdated: number };
+    }>(`${this.apiUrl}/expenses/categories/reassign`, { from, to });
   }
 
-  public updateBudget(monthlyBudget: number): Observable<{ status: string, data: { monthlyBudget: number } }> {
-    return this.http.patch<{ status: string, data: { monthlyBudget: number } }>(
+  public updateBudget(
+    monthlyBudget: number,
+  ): Observable<{ status: string; data: { monthlyBudget: number } }> {
+    return this.http.patch<{ status: string; data: { monthlyBudget: number } }>(
       `${this.apiUrl}/expenses/budget`,
-      { monthlyBudget }
+      { monthlyBudget },
     );
   }
 
-  public fetchExpenseById(id: string): Observable<{ status: string, data: Expense }> {
-    return this.http.get<{ status: string, data: Expense }>(`${this.apiUrl}/expenses/${id}`);
+  public fetchExpenseById(id: string): Observable<{ status: string; data: Expense }> {
+    return this.http.get<{ status: string; data: Expense }>(`${this.apiUrl}/expenses/${id}`);
   }
 
-  public updateExpense(id: string, payload: ExpensePayload): Observable<{ status: string, data: Expense }> {
-    return this.http.put<{ status: string, data: Expense }>(`${this.apiUrl}/expenses/${id}`, payload);
+  public updateExpense(
+    id: string,
+    payload: ExpensePayload,
+  ): Observable<{ status: string; data: Expense }> {
+    return this.http.put<{ status: string; data: Expense }>(
+      `${this.apiUrl}/expenses/${id}`,
+      payload,
+    );
   }
 
-  public deleteExpense(id: string): Observable<{ status: string, message: string }> {
-    return this.http.delete<{ status: string, message: string }>(`${this.apiUrl}/expenses/${id}`);
+  public deleteExpense(id: string): Observable<{ status: string; message: string }> {
+    return this.http.delete<{ status: string; message: string }>(`${this.apiUrl}/expenses/${id}`);
   }
 
   public mergeExpenses(
     primaryId: string,
-    mergeIds: string[]
-  ): Observable<{ status: string, message: string, data: Expense, mergedCount: number }> {
-    return this.http.post<{ status: string, message: string, data: Expense, mergedCount: number }>(
+    mergeIds: string[],
+  ): Observable<{ status: string; message: string; data: Expense; mergedCount: number }> {
+    return this.http.post<{ status: string; message: string; data: Expense; mergedCount: number }>(
       `${this.apiUrl}/expenses/merge`,
-      { primaryId, mergeIds }
+      { primaryId, mergeIds },
     );
   }
 
   public mergePendingTransactions(
     primaryId: string,
-    mergeIds: string[]
-  ): Observable<{ status: string, message: string, data: PendingTransaction, mergedCount: number }> {
-    return this.http.post<{ status: string, message: string, data: PendingTransaction, mergedCount: number }>(
-      `${this.apiUrl}/expenses/pending/merge`,
-      { primaryId, mergeIds }
-    );
+    mergeIds: string[],
+  ): Observable<{
+    status: string;
+    message: string;
+    data: PendingTransaction;
+    mergedCount: number;
+  }> {
+    return this.http.post<{
+      status: string;
+      message: string;
+      data: PendingTransaction;
+      mergedCount: number;
+    }>(`${this.apiUrl}/expenses/pending/merge`, { primaryId, mergeIds });
   }
 
-  public fetchPendingTransactions(): Observable<{ status: string, data: PendingTransaction[] }> {
-    return this.http.get<{ status: string, data: PendingTransaction[] }>(`${this.apiUrl}/expenses/pending`);
+  public fetchPendingTransactions(): Observable<{ status: string; data: PendingTransaction[] }> {
+    return this.http.get<{ status: string; data: PendingTransaction[] }>(
+      `${this.apiUrl}/expenses/pending`,
+    );
   }
 
   public processPendingTransaction(
     id: string,
-    payload: { action: 'approve' | 'ignore' } | ({ action: 'approve' } & ExpensePayload)
-  ): Observable<{ status: string, data?: Expense, message?: string }> {
-    return this.http.post<{ status: string, data?: Expense, message?: string }>(
+    payload: { action: 'approve' | 'ignore' } | ({ action: 'approve' } & ExpensePayload),
+  ): Observable<{ status: string; data?: Expense; message?: string }> {
+    return this.http.post<{ status: string; data?: Expense; message?: string }>(
       `${this.apiUrl}/expenses/pending/${id}`,
-      payload
+      payload,
     );
   }
 
-  public syncExpenses(): Observable<{ status: string, message: string, data: SyncResult }> {
-    return this.http.post<{ status: string, message: string, data: SyncResult }>(`${this.apiUrl}/expenses/sync`, {});
+  public syncExpenses(): Observable<{ status: string; message: string; data: SyncResult }> {
+    return this.http.post<{ status: string; message: string; data: SyncResult }>(
+      `${this.apiUrl}/expenses/sync`,
+      {},
+    );
   }
 
   public getGmailConnectionUrl(
-    redirectUri: string
-  ): Observable<{ status: string, data: { url: string } }> {
+    redirectUri: string,
+  ): Observable<{ status: string; data: { url: string } }> {
     const encodedRedirect = encodeURIComponent(redirectUri);
-    return this.http.get<{ status: string, data: { url: string } }>(
-      `${this.apiUrl}/auth/google/url?redirectUri=${encodedRedirect}`
+    return this.http.get<{ status: string; data: { url: string } }>(
+      `${this.apiUrl}/auth/google/url?redirectUri=${encodedRedirect}`,
     );
   }
 
   public completeGmailConnection(
     code: string,
-    redirectUri: string
-  ): Observable<{ status: string, message: string }> {
-    return this.http.post<{ status: string, message: string }>(
+    redirectUri: string,
+  ): Observable<{ status: string; message: string }> {
+    return this.http.post<{ status: string; message: string }>(
       `${this.apiUrl}/auth/google/connect`,
-      { code, redirectUri }
+      { code, redirectUri },
     );
   }
 
-  public fetchAutomationStatus(): Observable<{ status: string, data: AutomationStatus }> {
-    return this.http.get<{ status: string, data: AutomationStatus }>(
-      `${this.apiUrl}/expenses/automation/status`
+  public fetchAutomationStatus(): Observable<{ status: string; data: AutomationStatus }> {
+    return this.http.get<{ status: string; data: AutomationStatus }>(
+      `${this.apiUrl}/expenses/automation/status`,
     );
   }
 
   public updateAutomationSettings(payload: {
     expenseAutomationEnabled?: boolean;
     enabledBanks?: string[];
-  }): Observable<{ status: string, message: string, data: any }> {
-    return this.http.patch<{ status: string, message: string, data: any }>(
+  }): Observable<{ status: string; message: string; data: any }> {
+    return this.http.patch<{ status: string; message: string; data: any }>(
       `${this.apiUrl}/expenses/automation/settings`,
-      payload
+      payload,
     );
   }
 
-  public disconnectGmail(): Observable<{ status: string, message: string }> {
-    return this.http.post<{ status: string, message: string }>(
+  public disconnectGmail(): Observable<{ status: string; message: string }> {
+    return this.http.post<{ status: string; message: string }>(
       `${this.apiUrl}/expenses/automation/disconnect`,
-      {}
+      {},
     );
   }
 
-  public fetchCategories(): Observable<{ status: string, data: CustomCategory[] }> {
-    return this.http.get<{ status: string, data: CustomCategory[] }>(
-      `${this.apiUrl}/expenses/categories`
-    );
-  }
-
-  public updateCategories(categories: CustomCategory[]): Observable<{ status: string, data: CustomCategory[] }> {
-    return this.http.put<{ status: string, data: CustomCategory[] }>(
+  public fetchCategories(): Observable<{ status: string; data: CustomCategory[] }> {
+    return this.http.get<{ status: string; data: CustomCategory[] }>(
       `${this.apiUrl}/expenses/categories`,
-      { categories }
+    );
+  }
+
+  public updateCategories(
+    categories: CustomCategory[],
+  ): Observable<{ status: string; data: CustomCategory[] }> {
+    return this.http.put<{ status: string; data: CustomCategory[] }>(
+      `${this.apiUrl}/expenses/categories`,
+      { categories },
     );
   }
 }

@@ -28,7 +28,11 @@
   <main class="form-container">
     @if (isLoadingData()) {
       <div class="pop-empty">
-        <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--lm-color-primary);">sync</span>
+        <span
+          class="material-symbols-outlined spin"
+          style="font-size: 32px; color: var(--lm-color-primary)"
+          >sync</span
+        >
         <p class="pop-empty-title">Loading details...</p>
       </div>
     } @else {
@@ -41,7 +45,11 @@
           </div>
           <div class="delete-banner-actions">
             <button class="btn-cancel" (click)="showDeleteConfirm.set(false)">Cancel</button>
-            <button class="btn-confirm-delete" (click)="deleteCurrentExpense()" [disabled]="isDeleting()">
+            <button
+              class="btn-confirm-delete"
+              (click)="deleteCurrentExpense()"
+              [disabled]="isDeleting()"
+            >
               {{ isDeleting() ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
@@ -94,39 +102,134 @@
                 (click)="toggleCategoryDropdown(); $event.stopPropagation()"
               >
                 <div class="trigger-left">
-                  <span class="material-symbols-outlined field-icon-inner">
-                    {{ getCategoryIcon(expenseForm.get('category')?.value || '') }}
-                  </span>
-                  <span class="trigger-value">
-                    {{ expenseForm.get('category')?.value || 'Select Category' }}
-                  </span>
+                  <div
+                    class="trigger-squircle"
+                    [ngClass]="getCategoryToneClass(expenseForm.get('category')?.value || '')"
+                  >
+                    <span class="material-symbols-outlined field-icon-inner">
+                      {{ getCategoryIcon(expenseForm.get('category')?.value || '') }}
+                    </span>
+                  </div>
+                  <div class="trigger-text-group">
+                    <span class="trigger-value">
+                      {{ expenseForm.get('category')?.value || 'Select Category' }}
+                    </span>
+                    @if (getCategoryShortName(expenseForm.get('category')?.value || '')) {
+                      <span class="trigger-short-pill">{{
+                        getCategoryShortName(expenseForm.get('category')?.value || '')
+                      }}</span>
+                    }
+                  </div>
                 </div>
-                <span class="material-symbols-outlined chevron-icon" [class.rotated]="isCategoryDropdownOpen()">
+                <span
+                  class="material-symbols-outlined chevron-icon"
+                  [class.rotated]="isCategoryDropdownOpen()"
+                >
                   keyboard_arrow_down
                 </span>
               </button>
 
               @if (isCategoryDropdownOpen()) {
                 <div class="custom-dropdown-overlay" (click)="closeAllDropdowns()"></div>
-                <div class="custom-dropdown-menu fade-in-scale">
-                  @for (cat of categories(); track cat.name) {
-                    <button
-                      type="button"
-                      class="custom-dropdown-option"
-                      [class.is-selected]="expenseForm.get('category')?.value === cat.name"
-                      (click)="selectCategory(cat.name); $event.stopPropagation()"
-                    >
-                      <div class="option-left">
-                        <span class="material-symbols-outlined option-icon">
-                          {{ getCategoryIcon(cat.name) }}
+                <div
+                  class="category-broad-dropdown fade-in-scale"
+                  (click)="$event.stopPropagation()"
+                >
+                  <!-- Header with title, count, and live search -->
+                  <div class="broad-dropdown-header">
+                    <div class="broad-header-title-row">
+                      <div class="broad-title-wrap">
+                        <span class="broad-dropdown-title">Select Category</span>
+                        <span class="broad-count-pill">{{ filteredCategories().length }}</span>
+                        <span
+                          class="broad-frequent-badge"
+                          title="Sorted by usage in the last 30 days"
+                        >
+                          <span class="material-symbols-outlined frequent-icon">trending_up</span>
+                          <span>Last 30 Days</span>
                         </span>
-                        <span class="option-name">{{ cat.name }}</span>
                       </div>
-                      @if (expenseForm.get('category')?.value === cat.name) {
-                        <span class="material-symbols-outlined check-icon">check</span>
+                      <a
+                        routerLink="/expenses/categories"
+                        (click)="closeAllDropdowns()"
+                        class="broad-manage-link"
+                        title="Manage Categories"
+                      >
+                        <span class="material-symbols-outlined">settings</span>
+                        <span>Manage</span>
+                      </a>
+                    </div>
+                    <div class="broad-search-bar">
+                      <span class="material-symbols-outlined broad-search-icon">search</span>
+                      <input
+                        type="text"
+                        class="broad-search-input"
+                        placeholder="Search category..."
+                        [value]="categorySearchQuery()"
+                        (input)="onCategorySearch($event)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      @if (categorySearchQuery()) {
+                        <button
+                          type="button"
+                          class="broad-search-clear"
+                          (click)="clearCategorySearch(); $event.stopPropagation()"
+                        >
+                          <span class="material-symbols-outlined">close</span>
+                        </button>
                       }
-                    </button>
-                  }
+                    </div>
+                  </div>
+
+                  <!-- Mobile-style App Launcher Grid (Icons + Names) -->
+                  <div class="category-mobile-grid">
+                    @if (filteredCategories().length === 0) {
+                      <div class="category-grid-empty">
+                        <span class="material-symbols-outlined">search_off</span>
+                        <p>No categories found matching "{{ categorySearchQuery() }}"</p>
+                        <a
+                          routerLink="/expenses/categories"
+                          (click)="closeAllDropdowns()"
+                          class="create-cat-link"
+                        >
+                          + Create New Category
+                        </a>
+                      </div>
+                    } @else {
+                      @for (cat of filteredCategories(); track cat.name) {
+                        <button
+                          type="button"
+                          class="category-app-tile"
+                          [class.is-selected]="expenseForm.get('category')?.value === cat.name"
+                          (click)="selectCategory(cat.name); $event.stopPropagation()"
+                          [title]="getCategoryTooltip(cat)"
+                        >
+                          <div class="app-icon-squircle" [ngClass]="getCategoryToneClass(cat.name)">
+                            <span class="material-symbols-outlined app-icon">
+                              {{ cat.icon || getCategoryIcon(cat.name) }}
+                            </span>
+                            @if ((cat.recentCount30d || 0) > 0) {
+                              <div
+                                class="app-count-badge"
+                                [title]="cat.recentCount30d + ' in last 30 days'"
+                              >
+                                {{ cat.recentCount30d }}
+                              </div>
+                            }
+                            @if (expenseForm.get('category')?.value === cat.name) {
+                              <div class="app-check-badge">
+                                <span class="material-symbols-outlined check-mark">check</span>
+                              </div>
+                            }
+                          </div>
+                          <span class="app-name-text">{{ cat.name }}</span>
+                          @if (cat.shortName) {
+                            <span class="app-short-text">{{ cat.shortName }}</span>
+                          }
+                        </button>
+                      }
+                    }
+                  </div>
                 </div>
               }
             </div>
@@ -144,7 +247,12 @@
                 @for (tag of tagsList(); track tag; let i = $index) {
                   <span class="tag-chip">
                     <span class="tag-chip-text">#{{ tag }}</span>
-                    <button type="button" class="tag-chip-remove" (click)="removeTag(i); $event.stopPropagation()" aria-label="Remove tag">
+                    <button
+                      type="button"
+                      class="tag-chip-remove"
+                      (click)="removeTag(i); $event.stopPropagation()"
+                      aria-label="Remove tag"
+                    >
                       <span class="material-symbols-outlined">close</span>
                     </button>
                   </span>
@@ -157,7 +265,11 @@
                   (input)="tagInput.set($any($event.target).value)"
                   (keydown)="onTagKeydown($event)"
                   (blur)="addTag()"
-                  placeholder="{{ tagsList().length === 0 ? 'Type tag and press Enter, Space, or Comma...' : '+ Add tag' }}"
+                  placeholder="{{
+                    tagsList().length === 0
+                      ? 'Type tag and press Enter, Space, or Comma...'
+                      : '+ Add tag'
+                  }}"
                 />
               </div>
             </div>
@@ -222,7 +334,10 @@
                       {{ expenseForm.get('paymentMethod')?.value || 'UPI' }}
                     </span>
                   </div>
-                  <span class="material-symbols-outlined chevron-icon" [class.rotated]="isPaymentMethodDropdownOpen()">
+                  <span
+                    class="material-symbols-outlined chevron-icon"
+                    [class.rotated]="isPaymentMethodDropdownOpen()"
+                  >
                     keyboard_arrow_down
                   </span>
                 </button>
@@ -268,7 +383,13 @@
               <span>Saving...</span>
             } @else {
               <span class="material-symbols-outlined">
-                {{ mode() === 'review' ? 'task_alt' : mode() === 'edit' ? 'check_circle' : 'add_circle' }}
+                {{
+                  mode() === 'review'
+                    ? 'task_alt'
+                    : mode() === 'edit'
+                      ? 'check_circle'
+                      : 'add_circle'
+                }}
               </span>
               <span>{{ submitButtonText() }}</span>
             }

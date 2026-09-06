@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  computed,
+  OnInit,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,9 +15,13 @@ import {
   ExpensePayload,
   CustomCategory,
   Expense,
-  PendingTransaction
+  PendingTransaction,
 } from '@core/services/expense.service';
 import { NotificationService } from '@core/services/notification.service';
+import {
+  CATEGORY_ICON_MAP,
+  CATEGORY_TONE_MAP,
+} from '../expense-categories/expense-categories.component';
 
 @Component({
   selector: 'app-expense-form',
@@ -39,7 +50,14 @@ export class ExpenseFormComponent implements OnInit {
   // ── Custom Dropdowns State ──
   protected readonly isCategoryDropdownOpen = signal<boolean>(false);
   protected readonly isPaymentMethodDropdownOpen = signal<boolean>(false);
-  protected readonly paymentMethods = ['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Cash', 'Other'];
+  protected readonly paymentMethods = [
+    'UPI',
+    'Credit Card',
+    'Debit Card',
+    'Net Banking',
+    'Cash',
+    'Other',
+  ];
 
   // ── Interactive Tag Chips State ──
   protected readonly tagsList = signal<string[]>([]);
@@ -55,15 +73,42 @@ export class ExpenseFormComponent implements OnInit {
     paymentMethod: ['UPI', Validators.required],
   });
 
+  // ── Category Search & Grid State ──
+  protected readonly categorySearchQuery = signal<string>('');
+
+  protected readonly filteredCategories = computed(() => {
+    const q = this.categorySearchQuery().trim().toLowerCase();
+    const list = this.categories();
+    if (!q) return list;
+
+    return list.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) || (c.shortName && c.shortName.toLowerCase().includes(q)),
+    );
+  });
+
+  protected onCategorySearch(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.categorySearchQuery.set(target?.value || '');
+  }
+
+  protected clearCategorySearch() {
+    this.categorySearchQuery.set('');
+  }
+
   // ── Custom Dropdown Methods ──
   protected toggleCategoryDropdown() {
-    this.isCategoryDropdownOpen.update((v) => !v);
+    this.isCategoryDropdownOpen.update((v) => {
+      if (!v) this.categorySearchQuery.set('');
+      return !v;
+    });
     this.isPaymentMethodDropdownOpen.set(false);
   }
 
   protected selectCategory(catName: string) {
     this.expenseForm.patchValue({ category: catName });
     this.isCategoryDropdownOpen.set(false);
+    this.categorySearchQuery.set('');
   }
 
   protected togglePaymentMethodDropdown() {
@@ -79,55 +124,242 @@ export class ExpenseFormComponent implements OnInit {
   protected closeAllDropdowns() {
     this.isCategoryDropdownOpen.set(false);
     this.isPaymentMethodDropdownOpen.set(false);
+    this.categorySearchQuery.set('');
   }
 
-  protected getCategoryIcon(category: string): string {
-    const cat = (category || '').toLowerCase();
-    if (cat.includes('food') || cat.includes('dining')) return 'restaurant';
-    if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('car')) return 'directions_car';
-    if (cat.includes('shop') || cat.includes('mall') || cat.includes('amazon') || cat.includes('flipkart')) return 'local_mall';
-    if (cat.includes('util') || cat.includes('bill') || cat.includes('recharge') || cat.includes('electric')) return 'bolt';
-    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema')) return 'movie';
-    if (cat.includes('health') || cat.includes('med') || cat.includes('doc')) return 'medical_services';
-    if (cat.includes('rent') || cat.includes('home') || cat.includes('house')) return 'home';
-    if (cat.includes('invest') || cat.includes('stock') || cat.includes('gold')) return 'trending_up';
-    if (cat.includes('grocer') || cat.includes('supermarket')) return 'shopping_basket';
-    if (cat.includes('edu') || cat.includes('course') || cat.includes('book')) return 'school';
+  public getCategoryIcon(category: string): string {
+    const catName = (category || '').trim();
+    const found = this.categories().find((c) => c.name.toLowerCase() === catName.toLowerCase());
+    if (found?.icon) return found.icon;
+
+    const lower = catName.toLowerCase();
+    if (CATEGORY_ICON_MAP[lower]) {
+      return CATEGORY_ICON_MAP[lower];
+    }
+
+    if (
+      lower.includes('food') ||
+      lower.includes('dining') ||
+      lower.includes('cafe') ||
+      lower.includes('restaurant')
+    )
+      return 'restaurant';
+    if (
+      lower.includes('transport') ||
+      lower.includes('travel') ||
+      lower.includes('cab') ||
+      lower.includes('car') ||
+      lower.includes('bike') ||
+      lower.includes('fuel')
+    )
+      return 'two_wheeler';
+    if (
+      lower.includes('shop') ||
+      lower.includes('mall') ||
+      lower.includes('amazon') ||
+      lower.includes('flipkart') ||
+      lower.includes('clothes')
+    )
+      return 'local_mall';
+    if (
+      lower.includes('util') ||
+      lower.includes('bill') ||
+      lower.includes('recharge') ||
+      lower.includes('electric') ||
+      lower.includes('wifi')
+    )
+      return 'receipt_long';
+    if (
+      lower.includes('entertain') ||
+      lower.includes('movie') ||
+      lower.includes('cinema') ||
+      lower.includes('gaming')
+    )
+      return 'movie';
+    if (
+      lower.includes('health') ||
+      lower.includes('med') ||
+      lower.includes('doc') ||
+      lower.includes('gym') ||
+      lower.includes('fitness')
+    )
+      return 'medical_services';
+    if (
+      lower.includes('rent') ||
+      lower.includes('home') ||
+      lower.includes('house') ||
+      lower.includes('housing')
+    )
+      return 'cottage';
+    if (
+      lower.includes('part') ||
+      lower.includes('meetup') ||
+      lower.includes('event') ||
+      lower.includes('drink') ||
+      lower.includes('party')
+    )
+      return 'celebration';
+    if (
+      lower.includes('relat') ||
+      lower.includes('family') ||
+      lower.includes('friend') ||
+      lower.includes('loan') ||
+      lower.includes('gift')
+    )
+      return 'redeem';
+    if (
+      lower.includes('invest') ||
+      lower.includes('stock') ||
+      lower.includes('gold') ||
+      lower.includes('mutual')
+    )
+      return 'trending_up';
+    if (lower.includes('grocer') || lower.includes('supermarket')) return 'shopping_basket';
+    if (lower.includes('edu') || lower.includes('course') || lower.includes('book'))
+      return 'school';
     return 'category';
+  }
+
+  protected getCategoryToneClass(category: string): string {
+    const lower = (category || '').trim().toLowerCase();
+    if (CATEGORY_TONE_MAP[lower]) {
+      return CATEGORY_TONE_MAP[lower];
+    }
+
+    if (
+      lower.includes('food') ||
+      lower.includes('dining') ||
+      lower.includes('cafe') ||
+      lower.includes('restaurant') ||
+      lower.includes('kitchen')
+    )
+      return 'tone-orange';
+    if (
+      lower.includes('transport') ||
+      lower.includes('travel') ||
+      lower.includes('cab') ||
+      lower.includes('car') ||
+      lower.includes('bike') ||
+      lower.includes('fuel')
+    )
+      return 'tone-cyan';
+    if (
+      lower.includes('shop') ||
+      lower.includes('mall') ||
+      lower.includes('amazon') ||
+      lower.includes('flipkart') ||
+      lower.includes('clothes')
+    )
+      return 'tone-pink';
+    if (
+      lower.includes('bill') ||
+      lower.includes('rent') ||
+      lower.includes('recharge') ||
+      lower.includes('electric') ||
+      lower.includes('wifi') ||
+      lower.includes('except')
+    )
+      return 'tone-amber';
+    if (lower.includes('card') || lower.includes('credit')) return 'tone-purple';
+    if (
+      lower.includes('party') ||
+      lower.includes('parties') ||
+      lower.includes('entertain') ||
+      lower.includes('movie') ||
+      lower.includes('cinema')
+    )
+      return 'tone-fuchsia';
+    if (
+      lower.includes('health') ||
+      lower.includes('med') ||
+      lower.includes('fitness') ||
+      lower.includes('doctor')
+    )
+      return 'tone-green';
+    if (
+      lower.includes('home') ||
+      lower.includes('house') ||
+      lower.includes('office') ||
+      lower.includes('bl-home')
+    )
+      return 'tone-indigo';
+    if (
+      lower.includes('relat') ||
+      lower.includes('friend') ||
+      lower.includes('meet') ||
+      lower.includes('help')
+    )
+      return 'tone-teal';
+    if (lower.includes('plan') || lower.includes('invest') || lower.includes('stock'))
+      return 'tone-emerald';
+    if (lower.includes('our') || lower.includes('love') || lower.includes('sowji'))
+      return 'tone-rose';
+    return 'tone-slate';
+  }
+
+  protected getCategoryShortName(category: string): string {
+    const found = this.categories().find(
+      (c) => c.name.toLowerCase() === (category || '').toLowerCase(),
+    );
+    return found?.shortName || '';
+  }
+
+  protected getCategoryTooltip(cat: CustomCategory): string {
+    if (cat.recentCount30d && cat.recentCount30d > 0) {
+      return `${cat.name} • Used ${cat.recentCount30d} time${cat.recentCount30d > 1 ? 's' : ''} in last 30 days`;
+    }
+    if (cat.totalUsageCount && cat.totalUsageCount > 0) {
+      return `${cat.name} • Used ${cat.totalUsageCount} time${cat.totalUsageCount > 1 ? 's' : ''} overall`;
+    }
+    return cat.name;
   }
 
   protected getPaymentMethodIcon(method: string): string {
     switch (method) {
-      case 'UPI': return 'qr_code_2';
+      case 'UPI':
+        return 'qr_code_2';
       case 'Credit Card':
-      case 'Debit Card': return 'credit_card';
-      case 'Net Banking': return 'account_balance';
-      case 'Cash': return 'payments';
-      default: return 'wallet';
+      case 'Debit Card':
+        return 'credit_card';
+      case 'Net Banking':
+        return 'account_balance';
+      case 'Cash':
+        return 'payments';
+      default:
+        return 'wallet';
     }
   }
 
   protected readonly pageTitle = computed(() => {
     switch (this.mode()) {
-      case 'edit': return 'Edit Transaction';
-      case 'review': return 'Review Pending Transaction';
-      default: return 'Log New Expense';
+      case 'edit':
+        return 'Edit Transaction';
+      case 'review':
+        return 'Review Pending Transaction';
+      default:
+        return 'Log New Expense';
     }
   });
 
   protected readonly pageSubtitle = computed(() => {
     switch (this.mode()) {
-      case 'edit': return 'Update transaction details';
-      case 'review': return 'Verify Gmail auto-logged details before saving';
-      default: return 'Record an expense entry';
+      case 'edit':
+        return 'Update transaction details';
+      case 'review':
+        return 'Verify Gmail auto-logged details before saving';
+      default:
+        return 'Record an expense entry';
     }
   });
 
   protected readonly submitButtonText = computed(() => {
     switch (this.mode()) {
-      case 'edit': return 'Update Transaction';
-      case 'review': return 'Approve & Save';
-      default: return 'Save Expense';
+      case 'edit':
+        return 'Update Transaction';
+      case 'review':
+        return 'Approve & Save';
+      default:
+        return 'Save Expense';
     }
   });
 
@@ -160,7 +392,10 @@ export class ExpenseFormComponent implements OnInit {
     if (!rawVal) return;
 
     // Split by comma or whitespace to allow fast multi-entry
-    const parts = rawVal.split(/[,\s]+/).map((t) => t.trim().replace(/^#/, '')).filter(Boolean);
+    const parts = rawVal
+      .split(/[,\s]+/)
+      .map((t) => t.trim().replace(/^#/, ''))
+      .filter(Boolean);
     const current = this.tagsList();
     const updated = [...current];
 
@@ -201,7 +436,9 @@ export class ExpenseFormComponent implements OnInit {
           // If in add mode, ensure selected category exists in the list
           if (this.mode() === 'add') {
             const currentCat = this.expenseForm.get('category')?.value;
-            const exists = res.data.some((c) => c.name.toLowerCase() === (currentCat || '').toLowerCase());
+            const exists = res.data.some(
+              (c) => c.name.toLowerCase() === (currentCat || '').toLowerCase(),
+            );
             if (!exists) {
               this.expenseForm.patchValue({ category: res.data[0].name });
             }
@@ -219,7 +456,9 @@ export class ExpenseFormComponent implements OnInit {
         this.isLoadingData.set(false);
         const exp = res.data;
         if (exp) {
-          const dateStr = exp.date ? new Date(exp.date).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal();
+          const dateStr = exp.date
+            ? new Date(exp.date).toISOString().slice(0, 16)
+            : this.getCurrentDateTimeLocal();
           this.expenseForm.patchValue({
             amount: exp.amount,
             title: exp.title || exp.merchant || '',
@@ -247,7 +486,9 @@ export class ExpenseFormComponent implements OnInit {
         this.isLoadingData.set(false);
         const ptx = (res.data || []).find((p) => p._id === id);
         if (ptx) {
-          const dateStr = ptx.date ? new Date(ptx.date).toISOString().slice(0, 16) : this.getCurrentDateTimeLocal();
+          const dateStr = ptx.date
+            ? new Date(ptx.date).toISOString().slice(0, 16)
+            : this.getCurrentDateTimeLocal();
           this.expenseForm.patchValue({
             amount: ptx.amount,
             title: ptx.title || ptx.merchant || '',
@@ -310,25 +551,27 @@ export class ExpenseFormComponent implements OnInit {
           this.isSubmitting.set(false);
           this.notificationService.error(
             err?.error?.message || 'Failed to update transaction',
-            'Error'
+            'Error',
           );
         },
       });
     } else if (m === 'review' && id) {
-      this.expenseService.processPendingTransaction(id, { action: 'approve', ...payload }).subscribe({
-        next: () => {
-          this.isSubmitting.set(false);
-          this.notificationService.success('Pending transaction approved and saved.', 'Saved');
-          this.router.navigate(['/expenses/pending']);
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          this.notificationService.error(
-            err?.error?.message || 'Failed to approve transaction',
-            'Error'
-          );
-        },
-      });
+      this.expenseService
+        .processPendingTransaction(id, { action: 'approve', ...payload })
+        .subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+            this.notificationService.success('Pending transaction approved and saved.', 'Saved');
+            this.router.navigate(['/expenses/pending']);
+          },
+          error: (err) => {
+            this.isSubmitting.set(false);
+            this.notificationService.error(
+              err?.error?.message || 'Failed to approve transaction',
+              'Error',
+            );
+          },
+        });
     } else {
       this.expenseService.createExpense(payload).subscribe({
         next: () => {
@@ -340,7 +583,7 @@ export class ExpenseFormComponent implements OnInit {
           this.isSubmitting.set(false);
           this.notificationService.error(
             err?.error?.message || 'Failed to create expense',
-            'Error'
+            'Error',
           );
         },
       });
@@ -362,7 +605,7 @@ export class ExpenseFormComponent implements OnInit {
         this.isDeleting.set(false);
         this.notificationService.error(
           err?.error?.message || 'Failed to delete transaction',
-          'Error'
+          'Error',
         );
       },
     });

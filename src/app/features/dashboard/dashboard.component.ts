@@ -63,7 +63,7 @@ export class DashboardComponent {
       return s.isCurrentMonth;
     }
     const now = new Date();
-    return this.selectedMonth() === (now.getMonth() + 1) && this.selectedYear() === now.getFullYear();
+    return this.selectedMonth() === now.getMonth() + 1 && this.selectedYear() === now.getFullYear();
   });
 
   protected readonly selectedMonthLabel = computed(() => {
@@ -124,7 +124,26 @@ export class DashboardComponent {
 
   /** Maps common expense category names to Material Symbols icon names. */
   private readonly categoryIconMap: Record<string, string> = {
-    groceries: 'local_grocery_store',
+    'bl-home': 'cottage',
+    'bills and rents': 'receipt_long',
+    'credit card expenses': 'credit_card',
+    'friends and meet-ups': 'groups',
+    'kitchen utilities': 'kitchen',
+    'miscellaneous expenses': 'widgets',
+    office: 'business_center',
+    'outside food': 'restaurant',
+    parties: 'celebration',
+    'previous month expenses': 'history',
+    'relatives and gifts': 'redeem',
+    bike: 'two_wheeler',
+    naveen: 'person',
+    sowji: 'face_3',
+    'our expenses': 'favorite',
+    health: 'medical_services',
+    'our plans': 'event_upcoming',
+    exceptional: 'emergency',
+    helping: 'volunteer_activism',
+    groceries: 'shopping_basket',
     food: 'restaurant',
     'food & dining': 'restaurant',
     dining: 'restaurant',
@@ -133,9 +152,8 @@ export class DashboardComponent {
     travel: 'flight',
     shopping: 'shopping_bag',
     entertainment: 'movie',
-    health: 'health_and_safety',
     healthcare: 'health_and_safety',
-    medical: 'local_hospital',
+    medical: 'medical_services',
     utilities: 'bolt',
     bills: 'receipt_long',
     rent: 'home',
@@ -147,8 +165,8 @@ export class DashboardComponent {
     clothing: 'checkroom',
     gifts: 'redeem',
     personal: 'person',
-    other: 'more_horiz',
-    miscellaneous: 'more_horiz',
+    other: 'category',
+    miscellaneous: 'widgets',
   };
 
   /** Returns a Material Symbols icon name for a given category string. */
@@ -158,6 +176,25 @@ export class DashboardComponent {
 
   /** Dynamic color themes for categories */
   private readonly categoryColorMap: Record<string, string> = {
+    'bl-home': '#6366f1',
+    'bills and rents': '#eab308',
+    'credit card expenses': '#a855f7',
+    'friends and meet-ups': '#14b8a6',
+    'kitchen utilities': '#f97316',
+    'miscellaneous expenses': '#94a3b8',
+    office: '#06b6d4',
+    'outside food': '#f97316',
+    parties: '#d946ef',
+    'previous month expenses': '#94a3b8',
+    'relatives and gifts': '#ec4899',
+    bike: '#06b6d4',
+    naveen: '#6366f1',
+    sowji: '#ec4899',
+    'our expenses': '#f43f5e',
+    health: '#10b981',
+    'our plans': '#10b981',
+    exceptional: '#eab308',
+    helping: '#14b8a6',
     shopping: '#EC4899',
     food: '#F59E0B',
     'food & dining': '#F59E0B',
@@ -170,7 +207,7 @@ export class DashboardComponent {
     entertainment: '#A855F7',
     travel: '#3B82F6',
     transport: '#0EA5E9',
-    other: '#06B6D4',
+    other: '#94a3b8',
   };
 
   protected getCategoryColor(category: string): string {
@@ -219,9 +256,7 @@ export class DashboardComponent {
 
   /** Gets a loaded feature by name */
   protected getFeature(name: string): Feature | undefined {
-    return this.features().find(
-      (f) => f.name.toLowerCase().trim() === name.toLowerCase().trim()
-    );
+    return this.features().find((f) => f.name.toLowerCase().trim() === name.toLowerCase().trim());
   }
 
   /* ── Private Methods ── */
@@ -234,7 +269,10 @@ export class DashboardComponent {
       next: () => {},
       error: () => {
         this.dbStatus.set('error');
-        this.notificationService.error('Failed to establish connection with server', 'System Offline');
+        this.notificationService.error(
+          'Failed to establish connection with server',
+          'System Offline',
+        );
       },
     });
 

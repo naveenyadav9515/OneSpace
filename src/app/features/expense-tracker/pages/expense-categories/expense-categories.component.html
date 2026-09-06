@@ -22,10 +22,31 @@
     <section class="card add-category-card">
       <h3 class="card-title">Add New Category</h3>
       <p class="card-desc">
-        Categories are synced to your database and immediately available across all your devices.
+        Pick an icon, assign a name, and set an optional short code. Categories sync across all your
+        devices.
       </p>
 
       <div class="add-cat-inputs">
+        <!-- Icon Selector Trigger -->
+        <button
+          type="button"
+          class="cat-icon-select-btn"
+          (click)="openIconPicker('new')"
+          title="Choose Category Icon"
+        >
+          <div
+            class="cat-icon-squircle"
+            [ngClass]="getCategoryToneClass(newCategoryControl.value || '')"
+          >
+            <span class="material-symbols-outlined cat-icon">
+              {{ newCategoryIconControl.value || 'category' }}
+            </span>
+          </div>
+          <span class="icon-btn-edit-badge" title="Change Icon">
+            <span class="material-symbols-outlined">edit</span>
+          </span>
+        </button>
+
         <div class="input-field flex-2">
           <input
             type="text"
@@ -63,7 +84,8 @@
     <div class="pop-note">
       <span class="material-symbols-outlined">info</span>
       <p>
-        Deleting a category will automatically move its associated transactions to <strong>{{ fallbackCategory }}</strong> so you never lose any expense records.
+        Deleting a category will automatically move its associated transactions to
+        <strong>{{ fallbackCategory }}</strong> so you never lose any expense records.
       </p>
     </div>
 
@@ -76,7 +98,11 @@
 
       @if (isLoading() && categories().length === 0) {
         <div class="pop-empty">
-          <span class="material-symbols-outlined spin" style="font-size: 28px; color: var(--lm-color-primary);">sync</span>
+          <span
+            class="material-symbols-outlined spin"
+            style="font-size: 28px; color: var(--lm-color-primary)"
+            >sync</span
+          >
           <p class="pop-empty-title">Loading categories...</p>
         </div>
       } @else {
@@ -90,7 +116,7 @@
                   <div class="cat-card-header">
                     <div class="cat-icon-squircle" [ngClass]="getCategoryToneClass(cat.name)">
                       <span class="material-symbols-outlined cat-icon">
-                        {{ getCategoryIcon(cat.name) }}
+                        {{ cat.icon || getCategoryIcon(cat.name) }}
                       </span>
                     </div>
 
@@ -107,9 +133,9 @@
 
                   <!-- ── Bottom Tier: Metadata & Actions ── -->
                   <div class="cat-card-footer">
-                    <div class="cat-tx-chip">
+                    <div class="cat-tx-chip" title="Expenses linked to this category">
                       <span class="material-symbols-outlined tx-icon">receipt_long</span>
-                      <span class="tx-count">{{ categoryUsage(cat.name) }} trans</span>
+                      <span class="tx-count">{{ categoryUsage(cat.name) }} transactions</span>
                     </div>
 
                     <div class="cat-actions-wrap">
@@ -140,6 +166,26 @@
                 <!-- Inline Edit Card -->
                 <div class="cat-inline-edit-card fade-in-bottom">
                   <div class="edit-inputs-grid">
+                    <!-- Edit Icon Trigger -->
+                    <button
+                      type="button"
+                      class="cat-icon-select-btn edit-icon-btn"
+                      (click)="openIconPicker('edit')"
+                      title="Change Category Icon"
+                    >
+                      <div
+                        class="cat-icon-squircle"
+                        [ngClass]="getCategoryToneClass(editCategoryControl.value || '')"
+                      >
+                        <span class="material-symbols-outlined cat-icon">
+                          {{ editCategoryIconControl.value || 'category' }}
+                        </span>
+                      </div>
+                      <span class="icon-btn-edit-badge" title="Change Icon">
+                        <span class="material-symbols-outlined">edit</span>
+                      </span>
+                    </button>
+
                     <div class="edit-field-col flex-2">
                       <label class="edit-mini-label">Category Name</label>
                       <input
@@ -198,10 +244,15 @@
                   <div class="delete-dialog-top">
                     <span class="material-symbols-outlined delete-warn-icon">warning</span>
                     <div class="delete-dialog-msg">
-                      <p class="delete-msg-title">Delete "<strong>{{ cat.name }}</strong>"?</p>
+                      <p class="delete-msg-title">
+                        Delete "<strong>{{ cat.name }}</strong
+                        >"?
+                      </p>
                       <p class="delete-msg-desc">
                         @if (categoryUsage(cat.name) > 0) {
-                          All <strong>{{ categoryUsage(cat.name) }}</strong> transaction(s) will be automatically moved to <strong>"{{ fallbackCategory }}"</strong> so your data stays safe.
+                          All <strong>{{ categoryUsage(cat.name) }}</strong> transaction(s) will be
+                          automatically moved to <strong>"{{ fallbackCategory }}"</strong> so your
+                          data stays safe.
                         } @else {
                           This category has no transactions and can be safely removed.
                         }
@@ -240,6 +291,81 @@
       }
     </section>
   </main>
+
+  <!-- ── Icon Picker Modal ── -->
+  @if (isIconPickerOpen()) {
+    <div class="icon-picker-backdrop" (click)="closeIconPicker()">
+      <div class="icon-picker-modal fade-in-scale" (click)="$event.stopPropagation()">
+        <div class="icon-picker-header">
+          <div class="picker-title-row">
+            <span class="material-symbols-outlined picker-title-icon">auto_awesome</span>
+            <div>
+              <h3 class="picker-title">Choose Category Icon</h3>
+              <p class="picker-subtitle">Select an icon representing this category</p>
+            </div>
+          </div>
+          <button type="button" class="picker-close-btn" (click)="closeIconPicker()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="icon-picker-search-bar">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            class="icon-search-input"
+            placeholder="Search icons (e.g. food, car, gym, bill, wifi)..."
+            [value]="iconSearchQuery()"
+            (input)="onIconSearch($event)"
+          />
+        </div>
+
+        <!-- Group tabs -->
+        <div class="icon-group-tabs">
+          @for (grp of iconGroups; track grp) {
+            <button
+              type="button"
+              class="icon-group-pill"
+              [class.is-active]="selectedIconGroup() === grp"
+              (click)="setIconGroup(grp)"
+            >
+              {{ grp }}
+            </button>
+          }
+        </div>
+
+        <!-- Icons Grid -->
+        <div class="icons-grid-container">
+          @if (filteredIcons().length === 0) {
+            <div class="icons-empty-state">
+              <span class="material-symbols-outlined">search_off</span>
+              <p>No matching icons found for "{{ iconSearchQuery() }}"</p>
+            </div>
+          } @else {
+            <div class="icons-grid">
+              @for (ic of filteredIcons(); track ic.name) {
+                <button
+                  type="button"
+                  class="icon-tile-btn"
+                  [class.is-selected]="
+                    (iconPickerTarget() === 'new'
+                      ? newCategoryIconControl.value
+                      : editCategoryIconControl.value) === ic.name
+                  "
+                  (click)="selectPickerIcon(ic.name)"
+                  [title]="ic.label"
+                >
+                  <span class="material-symbols-outlined icon-symbol">{{ ic.name }}</span>
+                  <span class="icon-tile-label">{{ ic.label }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <app-bottom-nav></app-bottom-nav>
 </div>

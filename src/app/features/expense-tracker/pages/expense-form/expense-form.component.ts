@@ -373,15 +373,29 @@ export class ExpenseFormComponent implements OnInit {
       if (url.includes('/pending/') && id) {
         this.mode.set('review');
         this.targetId.set(id);
+        this.expenseForm.get('title')?.clearValidators();
+        this.expenseForm.get('title')?.setValidators([Validators.maxLength(100)]);
+        this.expenseForm.get('merchant')?.setValidators([Validators.required]);
+        this.expenseForm.get('title')?.updateValueAndValidity();
+        this.expenseForm.get('merchant')?.updateValueAndValidity();
         this.loadPendingData(id);
       } else if (url.includes('/edit/') && id) {
         this.mode.set('edit');
         this.targetId.set(id);
+        this.expenseForm.get('title')?.clearValidators();
+        this.expenseForm.get('title')?.setValidators([Validators.maxLength(100)]);
+        this.expenseForm.get('merchant')?.setValidators([Validators.required]);
+        this.expenseForm.get('title')?.updateValueAndValidity();
+        this.expenseForm.get('merchant')?.updateValueAndValidity();
         this.loadExpenseData(id);
       } else {
         this.mode.set('add');
         this.targetId.set(null);
         this.tagsList.set([]);
+        this.expenseForm.get('title')?.setValidators([Validators.required, Validators.maxLength(100)]);
+        this.expenseForm.get('merchant')?.clearValidators();
+        this.expenseForm.get('title')?.updateValueAndValidity();
+        this.expenseForm.get('merchant')?.updateValueAndValidity();
       }
     });
   }
@@ -489,9 +503,17 @@ export class ExpenseFormComponent implements OnInit {
           const dateStr = ptx.date
             ? new Date(ptx.date).toISOString().slice(0, 16)
             : this.getCurrentDateTimeLocal();
+
+          // For pending review, title should not hold merchant name; keep it empty
+          const isSameAsMerchant =
+            ptx.title &&
+            ptx.merchant &&
+            ptx.title.trim().toLowerCase() === ptx.merchant.trim().toLowerCase();
+          const titleVal = !ptx.title || isSameAsMerchant ? '' : ptx.title;
+
           this.expenseForm.patchValue({
             amount: ptx.amount,
-            title: ptx.title || ptx.merchant || '',
+            title: titleVal,
             category: ptx.category || 'Other',
             notes: ptx.notes || '',
             date: dateStr,
@@ -524,6 +546,11 @@ export class ExpenseFormComponent implements OnInit {
     const raw = this.expenseForm.getRawValue();
     const titleVal = raw.title.trim();
     const merchantVal = (raw.merchant || '').trim() || titleVal;
+
+    if (!titleVal && !merchantVal) {
+      this.notificationService.warning('Please provide a title or merchant name.', 'Required');
+      return;
+    }
 
     const payload: ExpensePayload = {
       amount: Number(raw.amount),

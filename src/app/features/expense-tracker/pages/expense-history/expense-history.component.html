@@ -307,7 +307,7 @@
               </div>
 
               <div class="txn-details-stack">
-                @if (exp.merchant && exp.merchant !== exp.title) {
+                @if (exp.merchant && exp.title && exp.merchant.toLowerCase() !== exp.title.toLowerCase()) {
                   <div class="txn-notes-row">
                     <span class="material-symbols-outlined txn-notes-icon">storefront</span>
                     <span class="txn-notes-text">{{ exp.merchant }}</span>

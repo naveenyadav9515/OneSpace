@@ -76,7 +76,7 @@
         <div class="form-card">
           <!-- Title / Subject -->
           <div class="field-group">
-            <label class="field-label">Title / Subject</label>
+            <label class="field-label">Title / Subject{{ mode() === 'review' ? ' (Optional)' : '' }}</label>
             <div class="field-input-wrap">
               <span class="material-symbols-outlined field-icon">title</span>
               <input
@@ -305,7 +305,7 @@
         <div class="form-card">
           <div class="form-grid-2">
             <div class="field-group">
-              <label class="field-label">Merchant / Recipient (Optional)</label>
+              <label class="field-label">Merchant / Recipient{{ mode() === 'review' ? '' : ' (Optional)' }}</label>
               <div class="field-input-wrap">
                 <span class="material-symbols-outlined field-icon">storefront</span>
                 <input

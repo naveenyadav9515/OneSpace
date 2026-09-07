@@ -153,7 +153,7 @@
               <div class="pending-info-main">
                 <h4 class="pending-merchant">{{ ptx.title || ptx.notes || ptx.merchant }}</h4>
                 <div class="pending-meta-row">
-                  @if (ptx.merchant && ptx.merchant !== ptx.title) {
+                  @if (ptx.merchant && ptx.title && ptx.merchant.toLowerCase() !== ptx.title.toLowerCase()) {
                     <span class="pending-merchant-sub">{{ ptx.merchant }}</span>
                     <span class="meta-sep">•</span>
                   }

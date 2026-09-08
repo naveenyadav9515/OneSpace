@@ -35,7 +35,6 @@ export class NannaExpensesComponent implements OnInit {
   formReason = '';
   formDate = this.todayIso();
   formNotes = '';
-  formBudget = '';    // budget for the month of the selected date
   formError = '';
 
   // ── Editing an expense entry ──
@@ -63,7 +62,6 @@ export class NannaExpensesComponent implements OnInit {
     this.formReason = '';
     this.formDate = this.todayIso();
     this.formNotes = '';
-    this.formBudget = String(this.svc.getBudgetForDate(this.formDate) || '');
     this.formError = '';
     this.isModalOpen.set(true);
   }
@@ -74,7 +72,6 @@ export class NannaExpensesComponent implements OnInit {
     this.formReason = exp.reason;
     this.formDate = this.toInputDate(exp.date);
     this.formNotes = exp.notes || '';
-    this.formBudget = String(this.svc.getBudgetForDate(exp.date) || '');
     this.formError = '';
     this.isModalOpen.set(true);
   }
@@ -82,15 +79,6 @@ export class NannaExpensesComponent implements OnInit {
   closeModal(): void {
     this.isModalOpen.set(false);
     this.formError = '';
-  }
-
-  /** Called whenever the date picker changes — refresh the budget field for the new month */
-  onFormDateChange(): void {
-    const existingBudget = this.svc.getBudgetForDate(this.formDate);
-    // Only auto-fill if the user hasn't typed a custom value
-    if (!this.formBudget || Number(this.formBudget) === 0) {
-      this.formBudget = existingBudget > 0 ? String(existingBudget) : '';
-    }
   }
 
   async submitForm(): Promise<void> {
@@ -111,15 +99,6 @@ export class NannaExpensesComponent implements OnInit {
       notes: this.formNotes.trim() || undefined,
     };
 
-    // Save budget first (if provided)
-    if (this.formBudget && parseFloat(this.formBudget) >= 0) {
-      const dateForBudget = new Date(payload.date!);
-      const year = dateForBudget.getFullYear();
-      const month = dateForBudget.getMonth() + 1; // 1-indexed
-      await this.svc.upsertBudget(year, month, parseFloat(this.formBudget));
-    }
-
-    // Save expense
     let success: boolean;
     if (this.editingId) {
       const result = await this.svc.updateExpense(this.editingId, payload);

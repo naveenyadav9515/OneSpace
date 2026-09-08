@@ -276,34 +276,7 @@
             type="datetime-local"
             [(ngModel)]="formDate"
             name="nanna-date"
-            (ngModelChange)="onFormDateChange()"
           >
-        </div>
-
-        <!-- Monthly Budget for this month -->
-        <div class="nm-field">
-          <label class="nm-label" for="nanna-budget">
-            <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle; margin-right: 4px;">savings</span>
-            Monthly Budget for this month
-            <span class="nm-optional">(optional)</span>
-          </label>
-          <div class="nm-input-wrap">
-            <span class="nm-prefix">₹</span>
-            <input
-              id="nanna-budget"
-              class="nm-input"
-              type="number"
-              min="0"
-              step="1"
-              placeholder="e.g. 5000"
-              [(ngModel)]="formBudget"
-              name="nanna-budget"
-              autocomplete="off"
-            >
-          </div>
-          <span class="nm-field-hint">
-            Sets the spending limit for the month of the selected date.
-          </span>
         </div>
 
         <!-- Notes (optional) -->

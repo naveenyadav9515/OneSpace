@@ -2114,6 +2114,22 @@ input:checked + .slider:before {
 .hh-dropdown-item:hover .material-symbols-outlined {
   color: var(--lm-color-primary);
 }
+
+/* Nanna Expenses — highlighted dropdown entry */
+.hh-dropdown-item--special {
+  color: var(--lm-color-primary, #7c6af7);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+  padding-top: 14px;
+}
+.hh-dropdown-item--special .material-symbols-outlined {
+  color: var(--lm-color-primary, #7c6af7);
+}
+.hh-dropdown-item--special:hover {
+  background: rgba(124, 106, 247, 0.1);
+  color: var(--lm-color-primary, #7c6af7);
+}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }

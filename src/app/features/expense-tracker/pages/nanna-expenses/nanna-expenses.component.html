@@ -1,0 +1,240 @@
+<!-- Nanna Expenses — Isolated personal expense tracker -->
+<div class="nanna-shell fade-in-bottom">
+
+  <!-- ── Header ── -->
+  <header class="nanna-header">
+    <a routerLink="/expenses" class="nanna-back-btn" aria-label="Go Back">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="nanna-header-center">
+      <h1 class="nanna-title">Nanna Expenses</h1>
+      <p class="nanna-subtitle">
+        @if (svc.isLoading()) {
+          Loading…
+        } @else if (svc.expenses().length === 0) {
+          No expenses logged yet
+        } @else {
+          {{ svc.expenses().length }} entries · ₹{{ svc.lifetimeTotal() | number:'1.0-0' }} total
+        }
+      </p>
+    </div>
+
+    <button class="nanna-add-btn" (click)="openAddModal()" title="Log new expense" aria-label="Log new expense">
+      <span class="material-symbols-outlined">add</span>
+    </button>
+  </header>
+
+  <!-- ── Content ── -->
+  <main class="nanna-content">
+
+    <!-- Loading state -->
+    @if (svc.isLoading()) {
+      <div class="nanna-loading">
+        <div class="nanna-spinner"></div>
+        <span>Loading expenses…</span>
+      </div>
+    }
+
+    <!-- Error state -->
+    @if (svc.error() && !svc.isLoading()) {
+      <div class="nanna-error-banner">
+        <span class="material-symbols-outlined">error</span>
+        {{ svc.error() }}
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!svc.isLoading() && svc.expenses().length === 0 && !svc.error()) {
+      <div class="nanna-empty">
+        <div class="nanna-empty-icon">
+          <span class="material-symbols-outlined">family_restroom</span>
+        </div>
+        <h2 class="nanna-empty-title">No expenses yet</h2>
+        <p class="nanna-empty-sub">Tap the <strong>+</strong> button to log your first Nanna expense.</p>
+      </div>
+    }
+
+    <!-- Monthly cards -->
+    @if (!svc.isLoading() && svc.monthlyGroups().length > 0) {
+      <div class="nanna-months">
+        @for (group of svc.monthlyGroups(); track group.key) {
+          <div class="nanna-month-card">
+
+            <!-- Card header -->
+            <div class="nmc-header">
+              <div class="nmc-header-left">
+                <span class="nmc-month-label">{{ group.label }}</span>
+                <span class="nmc-count-badge">{{ group.count }} {{ group.count === 1 ? 'entry' : 'entries' }}</span>
+              </div>
+              <div class="nmc-total">
+                <span class="nmc-total-label">Total</span>
+                <span class="nmc-total-amount">₹{{ group.total | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <!-- Expense rows -->
+            <div class="nmc-expense-list">
+              @for (exp of group.expenses; track exp._id) {
+                <div class="nmc-row" [class.is-deleting]="deletingId() === exp._id">
+
+                  @if (deletingId() === exp._id) {
+                    <!-- Delete confirmation inline -->
+                    <div class="nmc-delete-confirm">
+                      <span class="nmc-delete-msg">Delete this entry?</span>
+                      <div class="nmc-delete-actions">
+                        <button class="nmc-btn nmc-btn--cancel" (click)="cancelDelete()">Cancel</button>
+                        <button class="nmc-btn nmc-btn--confirm" (click)="executeDelete(exp._id)"
+                                [disabled]="svc.isLoading()">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <!-- Normal row -->
+                    <div class="nmc-row-icon">
+                      <span class="material-symbols-outlined">receipt</span>
+                    </div>
+
+                    <div class="nmc-row-info">
+                      <span class="nmc-row-reason">{{ exp.reason }}</span>
+                      <span class="nmc-row-meta">{{ formatDate(exp.date) }} · {{ formatTime(exp.date) }}</span>
+                      @if (exp.notes) {
+                        <span class="nmc-row-notes">{{ exp.notes }}</span>
+                      }
+                    </div>
+
+                    <div class="nmc-row-right">
+                      <span class="nmc-row-amount">₹{{ exp.amount | number:'1.0-0' }}</span>
+                      <div class="nmc-row-actions">
+                        <button class="nmc-icon-btn" (click)="openEditModal(exp)" title="Edit" aria-label="Edit expense">
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="nmc-icon-btn nmc-icon-btn--danger" (click)="confirmDelete(exp._id)"
+                                title="Delete" aria-label="Delete expense">
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+  <!-- ── Bottom Nav ── -->
+  <app-bottom-nav />
+
+</div>
+
+<!-- ── Add / Edit Modal ── -->
+@if (isModalOpen()) {
+  <div class="nanna-modal-backdrop" (click)="closeModal()">
+    <div class="nanna-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+         [attr.aria-label]="editingId ? 'Edit expense' : 'Log new Nanna expense'">
+
+      <div class="nm-header">
+        <h2 class="nm-title">{{ editingId ? 'Edit Expense' : 'Log Expense' }}</h2>
+        <button class="nm-close-btn" (click)="closeModal()" aria-label="Close modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form class="nm-form" (ngSubmit)="submitForm()">
+
+        <!-- Amount -->
+        <div class="nm-field">
+          <label class="nm-label" for="nanna-amount">Amount (₹)</label>
+          <div class="nm-input-wrap">
+            <span class="nm-prefix">₹</span>
+            <input
+              id="nanna-amount"
+              class="nm-input"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="e.g. 500"
+              [(ngModel)]="formAmount"
+              name="nanna-amount"
+              autocomplete="off"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="nm-field">
+          <label class="nm-label" for="nanna-reason">Reason</label>
+          <input
+            id="nanna-reason"
+            class="nm-input nm-input--full"
+            type="text"
+            placeholder="e.g. Monthly allowance"
+            [(ngModel)]="formReason"
+            name="nanna-reason"
+            maxlength="200"
+            autocomplete="off"
+            required
+          >
+        </div>
+
+        <!-- Date -->
+        <div class="nm-field">
+          <label class="nm-label" for="nanna-date">Date & Time</label>
+          <input
+            id="nanna-date"
+            class="nm-input nm-input--full"
+            type="datetime-local"
+            [(ngModel)]="formDate"
+            name="nanna-date"
+          >
+        </div>
+
+        <!-- Notes (optional) -->
+        <div class="nm-field">
+          <label class="nm-label" for="nanna-notes">Notes <span class="nm-optional">(optional)</span></label>
+          <textarea
+            id="nanna-notes"
+            class="nm-input nm-input--full nm-textarea"
+            placeholder="Any additional notes…"
+            [(ngModel)]="formNotes"
+            name="nanna-notes"
+            rows="2"
+            maxlength="500"
+          ></textarea>
+        </div>
+
+        <!-- Error -->
+        @if (formError) {
+          <div class="nm-error">
+            <span class="material-symbols-outlined">error</span>
+            {{ formError }}
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="nm-actions">
+          <button type="button" class="nm-btn nm-btn--cancel" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="nm-btn nm-btn--submit" [disabled]="svc.isSaving()">
+            @if (svc.isSaving()) {
+              <span class="nm-spinner"></span>
+              Saving…
+            } @else {
+              <span class="material-symbols-outlined">{{ editingId ? 'save' : 'add' }}</span>
+              {{ editingId ? 'Save Changes' : 'Add Expense' }}
+            }
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+}

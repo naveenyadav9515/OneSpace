@@ -12,7 +12,6 @@ import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.com
 import {
   NannaExpenseService,
   NannaExpense,
-  NannaMonthGroup,
   CreateNannaExpensePayload,
 } from '@core/services/nanna-expense.service';
 
@@ -27,35 +26,27 @@ import {
 export class NannaExpensesComponent implements OnInit {
   readonly svc = inject(NannaExpenseService);
 
-  // ── Expense modal state ──
+  // ── Modal state ──
   readonly isModalOpen = signal(false);
 
-  // ── Form fields (add/edit expense popup) ──
+  // ── Form fields ──
   formAmount = '';
   formReason = '';
   formDate = this.todayIso();
   formNotes = '';
   formError = '';
 
-  // ── Editing an expense entry ──
+  // ── Edit mode ──
   editingId: string | null = null;
 
   // ── Delete confirmation ──
   readonly deletingId = signal<string | null>(null);
 
-  // ── Budget edit on card ──
-  readonly editingBudgetKey = signal<string | null>(null); // "YYYY-MM"
-  editBudgetValue = '';
-  budgetEditError = '';
-
   ngOnInit(): void {
-    this.svc.fetchAll();
+    this.svc.fetchExpenses();
   }
 
-  // ──────────────────────────────────────
-  //  EXPENSE MODAL
-  // ──────────────────────────────────────
-
+  // ── Modal helpers ──
   openAddModal(): void {
     this.editingId = null;
     this.formAmount = '';
@@ -115,10 +106,7 @@ export class NannaExpensesComponent implements OnInit {
     }
   }
 
-  // ──────────────────────────────────────
-  //  DELETE
-  // ──────────────────────────────────────
-
+  // ── Delete helpers ──
   confirmDelete(id: string): void {
     this.deletingId.set(id);
   }
@@ -132,52 +120,10 @@ export class NannaExpensesComponent implements OnInit {
     this.deletingId.set(null);
   }
 
-  // ──────────────────────────────────────
-  //  INLINE CARD BUDGET EDIT
-  // ──────────────────────────────────────
-
-  openCardBudgetEdit(group: NannaMonthGroup): void {
-    this.editingBudgetKey.set(group.key);
-    this.editBudgetValue = group.budget > 0 ? String(group.budget) : '';
-    this.budgetEditError = '';
-  }
-
-  closeCardBudgetEdit(): void {
-    this.editingBudgetKey.set(null);
-    this.budgetEditError = '';
-  }
-
-  async saveCardBudget(group: NannaMonthGroup): Promise<void> {
-    const budget = parseFloat(this.editBudgetValue);
-    if (isNaN(budget) || budget < 0) {
-      this.budgetEditError = 'Please enter a valid budget amount.';
-      return;
-    }
-    // month is 0-indexed in the group, API expects 1-indexed
-    const result = await this.svc.upsertBudget(group.year, group.month + 1, budget);
-    if (result !== null) {
-      this.closeCardBudgetEdit();
-    } else {
-      this.budgetEditError = this.svc.error() || 'Failed to save budget.';
-    }
-  }
-
-  // ──────────────────────────────────────
-  //  UTILITIES
-  // ──────────────────────────────────────
-
-  budgetUsedPct(group: NannaMonthGroup): number {
-    if (!group.budget || group.budget === 0) return 0;
-    return Math.min(Math.round((group.total / group.budget) * 100), 100);
-  }
-
-  isOverBudget(group: NannaMonthGroup): boolean {
-    return group.budget > 0 && group.total > group.budget;
-  }
-
+  // ── Date utilities ──
   private todayIso(): string {
     const now = new Date();
-    return now.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+    return now.toISOString().slice(0, 16);
   }
 
   private toInputDate(dateStr: string): string {

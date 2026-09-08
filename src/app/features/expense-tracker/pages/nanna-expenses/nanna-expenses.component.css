@@ -218,10 +218,13 @@
   border: 1px solid var(--lm-border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: 20px;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .nanna-month-card:hover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.nanna-month-card.is-over-budget {
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 /* Card header */
@@ -257,6 +260,36 @@
   padding: 2px 8px;
 }
 
+/* Card header right side */
+.nmc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nmc-edit-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--lm-color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.nmc-edit-card-btn:hover {
+  background: rgba(124, 106, 247, 0.15);
+  border-color: rgba(124, 106, 247, 0.3);
+  color: var(--lm-color-primary, #7c6af7);
+}
+.nmc-edit-card-btn .material-symbols-outlined {
+  font-size: 15px;
+}
+
 .nmc-total {
   display: flex;
   flex-direction: column;
@@ -278,6 +311,162 @@
   font-weight: 700;
   color: var(--lm-color-text-primary);
   letter-spacing: -0.02em;
+}
+.nmc-total-amount.over {
+  color: var(--lm-color-error, #ef4444);
+}
+
+/* ── Budget progress section (shown under card header when budget is set) ── */
+.nmc-budget-section {
+  padding: 10px 18px 12px;
+  border-bottom: 1px solid var(--lm-border-subtle, rgba(255, 255, 255, 0.06));
+  background: rgba(124, 106, 247, 0.03);
+}
+
+.nmc-budget-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.nmc-budget-label {
+  font-size: 12px;
+  color: var(--lm-color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nmc-budget-remaining {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lm-color-success, #10b981);
+}
+.nmc-budget-remaining.over {
+  color: var(--lm-color-error, #ef4444);
+}
+
+.nmc-budget-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nmc-budget-fill {
+  height: 100%;
+  background: var(--lm-color-primary, #7c6af7);
+  border-radius: 10px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nmc-budget-fill.over {
+  background: var(--lm-color-error, #ef4444);
+}
+
+/* ── Inline budget edit panel ── */
+.nmc-budget-edit-panel {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--lm-border-subtle, rgba(255, 255, 255, 0.07));
+  background: rgba(124, 106, 247, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nmc-budget-edit-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lm-color-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.nmc-budget-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nmc-budget-input-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.nmc-budget-input-wrap:focus-within {
+  border-color: var(--lm-color-primary, #7c6af7);
+}
+
+.nmc-budget-prefix {
+  padding: 0 10px 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lm-color-primary, #7c6af7);
+  user-select: none;
+}
+
+.nmc-budget-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 8px 12px 8px 0;
+  font-size: 14px;
+  color: var(--lm-color-text-primary);
+  font-family: var(--lm-font-body, 'Inter', sans-serif);
+  min-width: 0;
+}
+
+.nmc-budget-edit-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nmc-btn--sm {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  flex: none;
+}
+
+.nmc-btn--save {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--lm-color-primary, #7c6af7);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.nmc-btn--save:hover:not(:disabled) {
+  background: var(--lm-color-primary-hover, #6a58e5);
+}
+.nmc-btn--save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nmc-mini-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.nmc-budget-edit-error {
+  font-size: 11px;
+  color: var(--lm-color-error, #ef4444);
+  margin-top: -4px;
 }
 
 /* Expense rows */
@@ -624,6 +813,20 @@
 .nm-textarea {
   resize: none;
   line-height: 1.5;
+}
+
+.nm-optional {
+  font-weight: 400;
+  color: var(--lm-color-text-muted);
+  font-size: 11px;
+  margin-left: 2px;
+}
+
+.nm-field-hint {
+  font-size: 11px;
+  color: var(--lm-color-text-muted);
+  margin-top: -2px;
+  line-height: 1.4;
 }
 
 /* Error */

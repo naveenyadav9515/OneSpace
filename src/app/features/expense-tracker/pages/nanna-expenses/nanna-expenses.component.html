@@ -59,7 +59,7 @@
     @if (!svc.isLoading() && svc.monthlyGroups().length > 0) {
       <div class="nanna-months">
         @for (group of svc.monthlyGroups(); track group.key) {
-          <div class="nanna-month-card">
+          <div class="nanna-month-card" [class.is-over-budget]="isOverBudget(group)">
 
             <!-- Card header -->
             <div class="nmc-header">
@@ -67,11 +67,93 @@
                 <span class="nmc-month-label">{{ group.label }}</span>
                 <span class="nmc-count-badge">{{ group.count }} {{ group.count === 1 ? 'entry' : 'entries' }}</span>
               </div>
-              <div class="nmc-total">
-                <span class="nmc-total-label">Total</span>
-                <span class="nmc-total-amount">₹{{ group.total | number:'1.0-0' }}</span>
+              <div class="nmc-header-right">
+                <div class="nmc-total">
+                  <span class="nmc-total-label">Spent</span>
+                  <span class="nmc-total-amount" [class.over]="isOverBudget(group)">
+                    ₹{{ group.total | number:'1.0-0' }}
+                  </span>
+                </div>
+
+                <!-- Edit card budget button -->
+                <button class="nmc-edit-card-btn"
+                        (click)="openCardBudgetEdit(group)"
+                        title="Set budget for {{ group.label }}"
+                        aria-label="Edit budget for {{ group.label }}">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
               </div>
             </div>
+
+            <!-- Budget bar (shown only when budget is set) -->
+            @if (group.budget > 0) {
+              <div class="nmc-budget-section">
+                <div class="nmc-budget-info">
+                  <span class="nmc-budget-label">
+                    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">
+                      {{ isOverBudget(group) ? 'warning' : 'savings' }}
+                    </span>
+                    Budget: ₹{{ group.budget | number:'1.0-0' }}
+                  </span>
+                  <span class="nmc-budget-remaining" [class.over]="isOverBudget(group)">
+                    @if (isOverBudget(group)) {
+                      ₹{{ (group.total - group.budget) | number:'1.0-0' }} over
+                    } @else {
+                      ₹{{ (group.budget - group.total) | number:'1.0-0' }} left
+                    }
+                  </span>
+                </div>
+                <div class="nmc-budget-track">
+                  <div class="nmc-budget-fill"
+                       [class.over]="isOverBudget(group)"
+                       [style.width.%]="budgetUsedPct(group)">
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Inline budget edit panel (shown when editing this card) -->
+            @if (editingBudgetKey() === group.key) {
+              <div class="nmc-budget-edit-panel">
+                <span class="nmc-budget-edit-label">
+                  Set monthly budget for {{ group.label }}
+                </span>
+                <div class="nmc-budget-edit-row">
+                  <div class="nmc-budget-input-wrap">
+                    <span class="nmc-budget-prefix">₹</span>
+                    <input
+                      class="nmc-budget-input"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 5000"
+                      [(ngModel)]="editBudgetValue"
+                      name="card-budget-{{ group.key }}"
+                      autocomplete="off"
+                      (keyup.enter)="saveCardBudget(group)"
+                      (keyup.escape)="closeCardBudgetEdit()"
+                    >
+                  </div>
+                  <div class="nmc-budget-edit-actions">
+                    <button class="nmc-btn nmc-btn--cancel nmc-btn--sm" (click)="closeCardBudgetEdit()">
+                      Cancel
+                    </button>
+                    <button class="nmc-btn nmc-btn--save nmc-btn--sm" (click)="saveCardBudget(group)"
+                            [disabled]="svc.isSaving()">
+                      @if (svc.isSaving()) {
+                        <span class="nmc-mini-spinner"></span>
+                      } @else {
+                        <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+                      }
+                      Save
+                    </button>
+                  </div>
+                </div>
+                @if (budgetEditError) {
+                  <span class="nmc-budget-edit-error">{{ budgetEditError }}</span>
+                }
+              </div>
+            }
 
             <!-- Expense rows -->
             <div class="nmc-expense-list">
@@ -134,7 +216,7 @@
 
 </div>
 
-<!-- ── Add / Edit Modal ── -->
+<!-- ── Add / Edit Expense Modal ── -->
 @if (isModalOpen()) {
   <div class="nanna-modal-backdrop" (click)="closeModal()">
     <div class="nanna-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
@@ -194,7 +276,34 @@
             type="datetime-local"
             [(ngModel)]="formDate"
             name="nanna-date"
+            (ngModelChange)="onFormDateChange()"
           >
+        </div>
+
+        <!-- Monthly Budget for this month -->
+        <div class="nm-field">
+          <label class="nm-label" for="nanna-budget">
+            <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle; margin-right: 4px;">savings</span>
+            Monthly Budget for this month
+            <span class="nm-optional">(optional)</span>
+          </label>
+          <div class="nm-input-wrap">
+            <span class="nm-prefix">₹</span>
+            <input
+              id="nanna-budget"
+              class="nm-input"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="e.g. 5000"
+              [(ngModel)]="formBudget"
+              name="nanna-budget"
+              autocomplete="off"
+            >
+          </div>
+          <span class="nm-field-hint">
+            Sets the spending limit for the month of the selected date.
+          </span>
         </div>
 
         <!-- Notes (optional) -->

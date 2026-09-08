@@ -6,7 +6,7 @@ import {
   afterNextRender,
   inject,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { ApiService } from '@core/services/api.service';
 import { Feature } from '@core/models/feature.model';
@@ -241,7 +241,115 @@ export class DashboardComponent {
     return name.substring(0, 7) + '.';
   }
 
+  /* ── Interactive Category Breakdown State ── */
+
+  /** Currently hovered/focused category for two-way synchronized highlighting between ribbon & cards */
+  protected readonly activeCategory = signal<string | null>(null);
+
+  /** Whether the full category list is expanded beyond the top 3 */
+  protected readonly showAllCategories = signal<boolean>(false);
+
+  protected setActiveCategory(name: string | null): void {
+    this.activeCategory.set(name);
+  }
+
+  protected toggleActiveCategory(name: string): void {
+    this.activeCategory.update((current) => (current === name ? null : name));
+  }
+
+  /** Navigates to the transactions filter screen with this category pre-filtered */
+  protected navigateToCategoryFilter(categoryName: string): void {
+    const queryParams: Record<string, string> = {
+      category: categoryName,
+    };
+
+    if (this.isCurrentMonth()) {
+      queryParams['datePreset'] = 'this_month';
+    } else {
+      const m = this.selectedMonth();
+      const y = this.selectedYear();
+      const start = `${y}-${String(m).padStart(2, '0')}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      const end = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      queryParams['datePreset'] = 'custom';
+      queryParams['startDate'] = start;
+      queryParams['endDate'] = end;
+    }
+
+    this.router.navigate(['/expenses/filter'], { queryParams });
+  }
+
+  protected toggleShowAllCategories(): void {
+    this.showAllCategories.update((v) => !v);
+  }
+
+  /**
+   * Processed category breakdown with:
+   * 1. Collision-free color palette (ensures adjacent segments never share identical color).
+   * 2. Proportional tracking with remainder spend calculation ("Other" category).
+   * 3. Visible items sliced cleanly with expand/collapse state.
+   */
+  protected readonly breakdownData = computed(() => {
+    const summary = this.expenseService.summary();
+    if (!summary || !summary.topCategories || summary.topCategories.length === 0) {
+      return null;
+    }
+
+    const fallbackPalette = [
+      '#f43f5e', // Rose
+      '#a855f7', // Purple
+      '#06b6d4', // Cyan
+      '#ec4899', // Pink
+      '#10b981', // Emerald
+      '#f59e0b', // Amber
+      '#3b82f6', // Blue
+      '#14b8a6', // Teal
+      '#6366f1', // Indigo
+      '#eab308', // Yellow
+    ];
+
+    const sumAmt = summary.topCategories.reduce((acc, cur) => acc + cur.amount, 0);
+
+    let lastColor = '';
+    const items = summary.topCategories.map((cat, idx) => {
+      let color = this.categoryColorMap[cat.name.toLowerCase().trim()];
+      // If color missing or identical to adjacent segment, pick unique fallback
+      if (!color || color.toLowerCase() === lastColor.toLowerCase()) {
+        const nextFallback = fallbackPalette.find(
+          (c) => c.toLowerCase() !== lastColor.toLowerCase()
+        );
+        color = nextFallback ?? fallbackPalette[idx % fallbackPalette.length];
+      }
+      lastColor = color;
+
+      // Normalized width share across tracked categories to guarantee 100% full-color bar width
+      const barShare = sumAmt > 0 ? (cat.amount / sumAmt) * 100 : (100 / summary.topCategories.length);
+
+      return {
+        name: cat.name,
+        amount: cat.amount,
+        percentage: cat.percentage,
+        barShare: Math.round(barShare * 10) / 10,
+        color,
+        icon: this.getCategoryIcon(cat.name),
+        displayName: this.getCategoryDisplayName(cat.name),
+      };
+    });
+
+    const isExpanded = this.showAllCategories();
+    const visibleItems = isExpanded || items.length <= 3 ? items : items.slice(0, 3);
+
+    return {
+      items,
+      visibleItems,
+      hasMore: items.length > 3,
+      remainingCount: Math.max(0, items.length - 3),
+      totalTrackedPct: 100,
+    };
+  });
+
   /* ── Private Dependencies ── */
+  private readonly router = inject(Router);
   private readonly apiService = inject(ApiService);
   private readonly notificationService = inject(NotificationService);
   protected readonly expenseService = inject(ExpenseService);

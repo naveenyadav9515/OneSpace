@@ -143,10 +143,10 @@
                         <span class="broad-count-pill">{{ filteredCategories().length }}</span>
                         <span
                           class="broad-frequent-badge"
-                          title="Sorted by usage in the last 30 days"
+                          title="Sorted by usage in the current month"
                         >
                           <span class="material-symbols-outlined frequent-icon">trending_up</span>
-                          <span>Last 30 Days</span>
+                          <span>This Month</span>
                         </span>
                       </div>
                       <a
@@ -181,8 +181,8 @@
                     </div>
                   </div>
 
-                  <!-- Mobile-style App Launcher Grid (Icons + Names) -->
-                  <div class="category-mobile-grid">
+                  <!-- Mobile-style App Launcher Grid (Icons + Names, Strictly 3 Rows Visible) -->
+                  <div class="category-mobile-grid" style="max-height: 298px !important; overflow-y: auto !important;">
                     @if (filteredCategories().length === 0) {
                       <div class="category-grid-empty">
                         <span class="material-symbols-outlined">search_off</span>
@@ -208,12 +208,12 @@
                             <span class="material-symbols-outlined app-icon">
                               {{ cat.icon || getCategoryIcon(cat.name) }}
                             </span>
-                            @if ((cat.recentCount30d || 0) > 0) {
+                            @if ((cat.currentMonthCount ?? cat.recentCount30d ?? 0) > 0) {
                               <div
                                 class="app-count-badge"
-                                [title]="cat.recentCount30d + ' in last 30 days'"
+                                [title]="(cat.currentMonthCount ?? cat.recentCount30d) + ' in this month'"
                               >
-                                {{ cat.recentCount30d }}
+                                {{ cat.currentMonthCount ?? cat.recentCount30d }}
                               </div>
                             }
                             @if (expenseForm.get('category')?.value === cat.name) {

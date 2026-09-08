@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, O
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.component';
 import {
   Expense,
@@ -40,6 +41,7 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly stateService = inject(ExpenseFilterStateService);
+  private queryParamsSub?: Subscription;
 
   // ── Raw Data Signals ──
   protected readonly expenses = signal<Expense[]>([]);
@@ -165,7 +167,56 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.fetchData();
 
-    this.route.queryParamMap.subscribe((params) => {
+    this.queryParamsSub = this.route.queryParamMap.subscribe((params) => {
+      const cat = params.get('category');
+      if (cat) {
+        const decodedCat = decodeURIComponent(cat).trim();
+        if (decodedCat) {
+          this.selectedCategories.set([decodedCat]);
+          this.searchControl.setValue('', { emitEvent: false });
+          this.searchQuery.set('');
+          this.selectedTags.set([]);
+          this.includeUntagged.set(false);
+          this.amountPreset.set('all');
+          this.amountMin.set(null);
+          this.amountMax.set(null);
+          this.presentFields.set([]);
+          this.cleanupFields.set([]);
+          this.selectedPaymentMethods.set([]);
+          this.sourceFilter.set('all');
+          this.timeOfDayFilter.set('all');
+          this.currentPage.set(1);
+
+          const dp = (params.get('datePreset') || params.get('date')) as DatePreset | null;
+          if (dp) {
+            this.datePreset.set(dp);
+          }
+          const start = params.get('startDate');
+          const end = params.get('endDate');
+          if (start) this.customStartDate.set(start);
+          if (end) this.customEndDate.set(end);
+
+          this.stateService.saveState({
+            selectedCategories: [decodedCat],
+            datePreset: dp || this.datePreset(),
+            customStartDate: start || (dp === 'custom' ? this.customStartDate() : ''),
+            customEndDate: end || (dp === 'custom' ? this.customEndDate() : ''),
+            searchQuery: '',
+            selectedTags: [],
+            includeUntagged: false,
+            amountPreset: 'all',
+            amountMin: null,
+            amountMax: null,
+            presentFields: [],
+            cleanupFields: [],
+            selectedPaymentMethods: [],
+            sourceFilter: 'all',
+            timeOfDayFilter: 'all',
+            currentPage: 1,
+          });
+        }
+      }
+
       if (params.get('open') === '1' || params.get('filter') === '1') {
         this.openSidebar();
       }
@@ -173,6 +224,7 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.queryParamsSub?.unsubscribe();
     if (typeof window !== 'undefined') {
       this.stateService.saveState({ scrollPositionY: window.scrollY });
     }
@@ -812,6 +864,14 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
     this.selectedCategories.set([]);
     this.currentPage.set(1);
     this.stateService.saveState({ selectedCategories: [], currentPage: 1 });
+    if (this.route.snapshot.queryParamMap.has('category')) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { category: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
   }
 
   protected selectAllCategories(): void {
@@ -1012,6 +1072,14 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
           const updated = this.selectedCategories().filter((c) => c !== chip.value);
           this.selectedCategories.set(updated);
           this.stateService.saveState({ selectedCategories: updated });
+          if (this.route.snapshot.queryParamMap.get('category') === chip.value) {
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { category: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true,
+            });
+          }
         }
         break;
       case 'tag':
@@ -1068,7 +1136,7 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
 
   protected resetAllFilters(): void {
     this.searchControl.setValue('');
-    this.datePreset.set('all');
+    this.datePreset.set('this_month');
     this.customStartDate.set('');
     this.customEndDate.set('');
     this.selectedCategories.set([]);
@@ -1087,6 +1155,14 @@ export class ExpenseFilterComponent implements OnInit, OnDestroy {
     this.cleanupMatch.set('any');
     this.currentPage.set(1);
     this.stateService.resetState();
+    if (this.route.snapshot.queryParamMap.keys.length > 0) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { category: null, datePreset: null, startDate: null, endDate: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
     this.notificationService.info('All filters have been reset', 'Filters Reset');
   }
 

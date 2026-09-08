@@ -305,8 +305,9 @@ export class ExpenseFormComponent implements OnInit {
   }
 
   protected getCategoryTooltip(cat: CustomCategory): string {
-    if (cat.recentCount30d && cat.recentCount30d > 0) {
-      return `${cat.name} • Used ${cat.recentCount30d} time${cat.recentCount30d > 1 ? 's' : ''} in last 30 days`;
+    const count = cat.currentMonthCount ?? cat.recentCount30d;
+    if (count && count > 0) {
+      return `${cat.name} • Used ${count} time${count > 1 ? 's' : ''} this month`;
     }
     if (cat.totalUsageCount && cat.totalUsageCount > 0) {
       return `${cat.name} • Used ${cat.totalUsageCount} time${cat.totalUsageCount > 1 ? 's' : ''} overall`;

@@ -266,6 +266,61 @@
   border-radius: 999px;
 }
 
+/* ── Quick Timeframe Strip ── */
+.quick-timeframe-strip {
+  padding: 8px 16px 2px 16px;
+}
+
+.quick-timeframe-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.quick-timeframe-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-tf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lm-color-text-secondary, #94a3b8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.quick-tf-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.quick-tf-pill.is-active {
+  background: color-mix(in srgb, #06B6D4 18%, transparent);
+  color: #22D3EE;
+  border-color: #06B6D4;
+  box-shadow: 0 0 12px -2px rgba(6, 182, 212, 0.35);
+  font-weight: 600;
+}
+
+.quick-tf-icon {
+  font-size: 14px;
+}
+
 /* ── Active Filter Badges Bar ── */
 .active-chips-section {
   padding: 10px 16px;

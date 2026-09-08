@@ -63,7 +63,7 @@ export interface ExpenseFilterPersistedState {
 
 const DEFAULT_FILTER_STATE: ExpenseFilterPersistedState = {
   searchQuery: '',
-  datePreset: 'all',
+  datePreset: 'this_month',
   customStartDate: '',
   customEndDate: '',
   selectedCategories: [],
@@ -91,7 +91,7 @@ const DEFAULT_FILTER_STATE: ExpenseFilterPersistedState = {
   providedIn: 'root',
 })
 export class ExpenseFilterStateService {
-  private readonly STORAGE_KEY = 'onespace_expense_filter_state';
+  private readonly STORAGE_KEY = 'onespace_expense_filter_state_v3';
 
   public state: ExpenseFilterPersistedState;
 
@@ -105,7 +105,11 @@ export class ExpenseFilterStateService {
         const raw = window.sessionStorage.getItem(this.STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          return { ...DEFAULT_FILTER_STATE, ...parsed };
+          return {
+            ...DEFAULT_FILTER_STATE,
+            ...parsed,
+            datePreset: parsed.datePreset || 'this_month',
+          };
         }
       }
     } catch (e) {

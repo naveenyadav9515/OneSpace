@@ -7,6 +7,7 @@ export interface CustomCategory {
   name: string;
   shortName?: string;
   icon?: string;
+  currentMonthCount?: number;
   recentCount30d?: number;
   totalUsageCount?: number;
   lastUsed?: string | null;

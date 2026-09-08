@@ -131,17 +131,55 @@
                 </div>
               </div>
 
-              <!-- Category Breakdown (Proportion Bar + Micro-Rows) -->
-              @if (summary.topCategories.length) {
+              <!-- Category Breakdown (Executive Glass Capsule Ribbon + Synchronized Cards) -->
+              @if (breakdownData(); as data) {
                 <div class="snapshot-breakdown-wrap">
-                  <!-- Segmented Proportion Bar -->
-                  <div class="breakdown-bar-container" title="Spending distribution by category">
-                    <div class="breakdown-bar">
-                      @for (cat of summary.topCategories; track cat.name) {
-                        <div class="breakdown-segment"
-                             [style.width.%]="cat.percentage"
-                             [style.background-color]="getCategoryColor(cat.name)"
-                             [title]="cat.name + ': ' + (cat.percentage | number:'1.0-0') + '% (₹' + (cat.amount | number:'1.0-0') + ')'">
+                  
+                  <!-- Section Header -->
+                  <div class="snapshot-breakdown-header">
+                    <div class="breakdown-header-left">
+                      <span class="breakdown-header-title">Spending by Category</span>
+                      <span class="breakdown-header-badge">{{ data.items.length }} Categories</span>
+                    </div>
+                    <a routerLink="/expenses/categories" class="breakdown-header-link" title="Explore all categories">
+                      <span>Explore</span>
+                      <span class="material-symbols-outlined header-link-arrow">chevron_right</span>
+                    </a>
+                  </div>
+
+                  <!-- Segmented Progress Bar (16px Height, 100% Full-Color Fill) -->
+                  <div class="category-progress-container">
+                    <div class="category-progress-track" role="progressbar" [attr.aria-valuenow]="data.totalTrackedPct" aria-valuemin="0" aria-valuemax="100">
+                      @for (cat of data.items; track cat.name) {
+                        <div class="progress-segment"
+                             [style.flex]="(cat.barShare || 1) + ' 1 0px'"
+                             [style.background-color]="cat.color"
+                             [style.--cat-color]="cat.color"
+                             [class.is-active]="activeCategory() === cat.name"
+                             [class.is-dimmed]="activeCategory() !== null && activeCategory() !== cat.name"
+                             (mouseenter)="setActiveCategory(cat.name)"
+                             (mouseleave)="setActiveCategory(null)"
+                             (click)="navigateToCategoryFilter(cat.name)"
+                             (keydown.enter)="navigateToCategoryFilter(cat.name)"
+                             tabindex="0"
+                             role="button"
+                             [attr.aria-label]="'Filter by ' + cat.name + ', ' + (cat.percentage | number:'1.0-0') + '%'">
+                          
+                          <!-- Interactive Floating Tooltip -->
+                          <div class="progress-segment-tooltip">
+                            <div class="tooltip-header">
+                              <span class="material-symbols-outlined tooltip-icon">{{ cat.icon }}</span>
+                              <span class="tooltip-cat-name">{{ cat.name }}</span>
+                            </div>
+                            <div class="tooltip-stats">
+                              <span class="tooltip-cat-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
+                              <span class="tooltip-cat-amt">₹{{ cat.amount | number:'1.0-0' }}</span>
+                            </div>
+                            <div class="tooltip-hint">
+                              <span>Click to view transactions</span>
+                              <span class="material-symbols-outlined tooltip-arrow">arrow_forward</span>
+                            </div>
+                          </div>
                         </div>
                       }
                     </div>
@@ -149,21 +187,49 @@
 
                   <!-- Category List Rows -->
                   <div class="breakdown-list">
-                    @for (cat of summary.topCategories.slice(0, 3); track cat.name) {
-                      <div class="breakdown-row">
+                    @for (cat of data.visibleItems; track cat.name) {
+                      <div class="breakdown-row"
+                           [style.--cat-color]="cat.color"
+                           [class.is-highlighted]="activeCategory() === cat.name"
+                           (mouseenter)="setActiveCategory(cat.name)"
+                           (mouseleave)="setActiveCategory(null)"
+                           (click)="navigateToCategoryFilter(cat.name)"
+                           (keydown.enter)="navigateToCategoryFilter(cat.name)"
+                           tabindex="0"
+                           role="button"
+                           [title]="'Filter by ' + cat.name">
+                        
                         <div class="breakdown-row-left">
-                          <div class="breakdown-cat-icon" [style.color]="getCategoryColor(cat.name)" [style.background]="getCategoryColor(cat.name) + '20'">
-                            <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
+                          <div class="breakdown-cat-icon">
+                            <span class="material-symbols-outlined">{{ cat.icon }}</span>
                           </div>
-                          <span class="breakdown-cat-name">{{ cat.name }}</span>
+                          <div class="breakdown-cat-info">
+                            <span class="breakdown-cat-name" [title]="cat.name">{{ cat.name }}</span>
+                          </div>
                           <span class="breakdown-cat-pct">{{ cat.percentage | number:'1.0-0' }}%</span>
                         </div>
+
                         <div class="breakdown-row-right">
                           <span class="breakdown-cat-amount">₹{{ cat.amount | number:'1.0-0' }}</span>
+                          <span class="material-symbols-outlined row-arrow">chevron_right</span>
                         </div>
                       </div>
                     }
+
+                    <!-- Show More / Show Less Toggle Button -->
+                    @if (data.hasMore) {
+                      <button type="button"
+                              class="breakdown-toggle-btn"
+                              (click)="toggleShowAllCategories()"
+                              [attr.aria-expanded]="showAllCategories()">
+                        <span>{{ showAllCategories() ? 'Show less' : 'Show ' + data.remainingCount + ' more' }}</span>
+                        <span class="material-symbols-outlined toggle-chevron" [class.is-flipped]="showAllCategories()">
+                          expand_more
+                        </span>
+                      </button>
+                    }
                   </div>
+
                 </div>
               }
 

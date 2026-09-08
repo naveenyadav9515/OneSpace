@@ -93,6 +93,66 @@
     </button>
   </section>
 
+  <!-- ── Quick Timeframe Selector Strip (Default: This Month) ── -->
+  <section class="quick-timeframe-strip" aria-label="Quick timeframe filter">
+    <div class="quick-timeframe-scroll">
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'this_month'"
+        (click)="setDatePreset('this_month')"
+      >
+        <span class="material-symbols-outlined quick-tf-icon">calendar_month</span>
+        <span>This Month</span>
+      </button>
+
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'today'"
+        (click)="setDatePreset('today')"
+      >
+        <span>Today</span>
+      </button>
+
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'this_week'"
+        (click)="setDatePreset('this_week')"
+      >
+        <span>This Week</span>
+      </button>
+
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'last_month'"
+        (click)="setDatePreset('last_month')"
+      >
+        <span>Last Month</span>
+      </button>
+
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'last_30_days'"
+        (click)="setDatePreset('last_30_days')"
+      >
+        <span>Last 30 Days</span>
+      </button>
+
+      <button
+        type="button"
+        class="quick-tf-pill"
+        [class.is-active]="datePreset() === 'all'"
+        (click)="setDatePreset('all')"
+      >
+        <span>All Time</span>
+      </button>
+    </div>
+  </section>
+
   <!-- ── Active Filter Badges Bar ── -->
   @if (hasActiveFilters()) {
     <section class="active-chips-section">

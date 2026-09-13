@@ -6,6 +6,12 @@ import { ApiService } from './api.service';
 export const DEFAULT_RENTAL_TENANTS = ['Mahesh', 'Sai', 'Geetha', 'Prasad', 'Rekha'] as const;
 export type RentalTenant = string;
 
+export interface TenantInfo {
+  name: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
 export interface RentalCollection {
   _id: string;
   tenant: RentalTenant;
@@ -43,7 +49,18 @@ export class RentalCollectionService {
   private readonly api = inject(ApiService);
 
   readonly collections = signal<RentalCollection[]>([]);
-  readonly tenants = signal<string[]>([...DEFAULT_RENTAL_TENANTS]);
+  readonly tenants = signal<TenantInfo[]>(
+    DEFAULT_RENTAL_TENANTS.map(name => ({ name, isActive: true }))
+  );
+  readonly activeTenants = computed<string[]>(() =>
+    this.tenants().filter(t => t.isActive).map(t => t.name)
+  );
+  readonly activeTenantList = computed<TenantInfo[]>(() =>
+    this.tenants().filter(t => t.isActive)
+  );
+  readonly disabledTenantList = computed<TenantInfo[]>(() =>
+    this.tenants().filter(t => !t.isActive)
+  );
   readonly isLoadingTenants = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -86,8 +103,8 @@ export class RentalCollectionService {
       const tenantGroups: RentalTenantGroup[] = [];
 
       // Order tenants based on backend list, including any existing in user's records
-      const orderedTenants = Array.from(new Set([...this.tenants(), ...tenantMap.keys()]));
-      for (const tenant of orderedTenants) {
+      const allTenantNames = Array.from(new Set([...this.tenants().map(t => t.name), ...tenantMap.keys()]));
+      for (const tenant of allTenantNames) {
         const payments = tenantMap.get(tenant) ?? [];
         if (payments.length === 0) continue;
         // Sort newest first
@@ -114,15 +131,20 @@ export class RentalCollectionService {
     return `${this.api.apiUrl}/rental-collections`;
   }
 
-  async fetchTenants(): Promise<string[]> {
+  async fetchTenants(): Promise<TenantInfo[]> {
     this.isLoadingTenants.set(true);
     try {
       const res = await firstValueFrom(
-        this.http.get<{ status: string; data: { tenants: string[] } }>(`${this.apiUrl}/tenants`)
+        this.http.get<{ status: string; data: { tenants: (TenantInfo | string)[]; activeTenants?: string[] } }>(
+          `${this.apiUrl}/tenants`
+        )
       );
       if (res.data?.tenants?.length) {
-        this.tenants.set(res.data.tenants);
-        return res.data.tenants;
+        const normalized: TenantInfo[] = res.data.tenants.map(t =>
+          typeof t === 'string' ? { name: t, isActive: true } : t
+        );
+        this.tenants.set(normalized);
+        return normalized;
       }
       return this.tenants();
     } catch (err: any) {
@@ -130,6 +152,70 @@ export class RentalCollectionService {
       return this.tenants();
     } finally {
       this.isLoadingTenants.set(false);
+    }
+  }
+
+  async addTenant(name: string): Promise<TenantInfo | null> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ status: string; data: { tenant: TenantInfo; tenants?: TenantInfo[] } }>(
+          `${this.apiUrl}/tenants`,
+          { name }
+        )
+      );
+      if (res.data?.tenants) {
+        this.tenants.set(res.data.tenants);
+      } else if (res.data?.tenant) {
+        this.tenants.update(list => [
+          ...list.filter(t => t.name.toLowerCase() !== name.toLowerCase()),
+          res.data.tenant,
+        ]);
+      }
+      return res.data.tenant;
+    } catch (err: any) {
+      this.error.set(err?.error?.message || 'Failed to add tenant.');
+      throw err;
+    }
+  }
+
+  async toggleTenant(name: string): Promise<TenantInfo | null> {
+    try {
+      const res = await firstValueFrom(
+        this.http.patch<{ status: string; data: { tenant: TenantInfo; tenants?: TenantInfo[] } }>(
+          `${this.apiUrl}/tenants/${encodeURIComponent(name)}/toggle`,
+          {}
+        )
+      );
+      if (res.data?.tenants) {
+        this.tenants.set(res.data.tenants);
+      } else if (res.data?.tenant) {
+        this.tenants.update(list =>
+          list.map(t => (t.name.toLowerCase() === name.toLowerCase() ? res.data.tenant : t))
+        );
+      }
+      return res.data.tenant;
+    } catch (err: any) {
+      this.error.set(err?.error?.message || 'Failed to update tenant status.');
+      throw err;
+    }
+  }
+
+  async deleteTenant(name: string): Promise<boolean> {
+    try {
+      const res = await firstValueFrom(
+        this.http.delete<{ status: string; data: { tenants?: TenantInfo[]; tenant?: TenantInfo } }>(
+          `${this.apiUrl}/tenants/${encodeURIComponent(name)}`
+        )
+      );
+      if (res.data?.tenants) {
+        this.tenants.set(res.data.tenants);
+      } else {
+        this.tenants.update(list => list.filter(t => t.name.toLowerCase() !== name.toLowerCase()));
+      }
+      return true;
+    } catch (err: any) {
+      this.error.set(err?.error?.message || 'Failed to delete tenant.');
+      throw err;
     }
   }
 

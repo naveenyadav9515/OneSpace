@@ -36,6 +36,16 @@ export class RentalCollectionComponent implements OnInit {
   readonly isPanelOpen = signal(false);
   readonly isSubmitting = signal(false);
 
+  // ── Manage Tenants Modal state ──
+  readonly isTenantModalOpen = signal(false);
+  readonly activeTenantTab = signal<'active' | 'disabled'>('active');
+  newTenantName = '';
+  readonly tenantFormError = signal('');
+  readonly isSavingTenant = signal(false);
+  readonly togglingTenantName = signal<string | null>(null);
+  readonly deletingTenantName = signal<string | null>(null);
+  readonly deletingTenantConfirm = signal<string | null>(null);
+
   // ── Custom dropdown state ──
   readonly isDropdownOpen = signal(false);
 
@@ -55,6 +65,121 @@ export class RentalCollectionComponent implements OnInit {
   ngOnInit(): void {
     this.svc.fetchCollections();
     this.svc.fetchTenants();
+  }
+
+  // ──────────────────────────────────────
+  //  TENANT MANAGEMENT MODAL
+  // ──────────────────────────────────────
+
+  setTenantTab(tab: 'active' | 'disabled'): void {
+    this.activeTenantTab.set(tab);
+    this.deletingTenantConfirm.set(null);
+  }
+
+  promptDeleteTenant(name: string): void {
+    this.deletingTenantConfirm.set(name);
+  }
+
+  cancelDeleteTenant(): void {
+    this.deletingTenantConfirm.set(null);
+  }
+
+  openTenantModal(): void {
+    this.newTenantName = '';
+    this.tenantFormError.set('');
+    this.activeTenantTab.set('active');
+    this.deletingTenantConfirm.set(null);
+    this.isTenantModalOpen.set(true);
+    this.svc.fetchTenants();
+  }
+
+  closeTenantModal(): void {
+    this.isTenantModalOpen.set(false);
+    this.newTenantName = '';
+    this.tenantFormError.set('');
+    this.deletingTenantConfirm.set(null);
+  }
+
+  async addNewTenant(): Promise<void> {
+    const raw = this.newTenantName.trim();
+    if (!raw) {
+      this.tenantFormError.set('Please enter a tenant name.');
+      return;
+    }
+    if (raw.length > 50) {
+      this.tenantFormError.set('Name cannot exceed 50 characters.');
+      return;
+    }
+
+    this.tenantFormError.set('');
+    this.isSavingTenant.set(true);
+    this.cdr.markForCheck();
+
+    try {
+      const result = await this.svc.addTenant(raw);
+      this.zone.run(() => {
+        this.newTenantName = '';
+        this.isSavingTenant.set(false);
+        this.activeTenantTab.set('active');
+        this.notificationService.success(`Tenant "${result?.name || raw}" added.`, 'Success');
+        this.cdr.markForCheck();
+      });
+    } catch (err: any) {
+      this.zone.run(() => {
+        this.tenantFormError.set(err?.error?.message || err?.message || 'Failed to add tenant.');
+        this.isSavingTenant.set(false);
+        this.cdr.markForCheck();
+      });
+    }
+  }
+
+  async toggleTenantStatus(name: string): Promise<void> {
+    this.togglingTenantName.set(name);
+    this.cdr.markForCheck();
+
+    try {
+      const updated = await this.svc.toggleTenant(name);
+      this.zone.run(() => {
+        this.togglingTenantName.set(null);
+        const status = updated?.isActive ? 'enabled' : 'disabled';
+        this.notificationService.info(`Tenant "${name}" ${status}.`, 'Tenant Updated');
+        if (!updated?.isActive && this.selectedTenant === name) {
+          this.selectedTenant = null;
+        }
+        this.cdr.markForCheck();
+      });
+    } catch (err: any) {
+      this.zone.run(() => {
+        this.togglingTenantName.set(null);
+        this.notificationService.error(err?.error?.message || 'Failed to update tenant status.', 'Error');
+        this.cdr.markForCheck();
+      });
+    }
+  }
+
+  async deleteTenant(name: string): Promise<void> {
+    this.deletingTenantName.set(name);
+    this.cdr.markForCheck();
+
+    try {
+      await this.svc.deleteTenant(name);
+      this.zone.run(() => {
+        this.deletingTenantName.set(null);
+        this.deletingTenantConfirm.set(null);
+        this.notificationService.success(`Tenant "${name}" deleted.`, 'Removed');
+        if (this.selectedTenant === name) {
+          this.selectedTenant = null;
+        }
+        this.cdr.markForCheck();
+      });
+    } catch (err: any) {
+      this.zone.run(() => {
+        this.deletingTenantName.set(null);
+        this.deletingTenantConfirm.set(null);
+        this.notificationService.error(err?.error?.message || 'Failed to delete tenant.', 'Error');
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   // ──────────────────────────────────────
@@ -244,6 +369,12 @@ export class RentalCollectionComponent implements OnInit {
       Prasad: '#10b981',
       Rekha:  '#ec4899',
     };
-    return colors[name] ?? '#7c6af7';
+    if (colors[name]) return colors[name];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const palette = ['#7c6af7', '#06b6d4', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#3b82f6'];
+    return palette[Math.abs(hash) % palette.length];
   }
 }

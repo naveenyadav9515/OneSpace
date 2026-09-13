@@ -20,9 +20,14 @@
       </p>
     </div>
 
-    <button class="rc-add-btn" (click)="openPanel()" title="Log rent collection" aria-label="Log rent collection">
-      <span class="material-symbols-outlined">add</span>
-    </button>
+    <div class="rc-header-actions">
+      <button class="rc-manage-btn" (click)="openTenantModal()" title="Manage tenants" aria-label="Manage tenants">
+        <span class="material-symbols-outlined">group</span>
+      </button>
+      <button class="rc-add-btn" (click)="openPanel()" title="Log rent collection" aria-label="Log rent collection">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
   </header>
 
   <!-- ── Content ── -->
@@ -170,10 +175,16 @@
 
         <!-- ── Tenant Dropdown ── -->
         <div class="rc-form-field">
-          <label class="rc-form-label">
-            <span class="material-symbols-outlined">person</span>
-            Tenant
-          </label>
+          <div class="rc-label-row">
+            <label class="rc-form-label">
+              <span class="material-symbols-outlined">person</span>
+              Tenant
+            </label>
+            <button class="rc-manage-link" type="button" (click)="closePanel(); openTenantModal()">
+              <span class="material-symbols-outlined">tune</span>
+              Manage
+            </button>
+          </div>
 
           <div class="rc-dropdown-wrap" (click)="$event.stopPropagation()">
             <!-- Trigger -->
@@ -210,7 +221,15 @@
                     <span>Loading tenants…</span>
                   </div>
                 }
-                @for (tenant of svc.tenants(); track tenant) {
+                @if (!svc.isLoadingTenants() && svc.activeTenants().length === 0) {
+                  <div class="rc-dropdown-empty">
+                    <span>No active tenants found.</span>
+                    <button class="rc-dropdown-add-link" (click)="closePanel(); openTenantModal()" type="button">
+                      Manage / Add Tenants
+                    </button>
+                  </div>
+                }
+                @for (tenant of svc.activeTenants(); track tenant) {
                   <button class="rc-dropdown-option"
                           [class.is-active]="selectedTenant === tenant"
                           (click)="selectTenant(tenant, $event)"
@@ -301,3 +320,243 @@
     </div>
   </div>
 }
+
+<!-- ══════════════════════════════════════
+     MANAGE TENANTS MODAL
+     ══════════════════════════════════════ -->
+@if (isTenantModalOpen()) {
+  <div class="rc-modal-backdrop" (click)="!isSavingTenant() && closeTenantModal()">
+    <div class="rc-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Manage Tenants">
+
+      <!-- Modal Header -->
+      <div class="rc-modal-header">
+        <div class="rc-modal-title-group">
+          <span class="material-symbols-outlined rc-modal-icon">group</span>
+          <div>
+            <h2 class="rc-modal-title">Manage Tenants</h2>
+            <p class="rc-modal-subtitle">Add new tenants or enable/disable existing ones</p>
+          </div>
+        </div>
+        <button class="rc-modal-close" (click)="closeTenantModal()" aria-label="Close" [disabled]="isSavingTenant()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="rc-modal-body">
+
+        <!-- Add Tenant Box -->
+        <div class="rc-add-tenant-box">
+          <label class="rc-form-label" for="rc-new-tenant-name">
+            <span class="material-symbols-outlined">person_add</span>
+            Add New Tenant
+          </label>
+          <div class="rc-add-tenant-input-row">
+            <input id="rc-new-tenant-name"
+                   class="rc-tenant-input"
+                   type="text"
+                   placeholder="Enter tenant name (e.g. Ramesh)"
+                   [(ngModel)]="newTenantName"
+                   name="rc-new-tenant-name"
+                   maxlength="50"
+                   autocomplete="off"
+                   (keyup.enter)="addNewTenant()"
+                   [disabled]="isSavingTenant()">
+            <button class="rc-add-tenant-submit"
+                    (click)="addNewTenant()"
+                    [disabled]="isSavingTenant() || !newTenantName.trim()"
+                    type="button">
+              @if (isSavingTenant()) {
+                <span class="rc-mini-spinner"></span>
+              } @else {
+                <span class="material-symbols-outlined">add</span>
+                Add
+              }
+            </button>
+          </div>
+
+          @if (tenantFormError()) {
+            <div class="rc-form-error rc-tenant-error">
+              <span class="material-symbols-outlined">error</span>
+              {{ tenantFormError() }}
+            </div>
+          }
+        </div>
+
+        <!-- ── Tenant Tabs: Active Tenants & Disabled ── -->
+        <div class="rc-tenant-tabs" role="tablist" aria-label="Tenant Status Tabs">
+          <button type="button"
+                  role="tab"
+                  class="rc-tenant-tab"
+                  [class.is-active]="activeTenantTab() === 'active'"
+                  [attr.aria-selected]="activeTenantTab() === 'active'"
+                  (click)="setTenantTab('active')">
+            <span class="material-symbols-outlined">person</span>
+            <span>Active Tenants</span>
+            <span class="rc-tab-count">{{ svc.activeTenantList().length }}</span>
+          </button>
+          <button type="button"
+                  role="tab"
+                  class="rc-tenant-tab"
+                  [class.is-active]="activeTenantTab() === 'disabled'"
+                  [attr.aria-selected]="activeTenantTab() === 'disabled'"
+                  (click)="setTenantTab('disabled')">
+            <span class="material-symbols-outlined">person_off</span>
+            <span>Disabled</span>
+            <span class="rc-tab-count" [class.rc-tab-count--has-items]="svc.disabledTenantList().length > 0">
+              {{ svc.disabledTenantList().length }}
+            </span>
+          </button>
+        </div>
+
+        <!-- ── TAB 1: ACTIVE TENANTS ── -->
+        @if (activeTenantTab() === 'active') {
+          <div class="rc-tenant-manage-list">
+            @if (svc.isLoadingTenants()) {
+              <div class="rc-loading-small">
+                <div class="rc-mini-spinner"></div>
+                <span>Updating tenants…</span>
+              </div>
+            }
+
+            @if (!svc.isLoadingTenants() && svc.activeTenantList().length === 0) {
+              <div class="rc-tab-empty">
+                <span class="material-symbols-outlined">group_off</span>
+                <p class="rc-tab-empty-title">No active tenants</p>
+                <p class="rc-tab-empty-sub">Add a new tenant above or enable one from the Disabled tab.</p>
+              </div>
+            }
+
+            @for (tenant of svc.activeTenantList(); track tenant.name) {
+              <div class="rc-manage-item">
+                <div class="rc-manage-left">
+                  <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(tenant.name)">
+                    {{ tenantInitial(tenant.name) }}
+                  </div>
+                  <div class="rc-manage-info">
+                    <span class="rc-manage-name">{{ tenant.name }}</span>
+                    <div class="rc-manage-badge-wrap">
+                      <span class="rc-status-pill rc-status-pill--active">Active</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rc-manage-actions">
+                  <!-- Disable Button -->
+                  <button class="rc-status-btn rc-status-btn--disable"
+                          (click)="toggleTenantStatus(tenant.name)"
+                          [disabled]="togglingTenantName() === tenant.name"
+                          type="button"
+                          title="Disable tenant">
+                    @if (togglingTenantName() === tenant.name) {
+                      <span class="rc-mini-spinner"></span>
+                    } @else {
+                      <span class="material-symbols-outlined">block</span>
+                      <span>Disable</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── TAB 2: DISABLED TENANTS ── -->
+        @if (activeTenantTab() === 'disabled') {
+          <div class="rc-tenant-manage-list">
+            @if (svc.isLoadingTenants()) {
+              <div class="rc-loading-small">
+                <div class="rc-mini-spinner"></div>
+                <span>Updating tenants…</span>
+              </div>
+            }
+
+            @if (!svc.isLoadingTenants() && svc.disabledTenantList().length === 0) {
+              <div class="rc-tab-empty">
+                <span class="material-symbols-outlined">check_circle</span>
+                <p class="rc-tab-empty-title">No disabled tenants</p>
+                <p class="rc-tab-empty-sub">All tenants are currently active. Disabled tenants will appear here with an option to re-enable or delete.</p>
+              </div>
+            }
+
+            @for (tenant of svc.disabledTenantList(); track tenant.name) {
+              <div class="rc-manage-item rc-manage-item--disabled">
+                @if (deletingTenantConfirm() === tenant.name) {
+                  <div class="rc-tenant-delete-confirm">
+                    <span class="rc-delete-confirm-text">Delete {{ tenant.name }}?</span>
+                    <div class="rc-delete-confirm-btns">
+                      <button class="rc-confirm-btn rc-confirm-btn--cancel"
+                              (click)="cancelDeleteTenant()"
+                              [disabled]="deletingTenantName() === tenant.name"
+                              type="button">Cancel</button>
+                      <button class="rc-confirm-btn rc-confirm-btn--danger"
+                              (click)="deleteTenant(tenant.name)"
+                              [disabled]="deletingTenantName() === tenant.name"
+                              type="button">
+                        @if (deletingTenantName() === tenant.name) {
+                          <span class="rc-mini-spinner rc-mini-spinner--sm"></span>
+                        } @else {
+                          Delete
+                        }
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="rc-manage-left">
+                    <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(tenant.name)">
+                      {{ tenantInitial(tenant.name) }}
+                    </div>
+                    <div class="rc-manage-info">
+                      <span class="rc-manage-name">{{ tenant.name }}</span>
+                      <div class="rc-manage-badge-wrap">
+                        <span class="rc-status-pill rc-status-pill--disabled">Disabled</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rc-manage-actions">
+                    <!-- Enable Button -->
+                    <button class="rc-status-btn rc-status-btn--enable"
+                            (click)="toggleTenantStatus(tenant.name)"
+                            [disabled]="togglingTenantName() === tenant.name || deletingTenantName() === tenant.name"
+                            type="button"
+                            title="Enable tenant">
+                      @if (togglingTenantName() === tenant.name) {
+                        <span class="rc-mini-spinner"></span>
+                      } @else {
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>Enable</span>
+                      }
+                    </button>
+
+                    <!-- Delete Button -->
+                    <button class="rc-icon-btn rc-icon-btn--danger"
+                            (click)="promptDeleteTenant(tenant.name)"
+                            [disabled]="togglingTenantName() === tenant.name || deletingTenantName() === tenant.name"
+                            title="Delete tenant"
+                            aria-label="Delete tenant"
+                            type="button">
+                      @if (deletingTenantName() === tenant.name) {
+                        <span class="rc-mini-spinner"></span>
+                      } @else {
+                        <span class="material-symbols-outlined">delete</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="rc-modal-footer">
+        <button class="rc-done-btn" (click)="closeTenantModal()" type="button">Done</button>
+      </div>
+
+    </div>
+  </div>
+}
+

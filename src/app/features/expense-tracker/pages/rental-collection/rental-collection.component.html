@@ -156,7 +156,7 @@
         </button>
       </div>
 
-      <div class="rc-panel-body" (click)="isDropdownOpen.set(false)">
+      <div class="rc-panel-body" (click)="closeDropdown()">
 
         <!-- Date & Time -->
         <div class="rc-form-field">
@@ -178,7 +178,7 @@
           <div class="rc-dropdown-wrap" (click)="$event.stopPropagation()">
             <!-- Trigger -->
             <button class="rc-dropdown-trigger"
-                    (click)="toggleDropdown()"
+                    (click)="toggleDropdown($event)"
                     [class.is-open]="isDropdownOpen()"
                     [class.has-value]="!!selectedTenant"
                     type="button"
@@ -204,10 +204,16 @@
             <!-- Options list -->
             @if (isDropdownOpen()) {
               <div class="rc-dropdown-list" role="listbox">
-                @for (tenant of tenants; track tenant) {
+                @if (svc.isLoadingTenants()) {
+                  <div class="rc-dropdown-loading">
+                    <span class="rc-mini-spinner"></span>
+                    <span>Loading tenants…</span>
+                  </div>
+                }
+                @for (tenant of svc.tenants(); track tenant) {
                   <button class="rc-dropdown-option"
                           [class.is-active]="selectedTenant === tenant"
-                          (click)="selectTenant(tenant)"
+                          (click)="selectTenant(tenant, $event)"
                           role="option"
                           [attr.aria-selected]="selectedTenant === tenant"
                           type="button">

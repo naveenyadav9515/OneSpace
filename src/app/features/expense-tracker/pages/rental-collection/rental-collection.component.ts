@@ -14,7 +14,6 @@ import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.com
 import {
   RentalCollectionService,
   RentalCollection,
-  RENTAL_TENANTS,
   RentalTenant,
 } from '@core/services/rental-collection.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -32,7 +31,6 @@ export class RentalCollectionComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly zone = inject(NgZone);
-  readonly tenants = RENTAL_TENANTS;
 
   // ── Log panel state ──
   readonly isPanelOpen = signal(false);
@@ -56,6 +54,7 @@ export class RentalCollectionComponent implements OnInit {
 
   ngOnInit(): void {
     this.svc.fetchCollections();
+    this.svc.fetchTenants();
   }
 
   // ──────────────────────────────────────
@@ -71,6 +70,8 @@ export class RentalCollectionComponent implements OnInit {
     this.isDropdownOpen.set(false);
     this.isSubmitting.set(false);
     this.isPanelOpen.set(true);
+    // Fetch latest tenants from backend
+    this.svc.fetchTenants();
   }
 
   closePanel(): void {
@@ -81,15 +82,30 @@ export class RentalCollectionComponent implements OnInit {
   }
 
   // ── Tenant dropdown ──
-  toggleDropdown(): void {
+  toggleDropdown(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     if (this.isSubmitting()) return;
     this.isDropdownOpen.update(v => !v);
+    this.cdr.markForCheck();
   }
 
-  selectTenant(tenant: RentalTenant): void {
+  closeDropdown(): void {
+    if (this.isDropdownOpen()) {
+      this.isDropdownOpen.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
+  selectTenant(tenant: RentalTenant, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.selectedTenant = tenant;
     this.formError.set('');
     this.isDropdownOpen.set(false);
+    this.cdr.markForCheck();
   }
 
   // ── Log payment ──

@@ -484,7 +484,10 @@
 .rc-date-input:focus { border-color: var(--lm-color-primary, #7c6af7); }
 
 /* ── Custom Tenant Dropdown ── */
-.rc-dropdown-wrap { position: relative; }
+.rc-dropdown-wrap {
+  position: relative;
+  z-index: 50;
+}
 
 .rc-dropdown-trigger {
   display: flex;
@@ -504,7 +507,7 @@
   box-sizing: border-box;
 }
 .rc-dropdown-trigger:hover      { border-color: rgba(124,106,247,0.4); background: rgba(255,255,255,0.07); }
-.rc-dropdown-trigger.is-open    { border-color: var(--lm-color-primary,#7c6af7); border-radius: 12px 12px 0 0; background: rgba(124,106,247,0.06); }
+.rc-dropdown-trigger.is-open    { border-color: var(--lm-color-primary,#7c6af7); background: rgba(124,106,247,0.06); }
 .rc-dropdown-trigger.has-value  { border-color: rgba(124,106,247,0.3); }
 
 .rc-dropdown-placeholder { color: var(--lm-color-text-muted); font-size: 14px; }
@@ -520,21 +523,30 @@
 
 .rc-dropdown-list {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background: var(--lm-bg-elevated, #1e1e35);
   border: 1.5px solid var(--lm-color-primary, #7c6af7);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
-  overflow: hidden;
-  z-index: 50;
+  border-radius: 14px;
+  overflow-y: auto;
+  max-height: 240px;
+  z-index: 100;
   animation: dropDown 0.18s cubic-bezier(0.22,1,0.36,1) both;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.55);
 }
 @keyframes dropDown {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+.rc-dropdown-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--lm-color-text-muted);
 }
 
 .rc-dropdown-option {

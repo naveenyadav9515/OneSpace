@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
 
-export const RENTAL_TENANTS = ['Mahesh', 'Sai', 'Geetha', 'Prasad', 'Rekha'] as const;
-export type RentalTenant = typeof RENTAL_TENANTS[number];
+export const DEFAULT_RENTAL_TENANTS = ['Mahesh', 'Sai', 'Geetha', 'Prasad', 'Rekha'] as const;
+export type RentalTenant = string;
 
 export interface RentalCollection {
   _id: string;
@@ -43,6 +43,8 @@ export class RentalCollectionService {
   private readonly api = inject(ApiService);
 
   readonly collections = signal<RentalCollection[]>([]);
+  readonly tenants = signal<string[]>([...DEFAULT_RENTAL_TENANTS]);
+  readonly isLoadingTenants = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
@@ -50,7 +52,7 @@ export class RentalCollectionService {
   readonly savingTenant = signal<string | null>(null);
 
   /** Computed: group collections by Month+Year, newest first.
-   *  Within each month, group by tenant in the fixed order. */
+   *  Within each month, group by tenant from backend list. */
   readonly monthlyGroups = computed<RentalMonthGroup[]>(() => {
     const all = this.collections();
     const monthMap = new Map<string, Map<string, RentalCollection[]>>();
@@ -83,8 +85,9 @@ export class RentalCollectionService {
       let totalCollected = 0;
       const tenantGroups: RentalTenantGroup[] = [];
 
-      // Keep tenants in fixed order, only include those with payments in this month
-      for (const tenant of RENTAL_TENANTS) {
+      // Order tenants based on backend list, including any existing in user's records
+      const orderedTenants = Array.from(new Set([...this.tenants(), ...tenantMap.keys()]));
+      for (const tenant of orderedTenants) {
         const payments = tenantMap.get(tenant) ?? [];
         if (payments.length === 0) continue;
         // Sort newest first
@@ -109,6 +112,25 @@ export class RentalCollectionService {
 
   private get apiUrl(): string {
     return `${this.api.apiUrl}/rental-collections`;
+  }
+
+  async fetchTenants(): Promise<string[]> {
+    this.isLoadingTenants.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.http.get<{ status: string; data: { tenants: string[] } }>(`${this.apiUrl}/tenants`)
+      );
+      if (res.data?.tenants?.length) {
+        this.tenants.set(res.data.tenants);
+        return res.data.tenants;
+      }
+      return this.tenants();
+    } catch (err: any) {
+      console.warn('Failed to load tenants from backend:', err?.message);
+      return this.tenants();
+    } finally {
+      this.isLoadingTenants.set(false);
+    }
   }
 
   async fetchCollections(): Promise<void> {

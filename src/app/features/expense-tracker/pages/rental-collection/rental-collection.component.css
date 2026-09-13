@@ -449,8 +449,9 @@
   backdrop-filter: blur(6px);
   z-index: 200;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 20px;
   animation: backdropIn 0.2s ease both;
 }
 @keyframes backdropIn {
@@ -460,20 +461,20 @@
 
 .rc-panel {
   width: 100%;
-  max-width: 540px;
-  max-height: 92dvh;
+  max-width: 480px;
+  max-height: 88dvh;
   background: var(--lm-bg-elevated, #16162a);
-  border-radius: 28px 28px 0 0;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-bottom: none;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: panelSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+  animation: modalPopIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes panelSlideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+@keyframes modalPopIn {
+  from { transform: scale(0.93) translateY(10px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);     opacity: 1; }
 }
 
 /* ── Panel header ── */
@@ -694,14 +695,8 @@
   margin-left: auto;
 }
 
-/* ── Amount row ── */
-.rc-amount-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ── Amount (full-width) ── */
 .rc-amount-wrap {
-  flex: 1;
   display: flex;
   align-items: center;
   background: rgba(255,255,255,0.05);
@@ -830,11 +825,34 @@
   padding: 14px 20px 20px;
   border-top: 1px solid rgba(255,255,255,0.07);
   flex-shrink: 0;
+  display: flex;
+  gap: 10px;
 }
-.rc-done-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
+.rc-cancel-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--lm-color-text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.rc-cancel-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--lm-color-text-primary);
+}
+.rc-submit-btn {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px;
+  border-radius: 12px;
   background: var(--lm-color-primary, #7c6af7);
   border: none;
   color: #fff;
@@ -845,11 +863,17 @@
   transition: all 0.2s ease;
   box-shadow: 0 4px 14px rgba(124, 106, 247, 0.35);
 }
-.rc-done-btn:hover {
+.rc-submit-btn:hover:not(:disabled) {
   background: var(--lm-color-primary-hover, #6a58e5);
   box-shadow: 0 6px 20px rgba(124, 106, 247, 0.5);
   transform: translateY(-1px);
 }
+.rc-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.rc-submit-btn .material-symbols-outlined { font-size: 18px; }
 
 /* Shared small buttons */
 .rc-btn {

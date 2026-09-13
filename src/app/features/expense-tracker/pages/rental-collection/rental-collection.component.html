@@ -224,40 +224,25 @@
           </div>
         </div>
 
-        <!-- Amount + Add button -->
+        <!-- Amount -->
         <div class="rc-form-field">
           <label class="rc-form-label" for="rc-amount">
             <span class="material-symbols-outlined">payments</span>
             Amount
           </label>
-          <div class="rc-amount-row">
-            <div class="rc-amount-wrap">
-              <span class="rc-amount-prefix">₹</span>
-              <input id="rc-amount"
-                     class="rc-amount-input"
-                     type="number"
-                     min="0.01"
-                     step="1"
-                     placeholder="e.g. 5000"
-                     [(ngModel)]="formAmount"
-                     name="rc-amount"
-                     autocomplete="off"
-                     (keyup.enter)="logPayment()"
-                     [disabled]="svc.savingTenant() !== null">
-            </div>
-            <button class="rc-log-btn"
-                    (click)="logPayment()"
-                    [disabled]="svc.savingTenant() !== null"
-                    type="button"
-                    aria-label="Log payment">
-              @if (svc.savingTenant() !== null) {
-                <span class="rc-mini-spinner"></span>
-              } @else if (formSuccess()) {
-                <span class="material-symbols-outlined">check</span>
-              } @else {
-                <span class="material-symbols-outlined">add</span>
-              }
-            </button>
+          <div class="rc-amount-wrap">
+            <span class="rc-amount-prefix">₹</span>
+            <input id="rc-amount"
+                   class="rc-amount-input"
+                   type="number"
+                   min="0.01"
+                   step="1"
+                   placeholder="e.g. 5000"
+                   [(ngModel)]="formAmount"
+                   name="rc-amount"
+                   autocomplete="off"
+                   (keyup.enter)="logPayment()"
+                   [disabled]="svc.savingTenant() !== null">
           </div>
         </div>
 
@@ -297,7 +282,19 @@
 
       <!-- Footer -->
       <div class="rc-panel-footer">
-        <button class="rc-done-btn" (click)="closePanel()" type="button">Done</button>
+        <button class="rc-cancel-btn" (click)="closePanel()" type="button">Cancel</button>
+        <button class="rc-submit-btn"
+                (click)="logPayment()"
+                [disabled]="svc.savingTenant() !== null"
+                type="button">
+          @if (svc.savingTenant() !== null) {
+            <span class="rc-mini-spinner"></span>
+            Saving…
+          } @else {
+            <span class="material-symbols-outlined">check_circle</span>
+            Submit
+          }
+        </button>
       </div>
 
     </div>

@@ -107,12 +107,15 @@ export class RentalCollectionComponent implements OnInit {
     });
 
     if (result) {
-      // Reset form but keep date — ready for next entry
       this.formAmount = '';
       this.formNotes = '';
       this.formError = '';
       this.formSuccess.set(true);
-      setTimeout(() => this.formSuccess.set(false), 2500);
+      // Close after brief success flash
+      setTimeout(() => {
+        this.formSuccess.set(false);
+        this.isPanelOpen.set(false);
+      }, 800);
     } else {
       this.formError = this.svc.error() || 'Failed to save. Please try again.';
     }

@@ -28,7 +28,6 @@
   <!-- ── Content ── -->
   <main class="rc-content">
 
-    <!-- Loading -->
     @if (svc.isLoading()) {
       <div class="rc-loading">
         <div class="rc-spinner"></div>
@@ -36,7 +35,6 @@
       </div>
     }
 
-    <!-- Error -->
     @if (svc.error() && !svc.isLoading()) {
       <div class="rc-error-banner">
         <span class="material-symbols-outlined">error</span>
@@ -44,7 +42,6 @@
       </div>
     }
 
-    <!-- Empty state -->
     @if (!svc.isLoading() && svc.collections().length === 0 && !svc.error()) {
       <div class="rc-empty">
         <div class="rc-empty-icon">
@@ -55,13 +52,11 @@
       </div>
     }
 
-    <!-- Monthly cards -->
     @if (!svc.isLoading() && svc.monthlyGroups().length > 0) {
       <div class="rc-months">
         @for (group of svc.monthlyGroups(); track group.key) {
           <div class="rc-month-card">
 
-            <!-- Card header -->
             <div class="rc-card-header">
               <div class="rc-card-header-left">
                 <span class="rc-month-label">{{ group.label }}</span>
@@ -73,12 +68,10 @@
               </div>
             </div>
 
-            <!-- Tenant rows -->
             <div class="rc-tenant-list">
               @for (tg of group.tenantGroups; track tg.tenant) {
                 <div class="rc-tenant-section">
 
-                  <!-- Tenant header row (click to expand/collapse payments) -->
                   <button class="rc-tenant-header"
                           (click)="toggleTenant(group.key + '-' + tg.tenant)"
                           [attr.aria-expanded]="isTenantExpanded(group.key + '-' + tg.tenant)">
@@ -98,13 +91,10 @@
                     </div>
                   </button>
 
-                  <!-- Individual payment entries (expanded) -->
                   @if (isTenantExpanded(group.key + '-' + tg.tenant)) {
                     <div class="rc-payments">
                       @for (payment of tg.payments; track payment._id) {
-
                         @if (deletingId() === payment._id) {
-                          <!-- Delete confirm -->
                           <div class="rc-payment-row rc-payment-row--deleting">
                             <span class="rc-delete-msg">Delete this entry?</span>
                             <div class="rc-delete-actions">
@@ -130,7 +120,6 @@
                             </div>
                           </div>
                         }
-
                       }
                     </div>
                   }
@@ -149,11 +138,14 @@
   <app-bottom-nav />
 </div>
 
-<!-- ── Log Panel (slide-up) ── -->
+<!-- ══════════════════════════════════════
+     LOG PANEL (slide-up)
+     ══════════════════════════════════════ -->
 @if (isPanelOpen()) {
   <div class="rc-panel-backdrop" (click)="closePanel()">
     <div class="rc-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Log rent collection">
 
+      <!-- Panel header -->
       <div class="rc-panel-header">
         <div class="rc-panel-title-group">
           <span class="material-symbols-outlined rc-panel-icon">apartment</span>
@@ -164,85 +156,148 @@
         </button>
       </div>
 
-      <!-- Date picker for all entries -->
-      <div class="rc-panel-date">
-        <label class="rc-panel-date-label" for="rc-log-date">
-          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">calendar_today</span>
-          Date &amp; Time
-        </label>
-        <input id="rc-log-date" class="rc-date-input" type="datetime-local"
-               [(ngModel)]="logDate" name="rc-log-date">
-      </div>
+      <div class="rc-panel-body">
 
-      <!-- Tenant rows -->
-      <div class="rc-tenant-form-list">
-        @for (tenant of tenants; track tenant) {
-          <div class="rc-tenant-form-row">
+        <!-- Date & Time -->
+        <div class="rc-form-field">
+          <label class="rc-form-label" for="rc-log-date">
+            <span class="material-symbols-outlined">calendar_today</span>
+            Date &amp; Time
+          </label>
+          <input id="rc-log-date" class="rc-date-input" type="datetime-local"
+                 [(ngModel)]="logDate" name="rc-log-date">
+        </div>
 
-            <!-- Tenant identity -->
-            <div class="rc-tf-tenant">
-              <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(tenant)">
-                {{ tenantInitial(tenant) }}
-              </div>
-              <span class="rc-tf-name">{{ tenant }}</span>
-              @if (tenantForms[tenant].success) {
-                <span class="rc-tf-success">
-                  <span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>
-                  Saved!
-                </span>
+        <!-- ── Tenant Dropdown ── -->
+        <div class="rc-form-field">
+          <label class="rc-form-label">
+            <span class="material-symbols-outlined">person</span>
+            Tenant
+          </label>
+
+          <div class="rc-dropdown-wrap">
+            <!-- Trigger -->
+            <button class="rc-dropdown-trigger"
+                    (click)="toggleDropdown()"
+                    [class.is-open]="isDropdownOpen()"
+                    [class.has-value]="!!selectedTenant"
+                    type="button"
+                    aria-haspopup="listbox"
+                    [attr.aria-expanded]="isDropdownOpen()">
+              @if (selectedTenant) {
+                <div class="rc-dropdown-selected">
+                  <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(selectedTenant)">
+                    {{ tenantInitial(selectedTenant) }}
+                  </div>
+                  <span class="rc-dropdown-value">{{ selectedTenant }}</span>
+                </div>
+              } @else {
+                <span class="rc-dropdown-placeholder">Select tenant…</span>
               }
-            </div>
+              <span class="rc-dropdown-chevron material-symbols-outlined"
+                    [class.open]="isDropdownOpen()">
+                expand_more
+              </span>
+            </button>
 
-            <!-- Amount + add button -->
-            <div class="rc-tf-input-group">
-              <div class="rc-tf-amount-wrap" [class.has-error]="!!tenantForms[tenant].error">
-                <span class="rc-tf-prefix">₹</span>
-                <input class="rc-tf-amount"
-                       type="number"
-                       min="0.01"
-                       step="1"
-                       placeholder="Amount"
-                       [(ngModel)]="tenantForms[tenant].amount"
-                       [name]="'amount-' + tenant"
-                       autocomplete="off"
-                       (keyup.enter)="logPayment(tenant)"
-                       [disabled]="svc.savingTenant() === tenant">
-              </div>
-              <button class="rc-tf-add-btn"
-                      (click)="logPayment(tenant)"
-                      [disabled]="svc.savingTenant() === tenant"
-                      [title]="'Add payment for ' + tenant"
-                      [attr.aria-label]="'Log payment for ' + tenant">
-                @if (svc.savingTenant() === tenant) {
-                  <span class="rc-mini-spinner"></span>
-                } @else {
-                  <span class="material-symbols-outlined">add</span>
+            <!-- Options list -->
+            @if (isDropdownOpen()) {
+              <div class="rc-dropdown-list" role="listbox">
+                @for (tenant of tenants; track tenant) {
+                  <button class="rc-dropdown-option"
+                          [class.is-active]="selectedTenant === tenant"
+                          (click)="selectTenant(tenant)"
+                          role="option"
+                          [attr.aria-selected]="selectedTenant === tenant"
+                          type="button">
+                    <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(tenant)">
+                      {{ tenantInitial(tenant) }}
+                    </div>
+                    <span class="rc-option-name">{{ tenant }}</span>
+                    @if (selectedTenant === tenant) {
+                      <span class="rc-option-check material-symbols-outlined">check</span>
+                    }
+                  </button>
                 }
-              </button>
-            </div>
-
-            <!-- Notes -->
-            <div class="rc-tf-notes-wrap">
-              <input class="rc-tf-notes"
-                     type="text"
-                     placeholder="Notes / comment (optional)"
-                     [(ngModel)]="tenantForms[tenant].notes"
-                     [name]="'notes-' + tenant"
-                     maxlength="200"
-                     autocomplete="off">
-            </div>
-
-            <!-- Inline error -->
-            @if (tenantForms[tenant].error) {
-              <span class="rc-tf-error">{{ tenantForms[tenant].error }}</span>
+              </div>
             }
+          </div>
+        </div>
 
+        <!-- Amount + Add button -->
+        <div class="rc-form-field">
+          <label class="rc-form-label" for="rc-amount">
+            <span class="material-symbols-outlined">payments</span>
+            Amount
+          </label>
+          <div class="rc-amount-row">
+            <div class="rc-amount-wrap">
+              <span class="rc-amount-prefix">₹</span>
+              <input id="rc-amount"
+                     class="rc-amount-input"
+                     type="number"
+                     min="0.01"
+                     step="1"
+                     placeholder="e.g. 5000"
+                     [(ngModel)]="formAmount"
+                     name="rc-amount"
+                     autocomplete="off"
+                     (keyup.enter)="logPayment()"
+                     [disabled]="svc.savingTenant() !== null">
+            </div>
+            <button class="rc-log-btn"
+                    (click)="logPayment()"
+                    [disabled]="svc.savingTenant() !== null"
+                    type="button"
+                    aria-label="Log payment">
+              @if (svc.savingTenant() !== null) {
+                <span class="rc-mini-spinner"></span>
+              } @else if (formSuccess()) {
+                <span class="material-symbols-outlined">check</span>
+              } @else {
+                <span class="material-symbols-outlined">add</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="rc-form-field">
+          <label class="rc-form-label" for="rc-notes">
+            <span class="material-symbols-outlined">notes</span>
+            Notes <span class="rc-optional">(optional)</span>
+          </label>
+          <input id="rc-notes"
+                 class="rc-notes-input"
+                 type="text"
+                 placeholder="e.g. Partial payment, balance next week…"
+                 [(ngModel)]="formNotes"
+                 name="rc-notes"
+                 maxlength="200"
+                 autocomplete="off">
+        </div>
+
+        <!-- Success message -->
+        @if (formSuccess()) {
+          <div class="rc-success-banner">
+            <span class="material-symbols-outlined">check_circle</span>
+            Payment logged successfully! Add another or tap Done.
           </div>
         }
+
+        <!-- Error message -->
+        @if (formError) {
+          <div class="rc-form-error">
+            <span class="material-symbols-outlined">error</span>
+            {{ formError }}
+          </div>
+        }
+
       </div>
 
+      <!-- Footer -->
       <div class="rc-panel-footer">
-        <button class="rc-close-panel-btn" (click)="closePanel()">Done</button>
+        <button class="rc-done-btn" (click)="closePanel()" type="button">Done</button>
       </div>
 
     </div>

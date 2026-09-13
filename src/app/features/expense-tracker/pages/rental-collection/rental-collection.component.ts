@@ -12,17 +12,9 @@ import { BottomNavComponent } from '@shared/components/bottom-nav/bottom-nav.com
 import {
   RentalCollectionService,
   RentalCollection,
-  RentalTenantGroup,
   RENTAL_TENANTS,
   RentalTenant,
 } from '@core/services/rental-collection.service';
-
-interface TenantFormState {
-  amount: string;
-  notes: string;
-  success: boolean;
-  error: string;
-}
 
 @Component({
   selector: 'app-rental-collection',
@@ -38,10 +30,17 @@ export class RentalCollectionComponent implements OnInit {
 
   // ── Log panel state ──
   readonly isPanelOpen = signal(false);
-  logDate = this.todayIso();
 
-  // ── Per-tenant form states ──
-  tenantForms: Record<string, TenantFormState> = this.buildForms();
+  // ── Custom dropdown state ──
+  readonly isDropdownOpen = signal(false);
+
+  // ── Single form fields ──
+  selectedTenant: RentalTenant | null = null;
+  logDate = this.todayIso();
+  formAmount = '';
+  formNotes = '';
+  formError = '';
+  readonly formSuccess = signal(false);
 
   // ── Delete confirmation ──
   readonly deletingId = signal<string | null>(null);
@@ -58,44 +57,64 @@ export class RentalCollectionComponent implements OnInit {
   // ──────────────────────────────────────
 
   openPanel(): void {
+    this.selectedTenant = null;
     this.logDate = this.todayIso();
-    this.tenantForms = this.buildForms();
+    this.formAmount = '';
+    this.formNotes = '';
+    this.formError = '';
+    this.formSuccess.set(false);
+    this.isDropdownOpen.set(false);
     this.isPanelOpen.set(true);
   }
 
   closePanel(): void {
     this.isPanelOpen.set(false);
+    this.isDropdownOpen.set(false);
   }
 
-  async logPayment(tenant: RentalTenant): Promise<void> {
-    const form = this.tenantForms[tenant];
-    const amount = parseFloat(form.amount);
+  // ── Tenant dropdown ──
+  toggleDropdown(): void {
+    this.isDropdownOpen.update(v => !v);
+  }
 
-    form.error = '';
-    form.success = false;
+  selectTenant(tenant: RentalTenant): void {
+    this.selectedTenant = tenant;
+    this.formError = '';
+    this.isDropdownOpen.set(false);
+  }
 
+  // ── Log payment ──
+  async logPayment(): Promise<void> {
+    this.formError = '';
+    this.formSuccess.set(false);
+
+    if (!this.selectedTenant) {
+      this.formError = 'Please select a tenant.';
+      return;
+    }
+
+    const amount = parseFloat(this.formAmount);
     if (!amount || amount <= 0) {
-      form.error = 'Enter a valid amount';
+      this.formError = 'Please enter a valid amount greater than 0.';
       return;
     }
 
     const result = await this.svc.addCollection({
-      tenant,
+      tenant: this.selectedTenant,
       amount,
       date: this.logDate || this.todayIso(),
-      notes: form.notes.trim() || undefined,
+      notes: this.formNotes.trim() || undefined,
     });
 
     if (result) {
-      form.amount = '';
-      form.notes = '';
-      form.success = true;
-      // Clear success indicator after 2 sec
-      setTimeout(() => {
-        form.success = false;
-      }, 2000);
+      // Reset form but keep date — ready for next entry
+      this.formAmount = '';
+      this.formNotes = '';
+      this.formError = '';
+      this.formSuccess.set(true);
+      setTimeout(() => this.formSuccess.set(false), 2500);
     } else {
-      form.error = this.svc.error() || 'Failed to save.';
+      this.formError = this.svc.error() || 'Failed to save. Please try again.';
     }
   }
 
@@ -136,14 +155,6 @@ export class RentalCollectionComponent implements OnInit {
   //  UTILITIES
   // ──────────────────────────────────────
 
-  private buildForms(): Record<string, TenantFormState> {
-    const forms: Record<string, TenantFormState> = {};
-    for (const t of RENTAL_TENANTS) {
-      forms[t] = { amount: '', notes: '', success: false, error: '' };
-    }
-    return forms;
-  }
-
   private todayIso(): string {
     return new Date().toISOString().slice(0, 16);
   }
@@ -167,14 +178,13 @@ export class RentalCollectionComponent implements OnInit {
     return name.charAt(0).toUpperCase();
   }
 
-  // Avatar color per tenant
   tenantColor(name: string): string {
     const colors: Record<string, string> = {
       Mahesh: '#7c6af7',
-      Sai: '#06b6d4',
+      Sai:    '#06b6d4',
       Geetha: '#f59e0b',
       Prasad: '#10b981',
-      Rekha: '#ec4899',
+      Rekha:  '#ec4899',
     };
     return colors[name] ?? '#7c6af7';
   }

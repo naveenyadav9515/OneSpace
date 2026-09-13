@@ -1,9 +1,11 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   inject,
   signal,
   OnInit,
+  NgZone,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -25,7 +27,9 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RentalCollectionComponent implements OnInit {
-  readonly svc = inject(RentalCollectionService);
+  readonly svc  = inject(RentalCollectionService);
+  private readonly cdr  = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
   readonly tenants = RENTAL_TENANTS;
 
   // ── Log panel state ──
@@ -39,7 +43,7 @@ export class RentalCollectionComponent implements OnInit {
   logDate = this.todayIso();
   formAmount = '';
   formNotes = '';
-  formError = '';
+  readonly formError = signal('');
   readonly formSuccess = signal(false);
 
   // ── Delete confirmation ──
@@ -61,7 +65,7 @@ export class RentalCollectionComponent implements OnInit {
     this.logDate = this.todayIso();
     this.formAmount = '';
     this.formNotes = '';
-    this.formError = '';
+    this.formError.set('');
     this.formSuccess.set(false);
     this.isDropdownOpen.set(false);
     this.isPanelOpen.set(true);
@@ -79,23 +83,23 @@ export class RentalCollectionComponent implements OnInit {
 
   selectTenant(tenant: RentalTenant): void {
     this.selectedTenant = tenant;
-    this.formError = '';
+    this.formError.set('');
     this.isDropdownOpen.set(false);
   }
 
   // ── Log payment ──
   async logPayment(): Promise<void> {
-    this.formError = '';
+    this.formError.set('');
     this.formSuccess.set(false);
 
     if (!this.selectedTenant) {
-      this.formError = 'Please select a tenant.';
+      this.formError.set('Please select a tenant.');
       return;
     }
 
     const amount = parseFloat(this.formAmount);
     if (!amount || amount <= 0) {
-      this.formError = 'Please enter a valid amount greater than 0.';
+      this.formError.set('Please enter a valid amount greater than 0.');
       return;
     }
 
@@ -106,19 +110,23 @@ export class RentalCollectionComponent implements OnInit {
       notes: this.formNotes.trim() || undefined,
     });
 
-    if (result) {
-      this.formAmount = '';
-      this.formNotes = '';
-      this.formError = '';
-      this.formSuccess.set(true);
-      // Close after brief success flash
-      setTimeout(() => {
-        this.formSuccess.set(false);
-        this.isPanelOpen.set(false);
-      }, 800);
-    } else {
-      this.formError = this.svc.error() || 'Failed to save. Please try again.';
-    }
+    // Run inside NgZone so OnPush change detection fires reliably
+    this.zone.run(() => {
+      if (result) {
+        this.formAmount = '';
+        this.formNotes = '';
+        this.formError.set('');
+        this.formSuccess.set(true);
+        setTimeout(() => {
+          this.formSuccess.set(false);
+          this.isPanelOpen.set(false);
+          this.cdr.markForCheck();
+        }, 800);
+      } else {
+        this.formError.set(this.svc.error() || 'Failed to save. Please try again.');
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   // ──────────────────────────────────────

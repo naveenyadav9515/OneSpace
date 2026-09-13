@@ -271,10 +271,10 @@
         }
 
         <!-- Error message -->
-        @if (formError) {
+        @if (formError()) {
           <div class="rc-form-error">
             <span class="material-symbols-outlined">error</span>
-            {{ formError }}
+            {{ formError() }}
           </div>
         }
 

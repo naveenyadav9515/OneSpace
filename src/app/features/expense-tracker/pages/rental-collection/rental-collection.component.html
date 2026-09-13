@@ -142,7 +142,7 @@
      LOG PANEL (slide-up)
      ══════════════════════════════════════ -->
 @if (isPanelOpen()) {
-  <div class="rc-panel-backdrop" (click)="closePanel()">
+  <div class="rc-panel-backdrop" (click)="!isSubmitting() && closePanel()">
     <div class="rc-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Log rent collection">
 
       <!-- Panel header -->
@@ -151,12 +151,12 @@
           <span class="material-symbols-outlined rc-panel-icon">apartment</span>
           <h2 class="rc-panel-title">Log Collection</h2>
         </div>
-        <button class="rc-panel-close" (click)="closePanel()" aria-label="Close">
+        <button class="rc-panel-close" (click)="closePanel()" aria-label="Close" [disabled]="isSubmitting()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <div class="rc-panel-body">
+      <div class="rc-panel-body" (click)="isDropdownOpen.set(false)">
 
         <!-- Date & Time -->
         <div class="rc-form-field">
@@ -165,7 +165,7 @@
             Date &amp; Time
           </label>
           <input id="rc-log-date" class="rc-date-input" type="datetime-local"
-                 [(ngModel)]="logDate" name="rc-log-date">
+                 [(ngModel)]="logDate" name="rc-log-date" [disabled]="isSubmitting()">
         </div>
 
         <!-- ── Tenant Dropdown ── -->
@@ -175,7 +175,7 @@
             Tenant
           </label>
 
-          <div class="rc-dropdown-wrap">
+          <div class="rc-dropdown-wrap" (click)="$event.stopPropagation()">
             <!-- Trigger -->
             <button class="rc-dropdown-trigger"
                     (click)="toggleDropdown()"
@@ -183,7 +183,8 @@
                     [class.has-value]="!!selectedTenant"
                     type="button"
                     aria-haspopup="listbox"
-                    [attr.aria-expanded]="isDropdownOpen()">
+                    [attr.aria-expanded]="isDropdownOpen()"
+                    [disabled]="isSubmitting()">
               @if (selectedTenant) {
                 <div class="rc-dropdown-selected">
                   <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(selectedTenant)">
@@ -242,7 +243,7 @@
                    name="rc-amount"
                    autocomplete="off"
                    (keyup.enter)="logPayment()"
-                   [disabled]="svc.savingTenant() !== null">
+                   [disabled]="isSubmitting()">
           </div>
         </div>
 
@@ -259,16 +260,10 @@
                  [(ngModel)]="formNotes"
                  name="rc-notes"
                  maxlength="200"
-                 autocomplete="off">
+                 autocomplete="off"
+                 (keyup.enter)="logPayment()"
+                 [disabled]="isSubmitting()">
         </div>
-
-        <!-- Success message -->
-        @if (formSuccess()) {
-          <div class="rc-success-banner">
-            <span class="material-symbols-outlined">check_circle</span>
-            Payment logged successfully! Add another or tap Done.
-          </div>
-        }
 
         <!-- Error message -->
         @if (formError()) {
@@ -282,12 +277,12 @@
 
       <!-- Footer -->
       <div class="rc-panel-footer">
-        <button class="rc-cancel-btn" (click)="closePanel()" type="button">Cancel</button>
+        <button class="rc-cancel-btn" (click)="closePanel()" [disabled]="isSubmitting()" type="button">Cancel</button>
         <button class="rc-submit-btn"
                 (click)="logPayment()"
-                [disabled]="svc.savingTenant() !== null"
+                [disabled]="isSubmitting()"
                 type="button">
-          @if (svc.savingTenant() !== null) {
+          @if (isSubmitting()) {
             <span class="rc-mini-spinner"></span>
             Saving…
           } @else {

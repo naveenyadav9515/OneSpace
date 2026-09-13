@@ -17,6 +17,7 @@ import {
   RENTAL_TENANTS,
   RentalTenant,
 } from '@core/services/rental-collection.service';
+import { NotificationService } from '@core/services/notification.service';
 
 @Component({
   selector: 'app-rental-collection',
@@ -27,13 +28,15 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RentalCollectionComponent implements OnInit {
-  readonly svc  = inject(RentalCollectionService);
-  private readonly cdr  = inject(ChangeDetectorRef);
+  readonly svc = inject(RentalCollectionService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly zone = inject(NgZone);
   readonly tenants = RENTAL_TENANTS;
 
   // ── Log panel state ──
   readonly isPanelOpen = signal(false);
+  readonly isSubmitting = signal(false);
 
   // ── Custom dropdown state ──
   readonly isDropdownOpen = signal(false);
@@ -44,7 +47,6 @@ export class RentalCollectionComponent implements OnInit {
   formAmount = '';
   formNotes = '';
   readonly formError = signal('');
-  readonly formSuccess = signal(false);
 
   // ── Delete confirmation ──
   readonly deletingId = signal<string | null>(null);
@@ -66,18 +68,21 @@ export class RentalCollectionComponent implements OnInit {
     this.formAmount = '';
     this.formNotes = '';
     this.formError.set('');
-    this.formSuccess.set(false);
     this.isDropdownOpen.set(false);
+    this.isSubmitting.set(false);
     this.isPanelOpen.set(true);
   }
 
   closePanel(): void {
     this.isPanelOpen.set(false);
     this.isDropdownOpen.set(false);
+    this.isSubmitting.set(false);
+    this.formError.set('');
   }
 
   // ── Tenant dropdown ──
   toggleDropdown(): void {
+    if (this.isSubmitting()) return;
     this.isDropdownOpen.update(v => !v);
   }
 
@@ -89,8 +94,9 @@ export class RentalCollectionComponent implements OnInit {
 
   // ── Log payment ──
   async logPayment(): Promise<void> {
+    if (this.isSubmitting()) return;
+
     this.formError.set('');
-    this.formSuccess.set(false);
 
     if (!this.selectedTenant) {
       this.formError.set('Please select a tenant.');
@@ -103,30 +109,45 @@ export class RentalCollectionComponent implements OnInit {
       return;
     }
 
-    const result = await this.svc.addCollection({
-      tenant: this.selectedTenant,
-      amount,
-      date: this.logDate || this.todayIso(),
-      notes: this.formNotes.trim() || undefined,
-    });
+    this.isSubmitting.set(true);
+    this.cdr.markForCheck();
 
-    // Run inside NgZone so OnPush change detection fires reliably
-    this.zone.run(() => {
-      if (result) {
-        this.formAmount = '';
-        this.formNotes = '';
-        this.formError.set('');
-        this.formSuccess.set(true);
-        setTimeout(() => {
-          this.formSuccess.set(false);
-          this.isPanelOpen.set(false);
-          this.cdr.markForCheck();
-        }, 800);
-      } else {
-        this.formError.set(this.svc.error() || 'Failed to save. Please try again.');
-      }
-      this.cdr.markForCheck();
-    });
+    try {
+      const result = await this.svc.addCollection({
+        tenant: this.selectedTenant,
+        amount,
+        date: this.logDate ? new Date(this.logDate).toISOString() : new Date().toISOString(),
+        notes: this.formNotes.trim() || undefined,
+      });
+
+      this.zone.run(() => {
+        if (result) {
+          // Expand newly added tenant group so it's immediately visible
+          const d = new Date(result.date);
+          const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          this.expandedTenants.add(`${monthKey}-${result.tenant}`);
+
+          // Close popup immediately
+          this.closePanel();
+
+          // Show standard application toast
+          this.notificationService.success(
+            `₹${result.amount.toLocaleString('en-IN')} rent logged for ${result.tenant}.`,
+            'Saved'
+          );
+        } else {
+          this.formError.set(this.svc.error() || 'Failed to save. Please try again.');
+          this.isSubmitting.set(false);
+        }
+        this.cdr.markForCheck();
+      });
+    } catch (err: any) {
+      this.zone.run(() => {
+        this.formError.set(err?.message || 'Failed to save. Please try again.');
+        this.isSubmitting.set(false);
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   // ──────────────────────────────────────
@@ -142,8 +163,16 @@ export class RentalCollectionComponent implements OnInit {
   }
 
   async executeDelete(id: string): Promise<void> {
-    await this.svc.deleteCollection(id);
-    this.deletingId.set(null);
+    const success = await this.svc.deleteCollection(id);
+    this.zone.run(() => {
+      this.deletingId.set(null);
+      if (success) {
+        this.notificationService.success('Rental payment deleted.', 'Deleted');
+      } else {
+        this.notificationService.error(this.svc.error() || 'Failed to delete payment.', 'Error');
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   // ──────────────────────────────────────
@@ -167,7 +196,9 @@ export class RentalCollectionComponent implements OnInit {
   // ──────────────────────────────────────
 
   private todayIso(): string {
-    return new Date().toISOString().slice(0, 16);
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
   }
 
   formatDate(dateStr: string): string {

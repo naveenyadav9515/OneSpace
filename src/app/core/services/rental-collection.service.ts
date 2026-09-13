@@ -134,8 +134,11 @@ export class RentalCollectionService {
         this.http.post<{ status: string; data: { collection: RentalCollection } }>(this.apiUrl, payload)
       );
       const newEntry = res.data.collection;
-      // Insert newest first
-      this.collections.update(list => [newEntry, ...list]);
+      // Insert and keep sorted newest first by date
+      this.collections.update(list => {
+        const updated = [newEntry, ...list];
+        return updated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      });
       return newEntry;
     } catch (err: any) {
       this.error.set(err?.error?.message || 'Failed to log payment.');

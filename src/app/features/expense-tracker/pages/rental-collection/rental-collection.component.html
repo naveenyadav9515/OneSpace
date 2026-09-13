@@ -1,0 +1,250 @@
+<!-- Rental Collection Screen -->
+<div class="rc-shell fade-in-bottom">
+
+  <!-- ── Header ── -->
+  <header class="rc-header">
+    <a routerLink="/expenses" class="rc-back-btn" aria-label="Go Back">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+
+    <div class="rc-header-center">
+      <h1 class="rc-title">Rental Collection</h1>
+      <p class="rc-subtitle">
+        @if (svc.isLoading()) {
+          Loading…
+        } @else if (svc.collections().length === 0) {
+          No payments logged yet
+        } @else {
+          ₹{{ svc.lifetimeTotal() | number:'1.0-0' }} total collected
+        }
+      </p>
+    </div>
+
+    <button class="rc-add-btn" (click)="openPanel()" title="Log rent collection" aria-label="Log rent collection">
+      <span class="material-symbols-outlined">add</span>
+    </button>
+  </header>
+
+  <!-- ── Content ── -->
+  <main class="rc-content">
+
+    <!-- Loading -->
+    @if (svc.isLoading()) {
+      <div class="rc-loading">
+        <div class="rc-spinner"></div>
+        <span>Loading…</span>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (svc.error() && !svc.isLoading()) {
+      <div class="rc-error-banner">
+        <span class="material-symbols-outlined">error</span>
+        {{ svc.error() }}
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!svc.isLoading() && svc.collections().length === 0 && !svc.error()) {
+      <div class="rc-empty">
+        <div class="rc-empty-icon">
+          <span class="material-symbols-outlined">apartment</span>
+        </div>
+        <h2 class="rc-empty-title">No payments logged yet</h2>
+        <p class="rc-empty-sub">Tap <strong>+</strong> to log the first rent collection.</p>
+      </div>
+    }
+
+    <!-- Monthly cards -->
+    @if (!svc.isLoading() && svc.monthlyGroups().length > 0) {
+      <div class="rc-months">
+        @for (group of svc.monthlyGroups(); track group.key) {
+          <div class="rc-month-card">
+
+            <!-- Card header -->
+            <div class="rc-card-header">
+              <div class="rc-card-header-left">
+                <span class="rc-month-label">{{ group.label }}</span>
+                <span class="rc-count-badge">{{ group.tenantGroups.length }} tenant{{ group.tenantGroups.length !== 1 ? 's' : '' }}</span>
+              </div>
+              <div class="rc-card-total">
+                <span class="rc-card-total-label">Total</span>
+                <span class="rc-card-total-amount">₹{{ group.totalCollected | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <!-- Tenant rows -->
+            <div class="rc-tenant-list">
+              @for (tg of group.tenantGroups; track tg.tenant) {
+                <div class="rc-tenant-section">
+
+                  <!-- Tenant header row (click to expand/collapse payments) -->
+                  <button class="rc-tenant-header"
+                          (click)="toggleTenant(group.key + '-' + tg.tenant)"
+                          [attr.aria-expanded]="isTenantExpanded(group.key + '-' + tg.tenant)">
+                    <div class="rc-tenant-left">
+                      <div class="rc-avatar" [style.background]="tenantColor(tg.tenant)">
+                        {{ tenantInitial(tg.tenant) }}
+                      </div>
+                      <span class="rc-tenant-name">{{ tg.tenant }}</span>
+                      <span class="rc-payment-count">{{ tg.payments.length }} payment{{ tg.payments.length !== 1 ? 's' : '' }}</span>
+                    </div>
+                    <div class="rc-tenant-right">
+                      <span class="rc-tenant-total">₹{{ tg.total | number:'1.0-0' }}</span>
+                      <span class="rc-chevron material-symbols-outlined"
+                            [class.expanded]="isTenantExpanded(group.key + '-' + tg.tenant)">
+                        expand_more
+                      </span>
+                    </div>
+                  </button>
+
+                  <!-- Individual payment entries (expanded) -->
+                  @if (isTenantExpanded(group.key + '-' + tg.tenant)) {
+                    <div class="rc-payments">
+                      @for (payment of tg.payments; track payment._id) {
+
+                        @if (deletingId() === payment._id) {
+                          <!-- Delete confirm -->
+                          <div class="rc-payment-row rc-payment-row--deleting">
+                            <span class="rc-delete-msg">Delete this entry?</span>
+                            <div class="rc-delete-actions">
+                              <button class="rc-btn rc-btn--cancel" (click)="cancelDelete()">Cancel</button>
+                              <button class="rc-btn rc-btn--danger" (click)="executeDelete(payment._id)">Delete</button>
+                            </div>
+                          </div>
+                        } @else {
+                          <div class="rc-payment-row">
+                            <div class="rc-payment-meta">
+                              <span class="rc-payment-date">{{ formatDate(payment.date) }} · {{ formatTime(payment.date) }}</span>
+                              @if (payment.notes) {
+                                <span class="rc-payment-notes">{{ payment.notes }}</span>
+                              }
+                            </div>
+                            <div class="rc-payment-right">
+                              <span class="rc-payment-amount">₹{{ payment.amount | number:'1.0-0' }}</span>
+                              <button class="rc-icon-btn rc-icon-btn--danger"
+                                      (click)="confirmDelete(payment._id)"
+                                      title="Delete" aria-label="Delete payment">
+                                <span class="material-symbols-outlined">delete</span>
+                              </button>
+                            </div>
+                          </div>
+                        }
+
+                      }
+                    </div>
+                  }
+
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+  <app-bottom-nav />
+</div>
+
+<!-- ── Log Panel (slide-up) ── -->
+@if (isPanelOpen()) {
+  <div class="rc-panel-backdrop" (click)="closePanel()">
+    <div class="rc-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Log rent collection">
+
+      <div class="rc-panel-header">
+        <div class="rc-panel-title-group">
+          <span class="material-symbols-outlined rc-panel-icon">apartment</span>
+          <h2 class="rc-panel-title">Log Collection</h2>
+        </div>
+        <button class="rc-panel-close" (click)="closePanel()" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Date picker for all entries -->
+      <div class="rc-panel-date">
+        <label class="rc-panel-date-label" for="rc-log-date">
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">calendar_today</span>
+          Date &amp; Time
+        </label>
+        <input id="rc-log-date" class="rc-date-input" type="datetime-local"
+               [(ngModel)]="logDate" name="rc-log-date">
+      </div>
+
+      <!-- Tenant rows -->
+      <div class="rc-tenant-form-list">
+        @for (tenant of tenants; track tenant) {
+          <div class="rc-tenant-form-row">
+
+            <!-- Tenant identity -->
+            <div class="rc-tf-tenant">
+              <div class="rc-avatar rc-avatar--sm" [style.background]="tenantColor(tenant)">
+                {{ tenantInitial(tenant) }}
+              </div>
+              <span class="rc-tf-name">{{ tenant }}</span>
+              @if (tenantForms[tenant].success) {
+                <span class="rc-tf-success">
+                  <span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>
+                  Saved!
+                </span>
+              }
+            </div>
+
+            <!-- Amount + add button -->
+            <div class="rc-tf-input-group">
+              <div class="rc-tf-amount-wrap" [class.has-error]="!!tenantForms[tenant].error">
+                <span class="rc-tf-prefix">₹</span>
+                <input class="rc-tf-amount"
+                       type="number"
+                       min="0.01"
+                       step="1"
+                       placeholder="Amount"
+                       [(ngModel)]="tenantForms[tenant].amount"
+                       [name]="'amount-' + tenant"
+                       autocomplete="off"
+                       (keyup.enter)="logPayment(tenant)"
+                       [disabled]="svc.savingTenant() === tenant">
+              </div>
+              <button class="rc-tf-add-btn"
+                      (click)="logPayment(tenant)"
+                      [disabled]="svc.savingTenant() === tenant"
+                      [title]="'Add payment for ' + tenant"
+                      [attr.aria-label]="'Log payment for ' + tenant">
+                @if (svc.savingTenant() === tenant) {
+                  <span class="rc-mini-spinner"></span>
+                } @else {
+                  <span class="material-symbols-outlined">add</span>
+                }
+              </button>
+            </div>
+
+            <!-- Notes -->
+            <div class="rc-tf-notes-wrap">
+              <input class="rc-tf-notes"
+                     type="text"
+                     placeholder="Notes / comment (optional)"
+                     [(ngModel)]="tenantForms[tenant].notes"
+                     [name]="'notes-' + tenant"
+                     maxlength="200"
+                     autocomplete="off">
+            </div>
+
+            <!-- Inline error -->
+            @if (tenantForms[tenant].error) {
+              <span class="rc-tf-error">{{ tenantForms[tenant].error }}</span>
+            }
+
+          </div>
+        }
+      </div>
+
+      <div class="rc-panel-footer">
+        <button class="rc-close-panel-btn" (click)="closePanel()">Done</button>
+      </div>
+
+    </div>
+  </div>
+}

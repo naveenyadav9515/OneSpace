@@ -42,6 +42,7 @@ export const routes: Routes = [
       { path: 'automation', loadComponent: () => import('./features/expense-tracker/pages/expense-automation/expense-automation.component').then(m => m.ExpenseAutomationComponent), title: 'OneSpace — Automation Settings' },
       { path: 'filter', loadComponent: () => import('./features/expense-tracker/pages/expense-filter/expense-filter.component').then(m => m.ExpenseFilterComponent), title: 'OneSpace — Filter Transactions' },
       { path: 'nanna', loadComponent: () => import('./features/expense-tracker/pages/nanna-expenses/nanna-expenses.component').then(m => m.NannaExpensesComponent), title: 'OneSpace — Rental Logs' },
+      { path: 'rental-collection', loadComponent: () => import('./features/expense-tracker/pages/rental-collection/rental-collection.component').then(m => m.RentalCollectionComponent), title: 'OneSpace — Rental Collection' },
     ]
   },
   { path: '**', redirectTo: '' },

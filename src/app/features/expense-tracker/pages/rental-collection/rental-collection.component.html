@@ -110,16 +110,24 @@
                         } @else {
                           <div class="rc-payment-row">
                             <div class="rc-payment-meta">
-                              <span class="rc-payment-date">{{ formatDate(payment.date) }} · {{ formatTime(payment.date) }}</span>
+                              <div class="rc-payment-date">
+                                <span class="material-symbols-outlined rc-payment-icon">calendar_today</span>
+                                <span class="rc-payment-date-text">{{ formatDate(payment.date) }}</span>
+                                <span class="rc-payment-sep">•</span>
+                                <span class="rc-payment-time">{{ formatTime(payment.date) }}</span>
+                              </div>
                               @if (payment.notes) {
-                                <span class="rc-payment-notes">{{ payment.notes }}</span>
+                                <div class="rc-payment-notes" [title]="payment.notes">
+                                  <span class="material-symbols-outlined rc-notes-icon">notes</span>
+                                  <span class="rc-payment-notes-text">{{ payment.notes }}</span>
+                                </div>
                               }
                             </div>
                             <div class="rc-payment-right">
                               <span class="rc-payment-amount">₹{{ payment.amount | number:'1.0-0' }}</span>
                               <button class="rc-icon-btn rc-icon-btn--danger"
                                       (click)="confirmDelete(payment._id)"
-                                      title="Delete" aria-label="Delete payment">
+                                      title="Delete payment" aria-label="Delete payment">
                                 <span class="material-symbols-outlined">delete</span>
                               </button>
                             </div>
